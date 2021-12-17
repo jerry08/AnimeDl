@@ -7,8 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnimeDl", "src\AnimeDl\Anim
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{186FA9FD-B488-44A8-9D46-62C97FE96D8C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClassLibrary1", "src\ClassLibrary1\ClassLibrary1.csproj", "{9E1EA51C-1076-4B54-B1F0-81B15A23D418}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,17 +17,12 @@ Global
 		{8C04AC66-12B0-4038-9DE5-28724FD2068A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8C04AC66-12B0-4038-9DE5-28724FD2068A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8C04AC66-12B0-4038-9DE5-28724FD2068A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9E1EA51C-1076-4B54-B1F0-81B15A23D418}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9E1EA51C-1076-4B54-B1F0-81B15A23D418}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9E1EA51C-1076-4B54-B1F0-81B15A23D418}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9E1EA51C-1076-4B54-B1F0-81B15A23D418}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{8C04AC66-12B0-4038-9DE5-28724FD2068A} = {186FA9FD-B488-44A8-9D46-62C97FE96D8C}
-		{9E1EA51C-1076-4B54-B1F0-81B15A23D418} = {186FA9FD-B488-44A8-9D46-62C97FE96D8C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C2627F24-3CB6-4366-81DE-CD99D0970AED}
