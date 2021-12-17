@@ -1,12 +1,14 @@
 # AnimeDl
 Anime Scraper
 
-## Example: TCP chat server
-Here comes the example of the TCP chat server. It handles multiple TCP client
-sessions and multicast received message from any session to all ones. Also it
-is possible to send admin message directly from the server.
+## Example 1: Non-Async Method
+Here is an example of using animedl
 
 ```c#
+using System;
+using AnimeDl;
+using AnimeDl.Scrapers;
+
 namespace AnimeApp
 {
     class Class1
@@ -96,6 +98,36 @@ namespace AnimeApp
 
             HttpWebResponse downloadResponse = (HttpWebResponse)downloadRequest.GetResponse();
             var stream = downloadResponse.GetResponseStream();
+        }
+    }
+}
+```
+
+
+## Example 2: Async Method
+Here is an example of using animedl
+
+```c#
+using System;
+using AnimeDl;
+using AnimeDl.Scrapers;
+
+namespace AnimeApp
+{
+    class Class1
+    {
+        public async void Example3()
+        {
+            AnimeScraper scraper = new AnimeScraper();
+
+            var animes = await scraper.SearchAsync("your lie in april");
+            Console.WriteLine("Animes count: " + animes.Count);
+
+            var episodes = await scraper.GetEpisodesAsync(animes[0]);
+            Console.WriteLine("Episodes count: " + episodes.Count);
+
+            var links = await scraper.GetEpisodeLinksAsync(episodes[0]);
+            Console.WriteLine("Episodes count: " + links.Count);
         }
     }
 }
