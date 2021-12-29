@@ -1,5 +1,5 @@
 # AnimeDl
-Anime Scraper
+AnimeDl scrapes animes from sites. Sites available currently: GogoAnime, Twistmoe. More will be added soon!
 
 ## Example 1: Non-Async Method
 Here is an example of using animedl
