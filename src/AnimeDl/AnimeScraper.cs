@@ -13,7 +13,7 @@ namespace AnimeDl
 {
     public class AnimeScraper
     {
-        AnimeSites CurrentSite { get; set; }
+        public AnimeSites CurrentSite { get; private set; }
 
         private List<BaseScraper> AnimeScrapers { get; set; }
         
@@ -27,6 +27,8 @@ namespace AnimeDl
                         return AnimeScrapers.Where(x => x is GogoAnimeScraper).FirstOrDefault();
                     case AnimeSites.TwistMoe:
                         return AnimeScrapers.Where(x => x is TwistScraper).FirstOrDefault();
+                    case AnimeSites.Zoro:
+                        return AnimeScrapers.Where(x => x is ZoroScraper).FirstOrDefault();
                     default:
                         return AnimeScrapers.Where(x => x is GogoAnimeScraper).FirstOrDefault();
                 }
@@ -55,7 +57,8 @@ namespace AnimeDl
             AnimeScrapers = new List<BaseScraper>
             {
                 new GogoAnimeScraper(),
-                new TwistScraper()
+                new TwistScraper(),
+                new ZoroScraper()
             };
         }
 
@@ -81,7 +84,16 @@ namespace AnimeDl
 
             if (forceLoad)
             {
-                task.Wait();
+                //task.Wait();
+
+                while (!task.IsCompleted) {
+                }
+
+                if (task.IsFaulted)
+                {
+                    throw task.Exception;
+                }
+
                 IsLoadingAnimes = false;
                 Animes = task.Result;
                 return Animes;

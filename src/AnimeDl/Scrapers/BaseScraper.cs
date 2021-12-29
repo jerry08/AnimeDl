@@ -11,7 +11,8 @@ namespace AnimeDl.Scrapers
     public enum AnimeSites
     {
         GogoAnime,
-        TwistMoe
+        TwistMoe,
+        Zoro
     }
 
     public enum SearchType

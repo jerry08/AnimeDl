@@ -12,14 +12,12 @@ namespace AnimeDl.Scrapers
     {
         //public override string BaseUrl => "https://gogoanime.pe";
         public override string BaseUrl => "https://www1.gogoanime.cm/";
+
         public string CdnUrl => "https://ajax.gogocdn.net/ajax/load-list-episode?ep_start=0&ep_end=10000&id=";
 
         public override async Task<List<Anime>> SearchAsync(string searchText, 
             SearchType searchType = SearchType.Find, int Page = 1)
         {
-            //Test
-            //await Task.Delay(5000);
-
             List<Anime> animes = new List<Anime>();
 
             string htmlData = "";
@@ -53,15 +51,6 @@ namespace AnimeDl.Scrapers
 
             HtmlDocument document = new HtmlDocument();
             document.LoadHtml(htmlData);
-
-            //var forms1 = document.DocumentNode.Descendants()
-            //    .Where(node => node.Name == "iframe").ToList();
-
-            //var forms = document.DocumentNode.Descendants()
-            //    .Where(node => node.HasClass("items")).ToList();
-            //var tt = forms.FirstOrDefault().Attributes.FirstOrDefault().Value;
-            //
-            //var formst = document.DocumentNode.Descendants().ToList();
 
             HtmlNode itemsNode = document.DocumentNode.Descendants()
                 .Where(node => node.HasClass("items")).FirstOrDefault();
@@ -221,19 +210,6 @@ namespace AnimeDl.Scrapers
             document = new HtmlDocument();
             document.LoadHtml(htmlData);
 
-            //for (int i = 0; i < end; i++)
-            //{
-            //    //string episodeLink = "https://animesa.ga/watchanime.html?q=/videos/" + anime.Name.RemoveBadChars1() + "-episode-" + (i + 1).ToString();
-            //    string episodeLink = "https://animesa.ga/watchanime.html?q=/videos" + anime.Category.Replace("/category", "") + "-episode-" + (i + 1).ToString();
-            //
-            //    animeEventArgs.Episodes.Add(new Episode()
-            //    {
-            //        EpisodeNumber = i + 1,
-            //        EpisodeName = anime.Name + $" - Episode {i + 1}",
-            //        EpisodeLink = episodeLink
-            //    });
-            //}
-
             List<HtmlNode> liNodes = document.DocumentNode.Descendants()
                 .Where(node => node.Name == "li")
                 .ToList();
@@ -296,8 +272,6 @@ namespace AnimeDl.Scrapers
 
             bool download = true;
 
-            //Scrapers.Clear();
-
             //string link = anime.Link.Replace("/category", "") + "-episode-" + episode.EpisodeNumber;
             string link = episode.EpisodeLink;
 
@@ -314,22 +288,6 @@ namespace AnimeDl.Scrapers
 
             if (download)
             {
-                /*Option1 option1 = new Option1(gogoAnimePageDocument);
-                Option2 option2 = new Option2(gogoAnimePageDocument);
-                Option3 option3 = new Option3(gogoAnimePageDocument);
-                Scrapers.Add(option1);
-                Scrapers.Add(option2);
-                Scrapers.Add(option3);
-                Scrapers.Add(new NewScraper(gogoAnimePageDocument));
-                Scrapers.Add(new XStreamScraper(gogoAnimePageDocument));
-
-                //option1.getQualityUrls();
-                //option2.getQualityUrls();
-                //new NewScraper(gogoAnimePageDocument).getQualityUrls();
-                //new XStreamScraper(gogoAnimePageDocument).getQualityUrls();
-
-                Qualities = Scrapers.ElementAt(CurrentScraper).GetQualityUrls();*/
-
                 var vidStreamNode = gogoAnimePageDocument.DocumentNode
                     .SelectSingleNode(".//div[@class='play-video']/iframe");
 
@@ -358,25 +316,6 @@ namespace AnimeDl.Scrapers
                         });
                     }
                 }
-
-                /*if (Qualities.Count == 0)
-                {
-                    CurrentScraper--;
-                    if (CurrentScraper < 0)
-                    {
-                        useFallBack();
-                    }
-                    else
-                    {
-                        link = gogoAnimeUrl;
-                        changingScraper();
-                    }
-                }
-                host = Scrapers.get(CurrentScraper).getHost();
-                if (CurrentScraper == 0)
-                    currentQuality = 0;
-                else
-                    currentQuality = Qualities.Count - 1;*/
             }
             else
             {
@@ -496,14 +435,6 @@ namespace AnimeDl.Scrapers
                         }
                     }*/
                 }
-
-                //string videoUrl = "";
-                //
-                //HtmlNode videoNode = nodes[i].SelectSingleNode(".//div[@class='play-video']/iframe");
-                //if (videoNode != null)
-                //{
-                //    videoUrl = videoNode.Attributes["src"].Value;
-                //}
             }
 
             return qualities;

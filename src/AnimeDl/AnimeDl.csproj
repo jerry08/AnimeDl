@@ -54,20 +54,22 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AnimeScraper.cs" />
+    <Compile Include="Extractors\Streamsb.cs" />
     <Compile Include="Models\Anime.cs" />
     <Compile Include="Models\Episode.cs" />
     <Compile Include="Models\Genre.cs" />
     <Compile Include="Models\Quality.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Scrapers\AnimeFrenzyScraper.cs" />
-    <Compile Include="Scrapers\AnimeTakeScraper.cs" />
+    <Compile Include="Scrapers\AnimeFrenzy\AnimeFrenzyScraper.cs" />
+    <Compile Include="Scrapers\AnimeTake\AnimeTakeScraper.cs" />
     <Compile Include="Scrapers\BaseScraper.cs" />
     <Compile Include="Scrapers\Events\AnimeEventArgs.cs" />
     <Compile Include="Scrapers\Events\EpisodesEventArgs.cs" />
     <Compile Include="Scrapers\Events\GenreEventArgs.cs" />
     <Compile Include="Scrapers\Events\QualityEventArgs.cs" />
-    <Compile Include="Scrapers\GogoAnimeScraper.cs" />
-    <Compile Include="Scrapers\StreamAniScraper.cs" />
+    <Compile Include="Scrapers\Gogoplay\GogoAnimeScraper.cs" />
+    <Compile Include="Scrapers\Gogoplay\StreamAniScraper.cs" />
+    <Compile Include="Scrapers\Zoro\ZoroScraper.cs" />
     <Compile Include="Scrapers\Twist\TwistDecryptor.cs" />
     <Compile Include="Scrapers\Twist\TwistScraper.cs" />
     <Compile Include="Utils\RandomUA.cs" />
