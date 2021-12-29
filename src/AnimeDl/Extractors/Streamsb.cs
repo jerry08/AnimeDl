@@ -13,10 +13,12 @@ namespace AnimeDl.Extractors
 {
     class Streamsb
     {
-        public async Task<string> ExtractUrl(string url)
+        public async Task<List<Quality>> ExtractQualities(string url)
         {
             url = url.Replace("/e/", "/d/");
             string html = await Utils.GetHtmlAsync(url);
+
+            var list = new List<Quality>();
 
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(html);
@@ -32,18 +34,20 @@ namespace AnimeDl.Extractors
                 {
                     string link = linkNode.Attributes["onclick"]?.Value;
 
-                    var match = qualityMatch.Match(html);
+                    Match match = qualityMatch.Match(html);
                     int quality = Convert.ToInt32(match.Groups[1].Value);
+                    
                     var groups = downloadContent.Match(link).Groups;
+                    string contentId = groups[1].Value;
+                    string mode = groups[2].Value;
+                    string contentHash = groups[3].Value;
 
-                    var contentId = groups[1];
-                    var mode = groups[2];
-                    var contentHash = groups[3];
+                    string downloadUrl = $"https://sbplay1.com/dl?op=download_orig&id={contentId}&mode={mode}&hash={contentHash}";
 
-                    var downloadUrl = $"https://sbplay1.com/dl?op=download_orig&id={contentId}&mode={mode}&hash={contentHash}";
-
-                    var headers = new WebHeaderCollection();
-                    headers.Add("Referer", url);
+                    var headers = new WebHeaderCollection
+                    {
+                        { "Referer", url }
+                    };
 
                     string html2 = await Utils.GetHtmlAsync(downloadUrl, headers);
 
@@ -56,19 +60,17 @@ namespace AnimeDl.Extractors
 
                     for (int j = 0; j < directDownloadNodes.Count; j++)
                     {
-                        Quality quality1 = new Quality()
+                        list.Add(new Quality()
                         {
                             Resolution = quality.ToString(),
                             QualityUrl = directDownloadNodes[j].Attributes["href"].Value,
                             Referer = url
-                        };
-
-                        //return qualities;
+                        });
                     }
                 }
             }
 
-            return "";
+            return list;
         }
     }
 }

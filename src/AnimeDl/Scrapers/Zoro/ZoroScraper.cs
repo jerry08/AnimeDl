@@ -183,7 +183,8 @@ namespace AnimeDl.Scrapers
                             break;
                         case "5":
                             //streamsb
-                            newQualityUrl = await new Streamsb().ExtractUrl(qualityUrl);
+                            var qualities = await new Streamsb().ExtractQualities(qualityUrl);
+                            list.AddRange(qualities);
                             break;
                         case "3":
                             //streamtape
@@ -192,10 +193,10 @@ namespace AnimeDl.Scrapers
                             break;
                     }
 
-                    list.Add(new Quality()
-                    {
-                        QualityUrl = newQualityUrl,
-                    });
+                    //list.Add(new Quality()
+                    //{
+                    //    QualityUrl = newQualityUrl,
+                    //});
                 }
             }
 
