@@ -4,6 +4,7 @@ AnimeDl scrapes animes from sites.
 ## Sites available currently
 * GogoAnime
 * Twistmoe
+* Zoro
 * More will be added soon (for backups)
 
 
