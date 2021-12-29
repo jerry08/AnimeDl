@@ -16,9 +16,6 @@ namespace AnimeDl.Scrapers
     {
         public override string BaseUrl => "https://zoro.to";
 
-        string AjaxListEpisodes = "/ajax/v2/episode/list/";
-        string AjaxEpisodeServers = "/ajax/v2/episode/servers";
-
         public override async Task<List<Anime>> SearchAsync(string searchText,
             SearchType searchType = SearchType.Find, int Page = 1)
         {
@@ -104,7 +101,7 @@ namespace AnimeDl.Scrapers
         public override async Task<List<Episode>> GetEpisodesAsync(Anime anime)
         {
             string dataId = anime.Category.Split('-').Last().Split('?')[0];
-            string url = $"{BaseUrl}{AjaxListEpisodes}{dataId}";
+            string url = $"{BaseUrl}/ajax/v2/episode/list/{dataId}";
 
             string json = await Utils.GetHtmlAsync(url);
             var jObj = JObject.Parse(json);
@@ -134,13 +131,13 @@ namespace AnimeDl.Scrapers
             return episodes;
         }
 
-        public override async Task<List<Quality>> GetEpisodeLinksAsync(Episode episode, bool showAllMirrorLinks = false)
+        public override async Task<List<Quality>> GetEpisodeLinksAsync(Episode episode, bool showAdditionalLinks = false)
         {
             List<Quality> list = new List<Quality>();
 
             string dataId = episode.EpisodeLink.Split(new string[] { "ep=" }, 
                 StringSplitOptions.None).Last();
-            string url = $"{BaseUrl}{AjaxEpisodeServers}?episodeId={dataId}";
+            string url = $"{BaseUrl}/ajax/v2/episode/servers?episodeId={dataId}";
 
             string json = await Utils.GetHtmlAsync(url);
 
@@ -165,6 +162,7 @@ namespace AnimeDl.Scrapers
 
                 var jObj2 = JObject.Parse(json2);
                 string type = jObj2["type"].ToString();
+                string server = jObj2["server"].ToString();
 
                 if (type != "iframe")
                 {
@@ -173,22 +171,33 @@ namespace AnimeDl.Scrapers
                 else
                 {
                     string qualityUrl = jObj2["link"].ToString();
+                    string newQualityUrl = "";
+
+                    switch (server)
+                    {
+                        case "4":
+                            //rapidvideo
+                            break;
+                        case "1":
+                            //rapidvideo
+                            break;
+                        case "5":
+                            //streamsb
+                            newQualityUrl = await new Streamsb().ExtractUrl(qualityUrl);
+                            break;
+                        case "3":
+                            //streamtape
+                            break;
+                        default:
+                            break;
+                    }
 
                     list.Add(new Quality()
                     {
-                        qualityUrl = qualityUrl,
+                        QualityUrl = newQualityUrl,
                     });
                 }
             }
-
-            for (int i = 0; i < list.Count; i++)
-            {
-                var quality = list[i];
-
-                var tt = await new Streamsb().ExtractUrl(quality.qualityUrl);
-            }
-
-            //string sources = "https://zoro.to/ajax/v2/episode/sources?id=833274";
 
             return list;
         }

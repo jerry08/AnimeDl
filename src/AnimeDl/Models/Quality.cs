@@ -8,8 +8,11 @@ namespace AnimeDl
     public class Quality
     {
         public string Referer { get; set; }
-        public string quality { get; set; }
-        public string qualityUrl { get; set; }
+
+        public string Resolution { get; set; }
+
+        public string QualityUrl { get; set; }
+
         public string FileSize { get; set; }
     }
 }

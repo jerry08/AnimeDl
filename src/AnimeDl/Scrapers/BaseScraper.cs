@@ -15,6 +15,7 @@ namespace AnimeDl.Scrapers
         Zoro
     }
 
+    //For Gogoanime
     public enum SearchType
     {
         Find,

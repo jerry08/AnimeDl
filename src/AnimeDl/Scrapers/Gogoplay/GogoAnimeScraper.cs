@@ -241,13 +241,13 @@ namespace AnimeDl.Scrapers
 
                 link = BaseUrl + link;
                 int epNumber = 1;
+
                 try
                 {
                     epNumber = Convert.ToInt32(link.Split(new char[] { '-' }).LastOrDefault());
                 }
                 catch (Exception e)
                 {
-                    System.Console.Write(e.Message);
                     continue;
                 }
 
@@ -277,8 +277,8 @@ namespace AnimeDl.Scrapers
 
             string htmlData = await Utils.GetHtmlAsync(link);
 
-            HtmlDocument gogoAnimePageDocument = new HtmlDocument();
-            gogoAnimePageDocument.LoadHtml(htmlData);
+            HtmlDocument doc = new HtmlDocument();
+            doc.LoadHtml(htmlData);
 
             //Exception for fire force season 2 episode 1
             if (htmlData.Contains(@">404</h1>"))
@@ -288,7 +288,7 @@ namespace AnimeDl.Scrapers
 
             if (download)
             {
-                var vidStreamNode = gogoAnimePageDocument.DocumentNode
+                var vidStreamNode = doc.DocumentNode
                     .SelectSingleNode(".//div[@class='play-video']/iframe");
 
                 if (vidStreamNode != null)
@@ -311,15 +311,15 @@ namespace AnimeDl.Scrapers
                         qualities.Add(new Quality()
                         {
                             Referer = vidCdnUrl,
-                            quality = aNodes[i].InnerText.Replace("Download", "").Trim(),
-                            qualityUrl = aNodes[i].Attributes["href"].Value
+                            Resolution = aNodes[i].InnerText.Replace("Download", "").Trim(),
+                            QualityUrl = aNodes[i].Attributes["href"].Value
                         });
                     }
                 }
             }
             else
             {
-                var vidStreamNode = gogoAnimePageDocument.DocumentNode
+                var vidStreamNode = doc.DocumentNode
                     .SelectSingleNode(".//div[@class='play-video']/iframe");
 
                 if (vidStreamNode != null)
@@ -342,8 +342,8 @@ namespace AnimeDl.Scrapers
                         qualities.Add(new Quality()
                         {
                             Referer = vidCdnUrl,
-                            quality = aNodes[i].InnerText.Replace("Download", "").Trim(),
-                            qualityUrl = aNodes[i].Attributes["href"].Value
+                            Resolution = aNodes[i].InnerText.Replace("Download", "").Trim(),
+                            QualityUrl = aNodes[i].Attributes["href"].Value
                         });
                     }
 

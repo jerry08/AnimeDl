@@ -79,19 +79,7 @@ namespace AnimeDl.DemoConsole
 
         public static void DownloadExample(Quality quality)
         {
-            HttpWebRequest downloadRequest = (HttpWebRequest)WebRequest.Create(quality.qualityUrl);
-
-            //downloadRequest.Headers.Add("Upgrade-Insecure-Requests", "1");
-            //downloadRequest.UserAgent = "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Mobile Safari/537.36 Edg/94.0.992.47";
-            //downloadRequest.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9";
-            //downloadRequest.Headers.Add("Sec-Fetch-Site", "cross-site");
-            //downloadRequest.Headers.Add("Sec-Fetch-Mode", "navigate");
-            //downloadRequest.Headers.Add("Sec-Fetch-User", "?1");
-            //downloadRequest.Headers.Add("Sec-Fetch-Dest", "document");
-            //downloadRequest.Headers.Add("sec-ch-ua", @"""Chromium"";v=""94"", ""Microsoft Edge"";v=""94"", "";Not A Brand"";v=""99""");
-            //downloadRequest.Headers.Add("sec-ch-ua-mobile", "?1");
-            //downloadRequest.Headers.Add("sec-ch-ua-platform", @"""Android""");
-            //downloadRequest.Headers.Add("Accept-Language", "en-US,en;q=0.9");
+            HttpWebRequest downloadRequest = (HttpWebRequest)WebRequest.Create(quality.QualityUrl);
             
             //downloadRequest.Referer = "https://goload.one/";
             downloadRequest.Referer = quality.Referer;

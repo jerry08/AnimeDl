@@ -174,7 +174,7 @@ namespace AnimeDl.Scrapers
 
             list.Add(new Quality() 
             {
-                qualityUrl = episode.EpisodeLink,
+                QualityUrl = episode.EpisodeLink,
                 Referer = BaseUrl,
             });
 
