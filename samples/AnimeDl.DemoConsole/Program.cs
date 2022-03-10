@@ -1,13 +1,35 @@
 ﻿using AnimeDl.Scrapers;
 using System;
+using System.Diagnostics;
 using System.Net;
+using System.Runtime.InteropServices;
 
 namespace AnimeDl.DemoConsole
 {
     class Program
     {
+        // http://msdn.microsoft.com/en-us/library/ms686033(VS.85).aspx
+        [DllImport("kernel32.dll")]
+        public static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
+
+        private const uint ENABLE_EXTENDED_FLAGS = 0x0080;
+
+        private static void DisableQuickEditMode()
+        {
+            // Disable QuickEdit Mode
+            // Quick Edit mode freezes the app to let users select text.
+            // We don't want that. We want the app to run smoothly in the background.
+            // - https://stackoverflow.com/q/4453692
+            // - https://stackoverflow.com/a/4453779
+            // - https://stackoverflow.com/a/30517482
+
+            IntPtr handle = Process.GetCurrentProcess().MainWindowHandle;
+            SetConsoleMode(handle, ENABLE_EXTENDED_FLAGS);
+        }
+
         static void Main(string[] args)
         {
+            DisableQuickEditMode();
             Example2();
         }
 
@@ -51,7 +73,7 @@ namespace AnimeDl.DemoConsole
 
         public static void Example2()
         {
-            AnimeScraper scraper = new AnimeScraper(AnimeSites.Zoro);
+            AnimeScraper scraper = new AnimeScraper(AnimeSites.GogoAnime);
 
             var animes = scraper.Search("your lie in april", forceLoad: true);
             Console.WriteLine("Animes count: " + animes.Count);
@@ -60,7 +82,9 @@ namespace AnimeDl.DemoConsole
             Console.WriteLine("Episodes count: " + episodes.Count);
 
             var links = scraper.GetEpisodeLinks(episodes[0], forceLoad: true);
-            Console.WriteLine("Episodes count: " + links.Count);
+            Console.WriteLine($"Episodes count: " + links.Count);
+
+            Console.ReadLine();
         }
 
         public static async void Example3()

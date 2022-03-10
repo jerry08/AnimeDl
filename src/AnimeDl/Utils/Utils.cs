@@ -23,7 +23,6 @@ namespace AnimeDl
         {
             var task = GetHtmlAsync(url, headers);
             task.Wait();
-
             return task.Result;
         }
 
@@ -78,7 +77,8 @@ namespace AnimeDl
 
                     break;
                 }
-                catch (Exception e) when (i < NumberOfRetries)
+                //catch (Exception e) when (i < NumberOfRetries)
+                catch (Exception e)
                 {
                     await Task.Delay(DelayOnRetry);
                 }

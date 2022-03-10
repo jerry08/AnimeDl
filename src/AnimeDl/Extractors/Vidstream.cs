@@ -11,18 +11,25 @@ using System.Net;
 
 namespace AnimeDl.Extractors
 {
-    class Vidstream
+    class Vidstream : BaseExtractor
     {
-        public async Task<List<Quality>> ExtractQualities(string url, bool showAllMirrorLinks)
+        bool ShowAllMirrorLinks;
+
+        public Vidstream(bool showAllMirrorLinks)
+        {
+            ShowAllMirrorLinks = showAllMirrorLinks;
+        }
+
+        public override async Task<List<Quality>> ExtractQualities(string url)
         {
             string htmlData = await Utils.GetHtmlAsync(url);
 
-            HtmlDocument doc2 = new HtmlDocument();
-            doc2.LoadHtml(htmlData);
+            HtmlDocument doc = new HtmlDocument();
+            doc.LoadHtml(htmlData);
 
-            var aNodes = doc2.DocumentNode
+            var aNodes = doc.DocumentNode
                 .SelectSingleNode("//div[@class='mirror_link']")
-                .SelectNodes(showAllMirrorLinks ? "//a" : ".//a");
+                .SelectNodes(ShowAllMirrorLinks ? "//a" : ".//a");
 
             var list = new List<Quality>();
 

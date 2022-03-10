@@ -131,6 +131,20 @@ namespace AnimeDl.Scrapers
             return episodes;
         }
 
+        /*private async Task<string> GetM3u8FromRapidCloud(string url)
+        {
+            var headers = new WebHeaderCollection()
+            {
+                { "Referer", "https://zoro.to/" },
+                { "User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:94.0) Gecko/20100101 Firefox/94.0" }
+            };
+
+            url = $"{url}&autoPlay=1&oa=0";
+            string text = await Utils.GetHtmlAsync(url, headers);
+
+            return text;
+        }*/
+
         public override async Task<List<Quality>> GetEpisodeLinksAsync(Episode episode, bool showAdditionalLinks = false)
         {
             List<Quality> list = new List<Quality>();
@@ -154,10 +168,9 @@ namespace AnimeDl.Scrapers
             for (int i = 0; i < nodes.Count; i++)
             {
                 string dataId2 = nodes[i].Attributes["data-id"].Value;
-                string url2 = $"https://zoro.to/ajax/v2/episode/sources?id={dataId2}";
-                
                 string title = nodes[i].Attributes["data-type"].Value;
-
+                
+                string url2 = $"https://zoro.to/ajax/v2/episode/sources?id={dataId2}";
                 string json2 = await Utils.GetHtmlAsync(url2);
 
                 var jObj2 = JObject.Parse(json2);
@@ -171,7 +184,6 @@ namespace AnimeDl.Scrapers
                 else
                 {
                     string qualityUrl = jObj2["link"].ToString();
-                    string newQualityUrl = "";
 
                     switch (server)
                     {
@@ -182,21 +194,21 @@ namespace AnimeDl.Scrapers
                             //rapidvideo
                             break;
                         case "5":
-                            //streamsb
-                            var qualities = await new Streamsb().ExtractQualities(qualityUrl);
-                            list.AddRange(qualities);
+                            //StreamSB
+                            list.AddRange(await new StreamSB().ExtractQualities(qualityUrl));
                             break;
                         case "3":
                             //streamtape
+                            list.AddRange(await new StreamTape().ExtractQualities(qualityUrl));
                             break;
                         default:
                             break;
                     }
+                }
 
-                    //list.Add(new Quality()
-                    //{
-                    //    QualityUrl = newQualityUrl,
-                    //});
+                if (list.Count > 0)
+                {
+                    break;
                 }
             }
 

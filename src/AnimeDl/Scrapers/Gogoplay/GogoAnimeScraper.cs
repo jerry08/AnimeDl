@@ -11,7 +11,8 @@ namespace AnimeDl.Scrapers
     public class GogoAnimeScraper : BaseScraper
     {
         //public override string BaseUrl => "https://gogoanime.pe";
-        public override string BaseUrl => "https://www1.gogoanime.cm/";
+        //public override string BaseUrl => "https://www1.gogoanime.cm/";
+        public override string BaseUrl => "https://gogoanime.fi/";
 
         public string CdnUrl => "https://ajax.gogocdn.net/ajax/load-list-episode?ep_start=0&ep_end=10000&id=";
 
@@ -151,8 +152,7 @@ namespace AnimeDl.Scrapers
             }
 
             List<HtmlNode> animeInfoNodes = document.DocumentNode
-                .SelectNodes(".//div[@class='anime_info_body_bg']/p")
-                .ToList();
+                .SelectNodes(".//div[@class='anime_info_body_bg']/p").ToList();
 
             for (int i = 0; i < animeInfoNodes.Count; i++)
             {
@@ -324,6 +324,8 @@ namespace AnimeDl.Scrapers
 
                 if (vidStreamNode != null)
                 {
+                    //https://gogo-stream.com/streaming.php?id=MTE3NDg5
+
                     string vidStreamUrl = "https:" + vidStreamNode.Attributes["src"].Value;
                     //string vidCdnUrl = vidStreamUrl.Replace("streaming.php", "loadserver.php");
                     string vidCdnUrl = vidStreamUrl.Replace("streaming.php", "download");
