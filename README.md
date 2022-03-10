@@ -4,6 +4,7 @@ AnimeDl scrapes animes from sites.
 ## Sites available currently
 * GogoAnime
 * Twistmoe
+* Zoro
 * More will be added soon (for backups)
 
 
@@ -118,8 +119,9 @@ namespace AnimeApp
     {
         public void DownloadExample(Quality quality)
         {
-            HttpWebRequest downloadRequest = (HttpWebRequest)WebRequest.Create(quality.qualityUrl);
-
+            HttpWebRequest downloadRequest = (HttpWebRequest)WebRequest.Create(quality.QualityUrl);
+            
+            //downloadRequest.Referer = "https://goload.one/";
             downloadRequest.Referer = quality.Referer;
 
             HttpWebResponse downloadResponse = (HttpWebResponse)downloadRequest.GetResponse();
