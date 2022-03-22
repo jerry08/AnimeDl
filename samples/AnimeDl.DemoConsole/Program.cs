@@ -1,6 +1,8 @@
 ﻿using AnimeDl.Scrapers;
 using System;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 
@@ -73,7 +75,7 @@ namespace AnimeDl.DemoConsole
 
         public static void Example2()
         {
-            AnimeScraper scraper = new AnimeScraper(AnimeSites.GogoAnime);
+            AnimeScraper scraper = new AnimeScraper(AnimeSites.Zoro);
 
             var animes = scraper.Search("your lie in april", forceLoad: true);
             Console.WriteLine("Animes count: " + animes.Count);
@@ -105,11 +107,12 @@ namespace AnimeDl.DemoConsole
         {
             HttpWebRequest downloadRequest = (HttpWebRequest)WebRequest.Create(quality.QualityUrl);
             
-            //downloadRequest.Referer = "https://goload.one/";
             downloadRequest.Referer = quality.Referer;
 
             HttpWebResponse downloadResponse = (HttpWebResponse)downloadRequest.GetResponse();
-            var stream = downloadResponse.GetResponseStream();
+            Stream stream = downloadResponse.GetResponseStream();
+
+            //Save your stream to file...
         }
     }
 }

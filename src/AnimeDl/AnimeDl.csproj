@@ -56,6 +56,7 @@
     <Compile Include="AnimeScraper.cs" />
     <Compile Include="Extractors\BaseExtractor.cs" />
     <Compile Include="Extractors\StreamTape.cs" />
+    <Compile Include="Extractors\GogoCDN.cs" />
     <Compile Include="Extractors\Vidstream.cs" />
     <Compile Include="Extractors\Streamsb.cs" />
     <Compile Include="Models\Anime.cs" />
@@ -69,11 +70,12 @@
     <Compile Include="Scrapers\Events\EpisodesEventArgs.cs" />
     <Compile Include="Scrapers\Events\GenreEventArgs.cs" />
     <Compile Include="Scrapers\Events\QualityEventArgs.cs" />
-    <Compile Include="Scrapers\Gogoplay\GogoAnimeScraper.cs" />
-    <Compile Include="Scrapers\Gogoplay\GogoanimeSearchOptions.cs" />
+    <Compile Include="Scrapers\Gogoanime\GogoAnimeScraper.cs" />
+    <Compile Include="Scrapers\Gogoanime\GogoanimeSearchOptions.cs" />
     <Compile Include="Scrapers\Zoro\ZoroScraper.cs" />
     <Compile Include="Scrapers\Twist\TwistDecryptor.cs" />
     <Compile Include="Scrapers\Twist\TwistScraper.cs" />
+    <Compile Include="Utils\StringExtensions.cs" />
     <Compile Include="Utils\M3u8Helper.cs" />
     <Compile Include="Utils\RandomUA.cs" />
     <Compile Include="Utils\Utils.cs" />

@@ -244,32 +244,6 @@ namespace AnimeDl
         }
     }
 
-    public static class StringExtensions
-    {
-        //? - any character (one and only one)
-        //* - any characters (zero or more)
-        public static string WildCardToRegular(string value)
-        {
-            // If you want to implement both "*" and "?"
-            return "^" + Regex.Escape(value).Replace("\\?", ".").Replace("\\*", ".*") + "$";
-
-            // If you want to implement "*" only
-            //return "^" + Regex.Escape(value).Replace("\\*", ".*") + "$";
-        }
-
-        static void Test()
-        {
-            string test = "Some Data X";
-
-            bool endsWithEx = Regex.IsMatch(test, WildCardToRegular("*X"));
-            bool startsWithS = Regex.IsMatch(test, WildCardToRegular("S*"));
-            bool containsD = Regex.IsMatch(test, WildCardToRegular("*D*"));
-
-            // Starts with S, ends with X, contains "me" and "a" (in that order) 
-            bool complex = Regex.IsMatch(test, WildCardToRegular("S*me*a*X"));
-        }
-    }
-
     /// <summary>
     /// Contains approximate string matching
     /// </summary>

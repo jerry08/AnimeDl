@@ -1,7 +1,9 @@
-﻿using HtmlAgilityPack;
+﻿using AnimeDl.Extractors;
+using HtmlAgilityPack;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -203,6 +205,8 @@ namespace AnimeDl.Scrapers
 
             //https://ajax.gogocdn.net/ajax/load-list-episode?ep_start=500&ep_end=500&id=133&default_ep=0&alias=naruto-shippuden
 
+            //string sf = $"https://vidstream.pro/info/{movieId}?domain=gogoanime.be&skey=db04c5540929bebd456b9b16643fc436";
+
             string url = CdnUrl + movieId;
 
             htmlData = await Utils.GetHtmlAsync(url);
@@ -270,8 +274,6 @@ namespace AnimeDl.Scrapers
         {
             List<Quality> qualities = new List<Quality>();
 
-            bool download = true;
-
             //string link = anime.Link.Replace("/category", "") + "-episode-" + episode.EpisodeNumber;
             string link = episode.EpisodeLink;
 
@@ -286,156 +288,34 @@ namespace AnimeDl.Scrapers
                 htmlData = await Utils.GetHtmlAsync(link + "-1");
             }
 
-            if (download)
+            var vidStreamNode = doc.DocumentNode
+                .SelectSingleNode(".//div[@class='play-video']/iframe");
+            if (vidStreamNode != null)
             {
-                var vidStreamNode = doc.DocumentNode
-                    .SelectSingleNode(".//div[@class='play-video']/iframe");
+                string vidStreamUrl = "https:" + vidStreamNode.Attributes["src"].Value;
+                //string vidCdnUrl = vidStreamUrl.Replace("streaming.php", "loadserver.php");
+                //string vidCdnUrl = vidStreamUrl.Replace("streaming.php", "download");
+                string vidCdnUrl = vidStreamUrl;
 
-                if (vidStreamNode != null)
+                return await new GogoCDN(true).ExtractQualities(vidCdnUrl);
+
+                htmlData = await Utils.GetHtmlAsync(vidCdnUrl);
+
+                HtmlDocument doc2 = new HtmlDocument();
+                doc2.LoadHtml(htmlData);
+
+                var aNodes = doc2.DocumentNode
+                    .SelectSingleNode("//div[@class='mirror_link']")
+                    .SelectNodes(showAllMirrorLinks ? "//a" : ".//a");
+
+                for (int i = 0; i < aNodes.Count; i++)
                 {
-                    string vidStreamUrl = "https:" + vidStreamNode.Attributes["src"].Value;
-                    //string vidCdnUrl = vidStreamUrl.Replace("streaming.php", "loadserver.php");
-                    string vidCdnUrl = vidStreamUrl.Replace("streaming.php", "download");
-
-                    htmlData = await Utils.GetHtmlAsync(vidCdnUrl);
-
-                    HtmlDocument doc2 = new HtmlDocument();
-                    doc2.LoadHtml(htmlData);
-
-                    var aNodes = doc2.DocumentNode
-                        .SelectSingleNode("//div[@class='mirror_link']")
-                        .SelectNodes(showAllMirrorLinks ? "//a" : ".//a");
-
-                    for (int i = 0; i < aNodes.Count; i++)
+                    qualities.Add(new Quality()
                     {
-                        qualities.Add(new Quality()
-                        {
-                            Referer = vidCdnUrl,
-                            Resolution = aNodes[i].InnerText.Replace("Download", "").Trim(),
-                            QualityUrl = aNodes[i].Attributes["href"].Value
-                        });
-                    }
-                }
-            }
-            else
-            {
-                var vidStreamNode = doc.DocumentNode
-                    .SelectSingleNode(".//div[@class='play-video']/iframe");
-
-                if (vidStreamNode != null)
-                {
-                    //https://gogo-stream.com/streaming.php?id=MTE3NDg5
-
-                    string vidStreamUrl = "https:" + vidStreamNode.Attributes["src"].Value;
-                    //string vidCdnUrl = vidStreamUrl.Replace("streaming.php", "loadserver.php");
-                    string vidCdnUrl = vidStreamUrl.Replace("streaming.php", "download");
-
-                    htmlData = await Utils.GetHtmlAsync(vidCdnUrl);
-
-                    HtmlDocument doc2 = new HtmlDocument();
-                    doc2.LoadHtml(htmlData);
-
-                    var aNodes = doc2.DocumentNode
-                        .SelectSingleNode("//div[@class='mirror_link']")
-                        .SelectNodes(".//a");
-
-                    for (int i = 0; i < aNodes.Count; i++)
-                    {
-                        qualities.Add(new Quality()
-                        {
-                            Referer = vidCdnUrl,
-                            Resolution = aNodes[i].InnerText.Replace("Download", "").Trim(),
-                            QualityUrl = aNodes[i].Attributes["href"].Value
-                        });
-                    }
-
-                    //file:
-
-                    //var linkParser = new Regex(@"\b(?:https?://|www\.)\S+\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-                    //foreach (Match m in linkParser.Matches(htmlData))
-                    //{
-                    //    string v = m.Value;
-                    //}
-
-                    /*//var linkParser = new Regex(@"\b(?:https?://|www\.)\S+\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-                    var linkParser = new Regex(@"http(s)?://([\w-]+\.)+[\w-]+(/[\w- ./?%&=]*)?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-                    var matches = linkParser.Matches(htmlData).ToList();
-
-                    for (int i = 0; i < matches.Count; i++)
-                    {
-                        string v = matches[i].Value;
-                        //if (v.Contains("gogo"))
-                        if (v.Contains("goto.php?"))
-                        {
-                            animeEventArgs.EpisodeLink = v;
-
-                            Qualities.Add(new Quality() 
-                            {
-                                quality = "(Original Quality)",
-                                qualityUrl = v
-                            });
-
-                            //animeEventArgs.Downloads.Add(new Download()
-                            //{
-                            //    Id = i + 1,
-                            //    Link = animeEventArgs.EpisodeLink,
-                            //    Name = episode.EpisodeName,
-                            //    Quality = "(Original Quality)"
-                            //});
-                        }
-                    }
-
-                    Match downloadM = matches
-                        .Where(x => x.Value.Contains("gogo-stream.com/download"))
-                        .FirstOrDefault();
-                    if (downloadM != null)
-                    {
-                        htmlData = await Utils.GetHtmlAsync(downloadM.Value);
-
-                        HtmlDocument vidStreamDocument = new HtmlDocument();
-                        vidStreamDocument.LoadHtml(htmlData);
-
-                        var mirrorLink = vidStreamDocument.DocumentNode
-                            .Descendants().Where(x => x.HasClass("mirror_link"))
-                            .FirstOrDefault();
-
-                        //List<HtmlNode> downloadNodes = vidStreamDocument.DocumentNode
-                        //    .Descendants().Where(x => x.HasClass("dowload"))
-                        //    .ToList();
-
-                        List<HtmlNode> downloadNodes = mirrorLink.Descendants()
-                            .Where(x => x.HasClass("dowload"))
-                            .ToList();
-
-                        for (int i = 0; i < downloadNodes.Count; i++)
-                        {
-                            string downloadLink = "";
-                            string quality = "";
-
-                            HtmlNode aNode = downloadNodes[i].SelectSingleNode(".//a");
-                            if (aNode != null)
-                            {
-                                downloadLink = aNode.Attributes["href"].Value;
-                                downloadLink = downloadLink.Replace("amp;", "");
-                                quality = aNode.InnerHtml?.Trim();
-                                quality = quality.Replace("Download", "").Trim();
-                            }
-
-                            Qualities.Add(new Quality()
-                            {
-                                quality = quality,
-                                qualityUrl = downloadLink
-                            });
-
-                            //animeEventArgs.Downloads.Add(new Download()
-                            //{
-                            //    Id = i + 1,
-                            //    Link = downloadLink,
-                            //    Name = episode.EpisodeName,
-                            //    Quality = quality
-                            //});
-                        }
-                    }*/
+                        Referer = vidCdnUrl,
+                        Resolution = aNodes[i].InnerText.Replace("Download", "").Trim(),
+                        QualityUrl = aNodes[i].Attributes["href"].Value
+                    });
                 }
             }
 

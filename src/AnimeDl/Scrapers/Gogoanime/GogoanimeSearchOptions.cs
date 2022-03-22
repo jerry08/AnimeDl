@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AnimeDl.Scrapers.Gogoplay
+namespace AnimeDl.Scrapers.Gogoanime
 {
     public class GogoanimeSearchOptions
     {

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace AnimeDl
+﻿namespace AnimeDl
 {
     public class Quality
     {
@@ -14,5 +9,7 @@ namespace AnimeDl
         public string QualityUrl { get; set; }
 
         public string FileSize { get; set; }
+
+        public string FileType { get; set; }
     }
 }
