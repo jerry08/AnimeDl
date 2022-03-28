@@ -48,6 +48,8 @@ namespace AnimeDl
                         request.Headers = headers;
                     }
 
+                    request.ServerCertificateValidationCallback += delegate { return true; };
+
                     HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync();
                     Stream receiveStream = response.GetResponseStream();
                     StreamReader streamReader = null;

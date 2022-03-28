@@ -49,8 +49,9 @@ namespace AnimeDl
 
         public IEnumerable<M3u8Stream> M3u8Generation(M3u8Stream m3u8)
         {
-            var m3u8Parent = GetParentLink(m3u8.StreamUrl);
+            string m3u8Parent = GetParentLink(m3u8.StreamUrl);
             var response = Utils.GetHtml(m3u8.StreamUrl, m3u8.Headers);
+            //var response = Utils.GetHtml(m3u8Parent, m3u8.Headers);
 
             foreach (Match match in QUALITY_REGEX.Matches(response))
             {

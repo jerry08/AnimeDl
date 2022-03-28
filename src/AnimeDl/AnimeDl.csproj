@@ -55,6 +55,7 @@
   <ItemGroup>
     <Compile Include="AnimeScraper.cs" />
     <Compile Include="Extractors\BaseExtractor.cs" />
+    <Compile Include="Extractors\RapidCloud.cs" />
     <Compile Include="Extractors\StreamTape.cs" />
     <Compile Include="Extractors\GogoCDN.cs" />
     <Compile Include="Extractors\Vidstream.cs" />

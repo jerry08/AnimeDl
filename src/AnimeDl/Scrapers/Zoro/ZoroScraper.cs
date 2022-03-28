@@ -188,14 +188,13 @@ namespace AnimeDl.Scrapers
                     switch (server)
                     {
                         case "4":
-                            //rapidvideo
-                            break;
                         case "1":
                             //rapidvideo
+                            list.AddRange(await new RapidCloud().ExtractQualities(qualityUrl));
                             break;
                         case "5":
                             //StreamSB
-                            list.AddRange(await new StreamSB().ExtractQualities(qualityUrl));
+                            list.AddRange(await new StreamSB2().ExtractQualities(qualityUrl));
                             break;
                         case "3":
                             //streamtape
