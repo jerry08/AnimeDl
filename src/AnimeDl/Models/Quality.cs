@@ -16,6 +16,6 @@ namespace AnimeDl
         public string Referer { get; set; }
 
         //public NameValueCollection Headers { get; set; }
-        public WebHeaderCollection Headers { get; set; }
+        public WebHeaderCollection Headers { get; set; } = new WebHeaderCollection();
     }
 }
