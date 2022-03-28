@@ -178,38 +178,42 @@ namespace AnimeDl.Extractors
 
             //var test = await Utils.GetHtmlAsync(masterUrl, headers);
 
+            headers = new WebHeaderCollection()
+            {
+                //{ "Host", host },
+                { "User-Agent", "Mozilla/5.0 (Windows NT 10.0; rv:91.0) Gecko/20100101 Firefox/91.0" },
+                { "Accept", "application/json, text/plain, */*" },
+                { "Accept-Language", "en-US,en;q=0.5" },
+                //{ "Referer", url },
+                { "watchsb", "streamsb" },
+                { "DNT", "1" },
+                { "Connection", "keep-alive" },
+                { "Sec-Fetch-Dest", "empty" },
+                { "Sec-Fetch-Mode", "no-cors" },
+                { "Sec-Fetch-Site", "same-origin" },
+                { "TE", "trailers" },
+                { "Pragma", "no-cache" },
+                { "Cache-Control", "no-cache" }
+            };
+
             var m3u8Streams = new M3u8Helper().M3u8Generation(new M3u8Helper.M3u8Stream()
             {
                 StreamUrl = masterUrl,
-                Headers = new WebHeaderCollection()
-                {
-                    //{ "Host", host },
-                    { "User-Agent", "Mozilla/5.0 (Windows NT 10.0; rv:91.0) Gecko/20100101 Firefox/91.0" },
-                    { "Accept", "application/json, text/plain, */*" },
-                    { "Accept-Language", "en-US,en;q=0.5" },
-                    //{ "Referer", url },
-                    { "watchsb", "streamsb" },
-                    { "DNT", "1" },
-                    { "Connection", "keep-alive" },
-                    { "Sec-Fetch-Dest", "empty" },
-                    { "Sec-Fetch-Mode", "no-cors" },
-                    { "Sec-Fetch-Site", "same-origin" },
-                    { "TE", "trailers" },
-                    { "Pragma", "no-cache" },
-                    { "Cache-Control", "no-cache" }
-                }
+                Headers = headers
             }).ToList();
 
             //var cleanstreamurl = Regex.Replace(sgs[0].StreamUrl, "https://.*/hls/", $"{urlmain}/hls/");
 
             //var test = await Utils.GetHtmlAsync(m3u8Streams[0].StreamUrl, m3u8Streams[0].Headers);
 
-            var list = new List<Quality>();
-
-            list.Add(new Quality()
+            var list = new List<Quality>
             {
-                QualityUrl = masterUrl
-            });
+                new Quality()
+                {
+                    QualityUrl = masterUrl,
+                    Headers = headers
+                }
+            };
 
             foreach (var m3u8Stream in m3u8Streams)
             {
