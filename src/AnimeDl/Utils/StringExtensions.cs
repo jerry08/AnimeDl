@@ -9,6 +9,50 @@ namespace AnimeDl
 {
     static class StringExtensions
     {
+        public static string FindBetween(this string value, string a, string b)
+        {
+            int start = value.IndexOf(a);
+            if (start != -1)
+            {
+                start += a.Length;
+
+                int end = value.IndexOf(b, start);
+                if (end != -1)
+                {
+                    return value.Substring(start, end - start);
+                }
+            }
+
+            return null;
+        }
+
+        public static string SubstringAfter(this string value, string a)
+        {
+            int start = value.IndexOf(a);
+            if (start != -1)
+            {
+                start += a.Length;
+                return value.Substring(start);
+            }
+
+            return null;
+        }
+
+        public static string SubstringBefore(this string text, string stopAt)
+        {
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                int charLocation = text.IndexOf(stopAt, StringComparison.Ordinal);
+
+                if (charLocation > 0)
+                {
+                    return text.Substring(0, charLocation);
+                }
+            }
+
+            return string.Empty;
+        }
+
         //? - any character (one and only one)
         //* - any characters (zero or more)
         public static string WildCardToRegular(string value)
