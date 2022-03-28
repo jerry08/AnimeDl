@@ -117,15 +117,47 @@ namespace AnimeApp
 {
     class Class1
     {
-        public void DownloadExample(Quality quality)
+        public void DownloadExample(Quality quality, string filePath)
         {
             HttpWebRequest downloadRequest = (HttpWebRequest)WebRequest.Create(quality.QualityUrl);
-            
-            //downloadRequest.Referer = "https://goload.one/";
-            downloadRequest.Referer = quality.Referer;
+
+            downloadRequest.Headers = quality.Headers;
 
             HttpWebResponse downloadResponse = (HttpWebResponse)downloadRequest.GetResponse();
-            var stream = downloadResponse.GetResponseStream();
+            Stream stream = downloadResponse.GetResponseStream();
+
+            //Create a stream for the file
+            Stream file = File.Create(filePath);
+
+            try
+            {
+                //This controls how many bytes to read at a time and send to the client
+                int bytesToRead = 10000;
+
+                // Buffer to read bytes in chunk size specified above
+                byte[] buffer = new byte[bytesToRead];
+
+                int length;
+                do
+                {
+                    // Read data into the buffer.
+                    length = stream.Read(buffer, 0, bytesToRead);
+
+                    // and write it out to the response's output stream
+                    file.Write(buffer, 0, length);
+
+                    // Flush the data
+                    stream.Flush();
+
+                    //Clear the buffer
+                    buffer = new byte[bytesToRead];
+                } while (length > 0); //Repeat until no data is read
+            }
+            finally
+            {
+                file?.Close();
+                stream?.Close();
+            }
         }
     }
 }
