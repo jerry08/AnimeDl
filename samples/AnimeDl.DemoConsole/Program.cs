@@ -141,7 +141,7 @@ namespace AnimeDl.DemoConsole
             Console.WriteLine($"Qualities count: " + qualities.Count);
 
             //qualities[1].Referer = qualities[0].Referer;
-            DownloadExample(qualities[0], @"D:\test123.mp4");
+            DownloadExample(qualities[0], @"D:\video1.mp4");
 
             Console.ReadLine();
         }
@@ -163,44 +163,6 @@ namespace AnimeDl.DemoConsole
         public static void DownloadExample(Quality quality, string filePath)
         {
             HttpWebRequest downloadRequest = (HttpWebRequest)WebRequest.Create(quality.QualityUrl);
-
-            //downloadRequest.Referer = quality.Referer;
-            downloadRequest.Headers = new WebHeaderCollection()
-            {
-                { "User-Agent", "Mozilla/5.0 (Windows NT 10.0; rv:91.0) Gecko/20100101 Firefox/91.0" },
-                //{ "Accept", "application/json, text/plain, */*" },
-                { "Accept", "*/*" },
-                { "Accept-Encoding", "gzip, deflate, br" },
-                { "Accept-Language", "en-US,en;q=0.5" },
-                { "Referer", quality.Referer + "/" },
-                { "Origin", quality.Referer },
-                //{ "watchsb", "streamsb" },
-                //{ "DNT", "1" },
-                //{ "Connection", "keep-alive" },
-                //{ "Sec-Fetch-Dest", "empty" },
-                //{ "Sec-Fetch-Mode", "no-cors" },
-                //{ "Sec-Fetch-Site", "same-origin" },
-                //{ "TE", "trailers" },
-                //{ "Pragma", "no-cache" },
-                //{ "Cache-Control", "no-cache" }
-            };
-
-            downloadRequest.Headers = new WebHeaderCollection()
-            {
-                { "User-Agent", "Mozilla/5.0 (Windows NT 10.0; rv:91.0) Gecko/20100101 Firefox/91.0" },
-                { "Accept", "application/json, text/plain, */*" },
-                { "Accept-Language", "en-US,en;q=0.5" },
-                //{ "Referer", url },
-                { "watchsb", "streamsb" },
-                { "DNT", "1" },
-                { "Connection", "keep-alive" },
-                { "Sec-Fetch-Dest", "empty" },
-                { "Sec-Fetch-Mode", "no-cors" },
-                { "Sec-Fetch-Site", "same-origin" },
-                { "TE", "trailers" },
-                { "Pragma", "no-cache" },
-                { "Cache-Control", "no-cache" }
-            };
 
             downloadRequest.Headers = quality.Headers;
 
