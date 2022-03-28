@@ -16,13 +16,6 @@ namespace AnimeDl.Extractors
 {
     class GogoCDN : BaseExtractor
     {
-        bool ShowAllMirrorLinks;
-
-        public GogoCDN(bool showAllMirrorLinks)
-        {
-            ShowAllMirrorLinks = showAllMirrorLinks;
-        }
-
         public override async Task<List<Quality>> ExtractQualities(string url)
         {
             string htmlData = await Utils.GetHtmlAsync(url);
@@ -44,7 +37,7 @@ namespace AnimeDl.Extractors
 
             var id = CryptoHandler(CryptoHandler(dataValue, false).Split('&')[0]);
 
-            var link = $"https://gogoplay4.com/encrypt-ajax.php?id={id}";
+            var link = $"https://gogoplay5.com/encrypt-ajax.php?id={id}";
 
             string encHtmlData = await Utils.GetHtmlAsync(link,
                 new WebHeaderCollection()
@@ -57,16 +50,54 @@ namespace AnimeDl.Extractors
 
             sources = sources.Replace(@"o""<P{#meme"":""", @"e"":[{""file"":""");
 
-            var source = JObject.Parse(sources)["source"].ToString();
-            var sourcesList = JArray.Parse(source);
+            string source = JObject.Parse(sources)["source"].ToString();
+            var array = JArray.Parse(source);
 
-            var list = sourcesList.Select(x =>
+            List<Quality> list = new List<Quality>();
+
+            if (array.Count == 1 && array[0]["type"]?.ToString() == "hls")
+            {
+                string fileURL = array[0]["file"].ToString().Trim('"');
+                string masterPlaylist = await Utils.GetHtmlAsync(fileURL);
+                var masterSplit = masterPlaylist.Split(new string[] { "#EXT-X-STREAM-INF:" }, StringSplitOptions.None).ToList();
+                masterSplit.Remove(masterSplit[0]);
+
+                for (int i = 0; i < masterSplit.Count; i++)
+                {
+                    var videoUrlSplit = fileURL.Split('/').ToList();
+                    videoUrlSplit.RemoveAt(videoUrlSplit.Count - 1);
+                    var itSplit = masterSplit[i].Split(new string[] { "\n" }, StringSplitOptions.None).ToList();
+                    itSplit.RemoveAll(x => string.IsNullOrEmpty(x));
+
+                    string quality = itSplit[0].SubstringAfter("RESOLUTION=").SubstringBefore("x") + " p";
+                    string videoUrl = string.Join("/", videoUrlSplit) + "/" + itSplit.LastOrDefault();
+
+                    list.Add(new Quality()
+                    {
+                        FileType = "m3u8",
+                        QualityUrl = videoUrl,
+                        Resolution = quality,
+                        Headers = new WebHeaderCollection()
+                        {
+                            { "Referer", url },
+                        }
+                    });
+                }
+
+                return list;
+            }
+
+            list = array.Select(x =>
             {
                 return new Quality()
                 {
                     QualityUrl = x["file"].ToString(),
                     Resolution = x["label"].ToString(),
-                    FileType = x["type"].ToString()
+                    FileType = x["type"].ToString(),
+                    Headers = new WebHeaderCollection()
+                    {
+                        { "Referer", url },
+                    }
                 };
             }).ToList();
 
