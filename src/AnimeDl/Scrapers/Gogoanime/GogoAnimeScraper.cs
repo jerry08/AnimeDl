@@ -272,8 +272,6 @@ namespace AnimeDl.Scrapers
         public override async Task<List<Quality>> GetEpisodeLinksAsync(Episode episode, 
             bool showAllMirrorLinks = false)
         {
-            List<Quality> qualities = new List<Quality>();
-
             //string link = anime.Link.Replace("/category", "") + "-episode-" + episode.EpisodeNumber;
             string link = episode.EpisodeLink;
 
@@ -297,29 +295,10 @@ namespace AnimeDl.Scrapers
                 //string vidCdnUrl = vidStreamUrl.Replace("streaming.php", "download");
                 string vidCdnUrl = vidStreamUrl;
 
-                return await new GogoCDN(true).ExtractQualities(vidCdnUrl);
-
-                htmlData = await Utils.GetHtmlAsync(vidCdnUrl);
-
-                HtmlDocument doc2 = new HtmlDocument();
-                doc2.LoadHtml(htmlData);
-
-                var aNodes = doc2.DocumentNode
-                    .SelectSingleNode("//div[@class='mirror_link']")
-                    .SelectNodes(showAllMirrorLinks ? "//a" : ".//a");
-
-                for (int i = 0; i < aNodes.Count; i++)
-                {
-                    qualities.Add(new Quality()
-                    {
-                        Referer = vidCdnUrl,
-                        Resolution = aNodes[i].InnerText.Replace("Download", "").Trim(),
-                        QualityUrl = aNodes[i].Attributes["href"].Value
-                    });
-                }
+                return await new GogoCDN().ExtractQualities(vidCdnUrl);
             }
 
-            return qualities;
+            return new List<Quality>();
         }
 
         public override async Task<List<Genre>> GetGenresAsync()
