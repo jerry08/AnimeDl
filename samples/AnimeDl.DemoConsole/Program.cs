@@ -125,9 +125,6 @@ namespace AnimeDl.DemoConsole
 
         public static void Example2()
         {
-            //string ss = "#EXT-X-STREAM-INF:BANDWIDTH=2959360,RESOLUTION=1920x1080";
-            //var sg = ss.SubstringAfter("RESOLUTION=");
-
             AnimeScraper scraper = new AnimeScraper(AnimeSites.GogoAnime);
 
             //var animes = scraper.Search("your lie in april", forceLoad: true);
@@ -201,36 +198,6 @@ namespace AnimeDl.DemoConsole
                 file?.Close();
                 stream?.Close();
             }
-        }
-    }
-
-    static class ss
-    {
-        public static string SubstringAfter(this string value, string a)
-        {
-            int start = value.IndexOf(a);
-            if (start != -1)
-            {
-                start += a.Length;
-                return value.Substring(start);
-            }
-
-            return null;
-        }
-
-        public static string SubstringBefore(this string text, string stopAt)
-        {
-            if (!string.IsNullOrWhiteSpace(text))
-            {
-                int charLocation = text.IndexOf(stopAt, StringComparison.Ordinal);
-
-                if (charLocation > 0)
-                {
-                    return text.Substring(0, charLocation);
-                }
-            }
-
-            return string.Empty;
         }
     }
 }
