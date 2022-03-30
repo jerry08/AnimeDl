@@ -53,6 +53,13 @@ namespace AnimeDl
             return string.Empty;
         }
 
+        public static string ReverseString(this string s)
+        {
+            char[] charArray = s.ToCharArray();
+            Array.Reverse(charArray);
+            return new string(charArray);
+        }
+
         //? - any character (one and only one)
         //* - any characters (zero or more)
         public static string WildCardToRegular(string value)
