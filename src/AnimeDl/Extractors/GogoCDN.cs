@@ -32,7 +32,10 @@ namespace AnimeDl.Extractors
             var cryptoScript = doc.DocumentNode.Descendants()
                 .Where(x => x.Name == "script").ToList();
 
-            string dataValue = cryptoScript.Where(x => x.Attributes["data-name"]?.Value == "crypto")
+            //string dataValue = cryptoScript.Where(x => x.Attributes["data-name"]?.Value == "crypto")
+            //    .FirstOrDefault().Attributes["data-value"].Value;
+            
+            string dataValue = cryptoScript.Where(x => x.Attributes["data-name"]?.Value == "episode")
                 .FirstOrDefault().Attributes["data-value"].Value;
 
             var id = CryptoHandler(CryptoHandler(dataValue, false).Split('&')[0]);
@@ -106,8 +109,8 @@ namespace AnimeDl.Extractors
 
         private string CryptoHandler(string dataValue, bool encrypt = true)
         {
-            var key = Encoding.UTF8.GetBytes("25716538522938396164662278833288");
-            var iv = Encoding.UTF8.GetBytes("1285672985238393");
+            var key = Encoding.UTF8.GetBytes("63976882873559819639988080820907");
+            var iv = Encoding.UTF8.GetBytes("4770478969418267");
 
             var cryptoProvider = new RijndaelManaged();
             cryptoProvider.Mode = CipherMode.CBC;
