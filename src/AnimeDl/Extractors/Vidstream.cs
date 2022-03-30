@@ -11,7 +11,7 @@ using System.Net;
 
 namespace AnimeDl.Extractors
 {
-    class Vidstream : BaseExtractor
+    /*class Vidstream : BaseExtractor
     {
         bool ShowAllMirrorLinks;
 
@@ -42,6 +42,40 @@ namespace AnimeDl.Extractors
                     QualityUrl = aNodes[i].Attributes["href"].Value
                 });
             }
+
+            return list;
+        }
+    }*/
+
+    class Vidstream : BaseExtractor
+    {
+        private string MainUrl;
+
+        public Vidstream(string mainUrl)
+        {
+            MainUrl = mainUrl;
+        }
+
+        private string GetExtractorUrl(string id)
+        {
+            return $"{MainUrl}/streaming.php?id={id}";
+        }
+
+        private string GetDownloadUrl(string id)
+        {
+            return $"{MainUrl}/download?id={id}";
+        }
+
+        public override async Task<List<Quality>> ExtractQualities(string id)
+        {
+            var url = GetDownloadUrl(id);
+
+            string htmlData = await Utils.GetHtmlAsync(url);
+
+            HtmlDocument doc = new HtmlDocument();
+            doc.LoadHtml(htmlData);
+
+            var list = new List<Quality>();
 
             return list;
         }

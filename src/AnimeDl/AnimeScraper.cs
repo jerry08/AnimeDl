@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using HtmlAgilityPack;
 using AnimeDl.Scrapers;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,10 +14,10 @@ namespace AnimeDl
 
         private List<BaseScraper> AnimeScrapers { get; set; }
         
-        private BaseScraper CurrentAnimeScraper 
-        { 
-            get 
-            { 
+        private BaseScraper CurrentAnimeScraper
+        {
+            get
+            {
                 switch (CurrentSite)
                 {
                     case AnimeSites.GogoAnime:
@@ -29,10 +26,12 @@ namespace AnimeDl
                         return AnimeScrapers.Where(x => x is TwistScraper).FirstOrDefault();
                     case AnimeSites.Zoro:
                         return AnimeScrapers.Where(x => x is ZoroScraper).FirstOrDefault();
+                    case AnimeSites.NineAnime:
+                        return AnimeScrapers.Where(x => x is NineAnimeScraper).FirstOrDefault();
                     default:
                         return AnimeScrapers.Where(x => x is GogoAnimeScraper).FirstOrDefault();
                 }
-            } 
+            }
         }
 
         public List<Anime> Animes { get; set; } = new List<Anime>();
@@ -58,7 +57,8 @@ namespace AnimeDl
             {
                 new GogoAnimeScraper(),
                 new TwistScraper(),
-                new ZoroScraper()
+                new ZoroScraper(),
+                new NineAnimeScraper()
             };
         }
 
@@ -240,7 +240,7 @@ namespace AnimeDl
         public async Task<List<Quality>> GetEpisodeLinksAsync(Episode episode, 
             bool showAllMirrorLinks = false)
         {
-            Qualities = await CurrentAnimeScraper.GetEpisodeLinksAsync(episode, showAllMirrorLinks);
+            Qualities = await CurrentAnimeScraper.GetEpisodeLinksAsync(episode);
             return Qualities;
         }
         #endregion
