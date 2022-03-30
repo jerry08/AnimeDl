@@ -45,7 +45,11 @@ namespace AnimeDl
                     HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
                     if (headers != null)
                     {
-                        request.Headers = headers;
+                        //request.Headers = headers;
+                        for (int j = 0; j < headers.Count; j++)
+                        {
+                            request.SetRawHeader(headers.Keys[j], headers[j]);
+                        }
                     }
 
                     request.ServerCertificateValidationCallback += delegate { return true; };
