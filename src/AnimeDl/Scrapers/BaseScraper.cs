@@ -12,7 +12,8 @@ namespace AnimeDl.Scrapers
     {
         GogoAnime,
         TwistMoe,
-        Zoro
+        Zoro,
+        NineAnime
     }
 
     //For Gogoanime
@@ -50,8 +51,7 @@ namespace AnimeDl.Scrapers
             return await Task.FromResult(new List<Episode>());
         }
 
-        public virtual async Task<List<Quality>> GetEpisodeLinksAsync(Episode episode,
-            bool showAllMirrorLinks = false)
+        public virtual async Task<List<Quality>> GetEpisodeLinksAsync(Episode episode)
         {
             return await Task.FromResult(new List<Quality>());
         }
@@ -63,11 +63,13 @@ namespace AnimeDl.Scrapers
 
         public virtual WebHeaderCollection GetDefaultHeaders()
         {
-            //var gs = new NameValueCollection();
-            var headerCol = new WebHeaderCollection();
-            headerCol.Add("accept-encoding", "gzip, deflate, br");
+            //var headers = new NameValueCollection();
+            var headers = new WebHeaderCollection
+            {
+                { "accept-encoding", "gzip, deflate, br" }
+            };
 
-            return headerCol;
+            return headers;
         }
     }
 }

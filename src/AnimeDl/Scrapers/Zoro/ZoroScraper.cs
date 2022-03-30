@@ -145,7 +145,7 @@ namespace AnimeDl.Scrapers
             return text;
         }*/
 
-        public override async Task<List<Quality>> GetEpisodeLinksAsync(Episode episode, bool showAdditionalLinks = false)
+        public override async Task<List<Quality>> GetEpisodeLinksAsync(Episode episode)
         {
             List<Quality> list = new List<Quality>();
 

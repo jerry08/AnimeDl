@@ -168,7 +168,7 @@ namespace AnimeDl.Scrapers
             return episodes;
         }
 
-        public override Task<List<Quality>> GetEpisodeLinksAsync(Episode episode, bool showAllMirrorLinks = false)
+        public override Task<List<Quality>> GetEpisodeLinksAsync(Episode episode)
         {
             List<Quality> list = new List<Quality>();
 

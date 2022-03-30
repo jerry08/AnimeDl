@@ -269,8 +269,7 @@ namespace AnimeDl.Scrapers
             return episodes;
         }
 
-        public override async Task<List<Quality>> GetEpisodeLinksAsync(Episode episode, 
-            bool showAllMirrorLinks = false)
+        public override async Task<List<Quality>> GetEpisodeLinksAsync(Episode episode)
         {
             //string link = anime.Link.Replace("/category", "") + "-episode-" + episode.EpisodeNumber;
             string link = episode.EpisodeLink;
