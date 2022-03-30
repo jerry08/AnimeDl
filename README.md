@@ -5,7 +5,7 @@ AnimeDl scrapes animes from sites.
 * GogoAnime
 * Twistmoe
 * Zoro
-* More will be added soon (for backups)
+* NineAnime
 
 
 ## Example 1: Non-Async Method
