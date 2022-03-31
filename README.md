@@ -5,14 +5,17 @@ AnimeDl scrapes animes from sites.
 
 <br>
 
-> Please do not attempt to upload Saikou or any of it's forks on Playstore or any other Android appstores on the internet. Doing so, may infringe their terms and conditions. This may result to legal action or immediate take-down of the app.
+> Please do not attempt to upload AnimeDl or any of it's forks on Playstore or any other Android appstores on the internet. Doing so, may infringe their terms and conditions. This may result to legal action or immediate take-down of the app.
 
 
-## Sites available currently
-* GogoAnime
-* Twistmoe
-* Zoro
-* NineAnime
+* **Available Anime sources:-**
+
+| SITE                       | STATUS  | DOWNLOADS |
+|:--------------------------:|:-------:|:---------:|
+| [Gogo](https://gogoanime.cm)       | WORKING | SOME      |
+| [Zoro](https://zoro.to)            | WORKING | NO        |
+| [9Anime](https://9anime.center)    | WORKING | NO        |
+| [Twist](https://twist.moe)         | WORKING | YES       |
 
 
 ## Example 1: Non-Async Method
