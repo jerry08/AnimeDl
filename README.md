@@ -13,7 +13,7 @@ AnimeDl scrapes animes from sites.
 | SITE                       | STATUS  | DOWNLOADS |
 |:--------------------------:|:-------:|:---------:|
 | [Gogo](https://gogoanime.cm)       | WORKING | SOME      |
-| [Zoro](https://zoro.to)            | WORKING | NO        |
+| [Zoro](https://zoro.to)            | WORKING | SOME      |
 | [9Anime](https://9anime.center)    | WORKING | NO        |
 | [Twist](https://twist.moe)         | WORKING | YES       |
 
