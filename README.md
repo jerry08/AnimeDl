@@ -1,11 +1,21 @@
 # AnimeDl
 AnimeDl scrapes animes from sites. 
 
-## Sites available currently
-* GogoAnime
-* Twistmoe
-* Zoro
-* More will be added soon (for backups)
+### 🌟STAR THIS REPOSITORY TO SUPPORT THE DEVELOPER AND ENCOURAGE THE DEVELOPMENT OF THE APPLICATION!
+
+<br>
+
+> Please do not attempt to upload AnimeDl or any of it's forks on Playstore or any other Android appstores on the internet. Doing so, may infringe their terms and conditions. This may result to legal action or immediate take-down of the app.
+
+
+* **Available Anime sources:-**
+
+| SITE                       | STATUS  | DOWNLOADS |
+|:--------------------------:|:-------:|:---------:|
+| [Gogo](https://gogoanime.cm)       | WORKING | SOME      |
+| [Zoro](https://zoro.to)            | WORKING | SOME      |
+| [9Anime](https://9anime.center)    | WORKING | NO        |
+| [Twist](https://twist.moe)         | WORKING | YES       |
 
 
 ## Example 1: Non-Async Method
