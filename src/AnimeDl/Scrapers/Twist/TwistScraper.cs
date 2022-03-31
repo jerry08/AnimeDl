@@ -14,15 +14,17 @@ namespace AnimeDl.Scrapers
     public class TwistScraper : BaseScraper
     {
         public override string BaseUrl => "https://twist.moe";
-        string ApiUrl => "https://twist.moe/api/anime";
 
-        string ActiveCdnUrl => "https://air-cdn.twist.moe";
-        string CdnUrl => "https://cdn.twist.moe";
-        string AccessToken => "0df14814b9e590a1f26d3071a4ed7974";
+        //string ApiUrl => "https://twist.moe/api/anime";
+        private string ApiUrl => "https://api.twist.moe/api/anime";
 
-        string AesKey => "267041df55ca2b36f2e322d05ee2c9cf";
+        private string ActiveCdnUrl => "https://air-cdn.twist.moe";
+        private string CdnUrl => "https://cdn.twist.moe";
+        //string AccessToken => "0df14814b9e590a1f26d3071a4ed7974";
 
-        List<Anime> AllAnimes = new List<Anime>();
+        private string AesKey => "267041df55ca2b36f2e322d05ee2c9cf";
+
+        private List<Anime> AllAnimes = new List<Anime>();
 
         public async Task<List<Anime>> LoadAllAnimeAsync()
         {
