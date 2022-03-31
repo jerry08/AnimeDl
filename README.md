@@ -1,6 +1,13 @@
 # AnimeDl
 AnimeDl scrapes animes from sites. 
 
+### 🌟STAR THIS REPOSITORY TO SUPPORT THE DEVELOPER AND ENCOURAGE THE DEVELOPMENT OF THE APPLICATION!
+
+<br>
+
+> Please do not attempt to upload Saikou or any of it's forks on Playstore or any other Android appstores on the internet. Doing so, may infringe their terms and conditions. This may result to legal action or immediate take-down of the app.
+
+
 ## Sites available currently
 * GogoAnime
 * Twistmoe
