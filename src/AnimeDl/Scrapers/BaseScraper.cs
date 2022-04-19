@@ -13,7 +13,8 @@ namespace AnimeDl.Scrapers
         GogoAnime,
         TwistMoe,
         Zoro,
-        NineAnime
+        NineAnime,
+        Tenshi
     }
 
     //For Gogoanime

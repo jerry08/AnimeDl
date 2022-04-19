@@ -18,7 +18,7 @@ namespace AnimeDl.Extractors
         
         public override async Task<List<Quality>> ExtractQualities(string url)
         {
-            string text = await Utils.GetHtmlAsync(url);
+            string text = await Http.GetHtmlAsync(url);
             var ss = LinkRegex.Matches(text);
 
             var list = new List<Quality>();

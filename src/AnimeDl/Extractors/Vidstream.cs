@@ -22,7 +22,7 @@ namespace AnimeDl.Extractors
 
         public override async Task<List<Quality>> ExtractQualities(string url)
         {
-            string htmlData = await Utils.GetHtmlAsync(url);
+            string htmlData = await Http.GetHtmlAsync(url);
 
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(htmlData);
@@ -70,7 +70,7 @@ namespace AnimeDl.Extractors
         {
             var url = GetDownloadUrl(id);
 
-            string htmlData = await Utils.GetHtmlAsync(url);
+            string htmlData = await Http.GetHtmlAsync(url);
 
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(htmlData);

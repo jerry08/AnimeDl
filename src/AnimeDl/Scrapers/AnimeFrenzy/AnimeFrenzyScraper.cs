@@ -20,7 +20,7 @@ namespace AnimeDl.Scrapers
 
             List<Anime> animes = new List<Anime>();
 
-            string htmlData = await Utils.GetHtmlAsync($"https://animefrenzy.org/anime", GetDefaultHeaders());
+            string htmlData = await Http.GetHtmlAsync($"https://animefrenzy.org/anime", GetDefaultHeaders());
 
             if (string.IsNullOrEmpty(htmlData))
                 return animes;

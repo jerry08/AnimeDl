@@ -28,22 +28,22 @@ namespace AnimeDl.Scrapers
             switch (searchType)
             {
                 case SearchType.Find:
-                    htmlData = await Utils.GetHtmlAsync($"{BaseUrl}//search.html?keyword=" + searchText);
+                    htmlData = await Http.GetHtmlAsync($"{BaseUrl}//search.html?keyword=" + searchText);
                     break;
                 case SearchType.Popular:
-                    htmlData = await Utils.GetHtmlAsync($"{BaseUrl}/popular.html?page=" + Page);
+                    htmlData = await Http.GetHtmlAsync($"{BaseUrl}/popular.html?page=" + Page);
                     break;
                 case SearchType.NewSeason:
-                    htmlData = await Utils.GetHtmlAsync($"{BaseUrl}/new-season.html?page=" + Page);
+                    htmlData = await Http.GetHtmlAsync($"{BaseUrl}/new-season.html?page=" + Page);
                     break;
                 case SearchType.LastUpdated:
-                    htmlData = await Utils.GetHtmlAsync($"{BaseUrl}/?page=" + Page);
+                    htmlData = await Http.GetHtmlAsync($"{BaseUrl}/?page=" + Page);
                     break;
                 case SearchType.Trending:
                     break;
                 case SearchType.AllList:
-                    //htmlData = await Utils.GetHtmlAsync($"https://animesa.ga/animel.php");
-                    htmlData = await Utils.GetHtmlAsync($"https://animefrenzy.org/anime");
+                    //htmlData = await Http.GetHtmlAsync($"https://animesa.ga/animel.php");
+                    htmlData = await Http.GetHtmlAsync($"https://animefrenzy.org/anime");
                     break;
                 default:
                     break;
@@ -134,7 +134,7 @@ namespace AnimeDl.Scrapers
         {
             List<Episode> episodes = new List<Episode>();
 
-            string htmlData = await Utils.GetHtmlAsync($"{BaseUrl}" + anime.Category);
+            string htmlData = await Http.GetHtmlAsync($"{BaseUrl}" + anime.Category);
 
             HtmlDocument document = new HtmlDocument();
             document.LoadHtml(htmlData);
@@ -209,7 +209,7 @@ namespace AnimeDl.Scrapers
 
             string url = CdnUrl + movieId;
 
-            htmlData = await Utils.GetHtmlAsync(url);
+            htmlData = await Http.GetHtmlAsync(url);
 
             document = new HtmlDocument();
             document.LoadHtml(htmlData);
@@ -274,7 +274,7 @@ namespace AnimeDl.Scrapers
             //string link = anime.Link.Replace("/category", "") + "-episode-" + episode.EpisodeNumber;
             string link = episode.EpisodeLink;
 
-            string htmlData = await Utils.GetHtmlAsync(link);
+            string htmlData = await Http.GetHtmlAsync(link);
 
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(htmlData);
@@ -282,7 +282,7 @@ namespace AnimeDl.Scrapers
             //Exception for fire force season 2 episode 1
             if (htmlData.Contains(@">404</h1>"))
             {
-                htmlData = await Utils.GetHtmlAsync(link + "-1");
+                htmlData = await Http.GetHtmlAsync(link + "-1");
             }
 
             var vidStreamNode = doc.DocumentNode
@@ -304,7 +304,7 @@ namespace AnimeDl.Scrapers
         {
             List<Genre> genres = new List<Genre>();
 
-            string htmlData = await Utils.GetHtmlAsync(BaseUrl);
+            string htmlData = await Http.GetHtmlAsync(BaseUrl);
 
             HtmlDocument document = new HtmlDocument();
             document.LoadHtml(htmlData);

@@ -15,7 +15,7 @@ namespace AnimeDl.Extractors
     {        
         public override async Task<List<Quality>> ExtractQualities(string url)
         {
-            string html = await Utils.GetHtmlAsync(url, new WebHeaderCollection()
+            string html = await Http.GetHtmlAsync(url, new WebHeaderCollection()
             {
                 { "Referer", "https://zoro.to/" }
             });
@@ -37,11 +37,11 @@ namespace AnimeDl.Extractors
         {
             var uri = new Uri(url);
             string domain = Convert.ToBase64String(Encoding.ASCII.GetBytes(uri.Scheme + "://" + uri.Host + ":443")).Replace("\n", "");
-            string vToken = (await Utils.GetHtmlAsync($"https://www.google.com/recaptcha/api.js?render={key}", new WebHeaderCollection() 
+            string vToken = (await Http.GetHtmlAsync($"https://www.google.com/recaptcha/api.js?render={key}", new WebHeaderCollection() 
             {
                 { "Referrer", uri.Scheme + "://" + uri.Host }
             })).Replace("\n", "").FindBetween("/releases/", "/recaptcha");
-            string recapTokenHtml = await Utils.GetHtmlAsync($"https://www.google.com/recaptcha/api2/anchor?ar=1&hl=en&size=invisible&cb=kr60249sk&k={key}&co={domain}&v={vToken}");
+            string recapTokenHtml = await Http.GetHtmlAsync($"https://www.google.com/recaptcha/api2/anchor?ar=1&hl=en&size=invisible&cb=kr60249sk&k={key}&co={domain}&v={vToken}");
 
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(recapTokenHtml);

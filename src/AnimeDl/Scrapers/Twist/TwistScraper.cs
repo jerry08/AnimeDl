@@ -36,8 +36,8 @@ namespace AnimeDl.Scrapers
             //var test6 = DateTime.Parse("1/5/2020 6:06:07 PM", System.Globalization.CultureInfo.InvariantCulture);
 
             //System.Globalization.CultureInfo.CurrentCulture = new System.Globalization.CultureInfo("en-GB");
-            //string json = await Utils.GetHtmlAsync(ApiUrl);
-            string json = await Utils.GetHtmlAsync(ApiUrl, GetDefaultHeaders());
+            //string json = await Http.GetHtmlAsync(ApiUrl);
+            string json = await Http.GetHtmlAsync(ApiUrl, GetDefaultHeaders());
             //System.Globalization.CultureInfo.CurrentCulture = new System.Globalization.CultureInfo("en-GB");
 
             if (string.IsNullOrEmpty(json))
@@ -124,9 +124,9 @@ namespace AnimeDl.Scrapers
         {
             List<Episode> episodes = new List<Episode>();
 
-            string json = await Utils.GetHtmlAsync($"{ApiUrl}/{anime.Slug}", GetDefaultHeaders());
-            //string json2 = await Utils.GetHtmlAsync($"{ApiUrl}/{anime.Slug}/resources");
-            string sources = await Utils.GetHtmlAsync($"{ApiUrl}/{anime.Slug}/sources", GetDefaultHeaders());
+            string json = await Http.GetHtmlAsync($"{ApiUrl}/{anime.Slug}", GetDefaultHeaders());
+            //string json2 = await Http.GetHtmlAsync($"{ApiUrl}/{anime.Slug}/resources");
+            string sources = await Http.GetHtmlAsync($"{ApiUrl}/{anime.Slug}/sources", GetDefaultHeaders());
 
             if (string.IsNullOrEmpty(sources))
                 return episodes;

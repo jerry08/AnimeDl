@@ -18,7 +18,7 @@ namespace AnimeDl.Extractors
     {
         public override async Task<List<Quality>> ExtractQualities(string url)
         {
-            string htmlData = await Utils.GetHtmlAsync(url);
+            string htmlData = await Http.GetHtmlAsync(url);
 
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(htmlData);
@@ -42,7 +42,7 @@ namespace AnimeDl.Extractors
 
             var link = $"https://gogoplay5.com/encrypt-ajax.php?id={id}";
 
-            string encHtmlData = await Utils.GetHtmlAsync(link,
+            string encHtmlData = await Http.GetHtmlAsync(link,
                 new WebHeaderCollection()
                 {
                     { "X-Requested-With", "XMLHttpRequest" },
@@ -61,7 +61,7 @@ namespace AnimeDl.Extractors
             if (array.Count == 1 && array[0]["type"]?.ToString() == "hls")
             {
                 string fileURL = array[0]["file"].ToString().Trim('"');
-                string masterPlaylist = await Utils.GetHtmlAsync(fileURL);
+                string masterPlaylist = await Http.GetHtmlAsync(fileURL);
                 var masterSplit = masterPlaylist.Split(new string[] { "#EXT-X-STREAM-INF:" }, StringSplitOptions.None).ToList();
                 masterSplit.Remove(masterSplit[0]);
 

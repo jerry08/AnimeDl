@@ -71,6 +71,22 @@ namespace AnimeDl
             //return "^" + Regex.Escape(value).Replace("\\*", ".*") + "$";
         }
 
+        public static string RemoveBadChars1(this string name)
+        {
+            //string result = new string(name.Where(c => char.IsLetter(c) || c == '\'').ToArray());
+            string result = new string(name.Where(c => char.IsLetter(c) || c == ' ').ToArray());
+            return result.Replace(' ', '-');
+        }
+
+        public static string RemoveBadChars(string word)
+        {
+            //Regex reg = new Regex("[^a-zA-Z']");
+            Regex reg = new Regex("[^a-zA-Z' ]"); //Don't replace spaces
+            string regString = reg.Replace(word, string.Empty);
+
+            return regString.Replace(' ', '-');
+        }
+
         static void Test()
         {
             string test = "Some Data X";

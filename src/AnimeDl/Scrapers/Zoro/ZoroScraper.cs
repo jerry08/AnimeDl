@@ -28,16 +28,16 @@ namespace AnimeDl.Scrapers
             switch (searchType)
             {
                 case SearchType.Find:
-                    htmlData = await Utils.GetHtmlAsync($"{BaseUrl}/search?keyword=" + searchText);
+                    htmlData = await Http.GetHtmlAsync($"{BaseUrl}/search?keyword=" + searchText);
                     break;
                 case SearchType.Popular:
-                    htmlData = await Utils.GetHtmlAsync($"{BaseUrl}/popular.html?page=" + Page);
+                    htmlData = await Http.GetHtmlAsync($"{BaseUrl}/popular.html?page=" + Page);
                     break;
                 case SearchType.NewSeason:
-                    htmlData = await Utils.GetHtmlAsync($"{BaseUrl}/new-season.html?page=" + Page);
+                    htmlData = await Http.GetHtmlAsync($"{BaseUrl}/new-season.html?page=" + Page);
                     break;
                 case SearchType.LastUpdated:
-                    htmlData = await Utils.GetHtmlAsync($"{BaseUrl}/?page=" + Page);
+                    htmlData = await Http.GetHtmlAsync($"{BaseUrl}/?page=" + Page);
                     break;
                 case SearchType.Trending:
                     break;
@@ -103,7 +103,7 @@ namespace AnimeDl.Scrapers
             string dataId = anime.Category.Split('-').Last().Split('?')[0];
             string url = $"{BaseUrl}/ajax/v2/episode/list/{dataId}";
 
-            string json = await Utils.GetHtmlAsync(url);
+            string json = await Http.GetHtmlAsync(url);
             var jObj = JObject.Parse(json);
             var html = jObj["html"].ToString();
 
@@ -140,7 +140,7 @@ namespace AnimeDl.Scrapers
             };
 
             url = $"{url}&autoPlay=1&oa=0";
-            string text = await Utils.GetHtmlAsync(url, headers);
+            string text = await Http.GetHtmlAsync(url, headers);
 
             return text;
         }*/
@@ -153,7 +153,7 @@ namespace AnimeDl.Scrapers
                 StringSplitOptions.None).Last();
             string url = $"{BaseUrl}/ajax/v2/episode/servers?episodeId={dataId}";
 
-            string json = await Utils.GetHtmlAsync(url);
+            string json = await Http.GetHtmlAsync(url);
 
             var jObj = JObject.Parse(json);
             var html = jObj["html"].ToString();
@@ -171,7 +171,7 @@ namespace AnimeDl.Scrapers
                 string title = nodes[i].Attributes["data-type"].Value;
                 
                 string url2 = $"https://zoro.to/ajax/v2/episode/sources?id={dataId2}";
-                string json2 = await Utils.GetHtmlAsync(url2);
+                string json2 = await Http.GetHtmlAsync(url2);
 
                 var jObj2 = JObject.Parse(json2);
                 string type = jObj2["type"].ToString();

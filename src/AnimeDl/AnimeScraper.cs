@@ -28,6 +28,8 @@ namespace AnimeDl
                         return AnimeScrapers.Where(x => x is ZoroScraper).FirstOrDefault();
                     case AnimeSites.NineAnime:
                         return AnimeScrapers.Where(x => x is NineAnimeScraper).FirstOrDefault();
+                    case AnimeSites.Tenshi:
+                        return AnimeScrapers.Where(x => x is TenshiScraper).FirstOrDefault();
                     default:
                         return AnimeScrapers.Where(x => x is GogoAnimeScraper).FirstOrDefault();
                 }
@@ -58,7 +60,8 @@ namespace AnimeDl
                 new GogoAnimeScraper(),
                 new TwistScraper(),
                 new ZoroScraper(),
-                new NineAnimeScraper()
+                new NineAnimeScraper(),
+                new TenshiScraper()
             };
         }
 

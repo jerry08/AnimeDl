@@ -80,7 +80,7 @@ namespace AnimeDl.Extractors
         /*public async Task<List<Quality>> ExtractQualities(string url)
         {
             url = url.Replace("/e/", "/d/");
-            string html = await Utils.GetHtmlAsync(url);
+            string html = await Http.GetHtmlAsync(url);
 
             var list = new List<Quality>();
 
@@ -113,7 +113,7 @@ namespace AnimeDl.Extractors
                         { "Referer", url }
                     };
 
-                    string html2 = await Utils.GetHtmlAsync(downloadUrl, headers);
+                    string html2 = await Http.GetHtmlAsync(downloadUrl, headers);
 
                     HtmlDocument doc2 = new HtmlDocument();
                     doc2.LoadHtml(html2);
@@ -171,12 +171,12 @@ namespace AnimeDl.Extractors
                 { "Cache-Control", "no-cache" }
             };
 
-            string json = await Utils.GetHtmlAsync(jsonLink, headers);
+            string json = await Http.GetHtmlAsync(jsonLink, headers);
 
             var jObj = JObject.Parse(json);
             var masterUrl = jObj["stream_data"]?["file"]?.ToString().Trim('"');
 
-            //var test = await Utils.GetHtmlAsync(masterUrl, headers);
+            //var test = await Http.GetHtmlAsync(masterUrl, headers);
 
             headers = new WebHeaderCollection()
             {
@@ -204,7 +204,7 @@ namespace AnimeDl.Extractors
 
             //var cleanstreamurl = Regex.Replace(sgs[0].StreamUrl, "https://.*/hls/", $"{urlmain}/hls/");
 
-            //var test = await Utils.GetHtmlAsync(m3u8Streams[0].StreamUrl, m3u8Streams[0].Headers);
+            //var test = await Http.GetHtmlAsync(m3u8Streams[0].StreamUrl, m3u8Streams[0].Headers);
 
             var list = new List<Quality>
             {
@@ -224,8 +224,8 @@ namespace AnimeDl.Extractors
                 string mp4StreamUrl = string.Join("/", split);
                 //string mp4StreamUrl = m3u8Stream.StreamUrl;
 
-                //var test1 = await Utils.GetHtmlAsync(m3u8Stream.StreamUrl, m3u8Stream.Headers);
-                //var test2 = await Utils.GetHtmlAsync(mp4StreamUrl, m3u8Stream.Headers);
+                //var test1 = await Http.GetHtmlAsync(m3u8Stream.StreamUrl, m3u8Stream.Headers);
+                //var test2 = await Http.GetHtmlAsync(mp4StreamUrl, m3u8Stream.Headers);
 
                 list.Add(new Quality() 
                 {

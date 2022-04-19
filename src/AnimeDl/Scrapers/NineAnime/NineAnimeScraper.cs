@@ -27,23 +27,23 @@ namespace AnimeDl.Scrapers
             switch (searchType)
             {
                 case SearchType.Find:
-                    htmlData = await Utils.GetHtmlAsync($"{BaseUrl}/filter?sort=title%3Aasc&keyword={query}");
+                    htmlData = await Http.GetHtmlAsync($"{BaseUrl}/filter?sort=title%3Aasc&keyword={query}");
                     break;
                 case SearchType.Popular:
-                    htmlData = await Utils.GetHtmlAsync($"{BaseUrl}/popular.html?page=" + Page);
+                    htmlData = await Http.GetHtmlAsync($"{BaseUrl}/popular.html?page=" + Page);
                     break;
                 case SearchType.NewSeason:
-                    htmlData = await Utils.GetHtmlAsync($"{BaseUrl}/new-season.html?page=" + Page);
+                    htmlData = await Http.GetHtmlAsync($"{BaseUrl}/new-season.html?page=" + Page);
                     break;
                 case SearchType.LastUpdated:
-                    htmlData = await Utils.GetHtmlAsync($"{BaseUrl}/ajax/home/widget?name=updated_all");
+                    htmlData = await Http.GetHtmlAsync($"{BaseUrl}/ajax/home/widget?name=updated_all");
                     break;
                 case SearchType.Trending:
-                    htmlData = await Utils.GetHtmlAsync($"{BaseUrl}/ajax/home/widget?name=trending");
+                    htmlData = await Http.GetHtmlAsync($"{BaseUrl}/ajax/home/widget?name=trending");
                     break;
                 case SearchType.AllList:
-                    //htmlData = await Utils.GetHtmlAsync($"https://animesa.ga/animel.php");
-                    htmlData = await Utils.GetHtmlAsync($"https://animefrenzy.org/anime");
+                    //htmlData = await Http.GetHtmlAsync($"https://animesa.ga/animel.php");
+                    htmlData = await Http.GetHtmlAsync($"https://animefrenzy.org/anime");
                     break;
                 default:
                     break;
@@ -237,7 +237,7 @@ namespace AnimeDl.Scrapers
         {
             List<Episode> episodes = new List<Episode>();
 
-            string htmlData = await Utils.GetHtmlAsync($"{BaseUrl}" + anime.Link);
+            string htmlData = await Http.GetHtmlAsync($"{BaseUrl}" + anime.Link);
 
             HtmlDocument document = new HtmlDocument();
             document.LoadHtml(htmlData);
@@ -248,7 +248,7 @@ namespace AnimeDl.Scrapers
 
             string animeidencoded = Encode(GetVrf(animeId));
 
-            var epsHtml = await Utils.GetHtmlAsync($"{BaseUrl}/ajax/anime/servers?ep=1&id={animeId}&vrf={animeidencoded}&ep=8&episode=&token=");
+            var epsHtml = await Http.GetHtmlAsync($"{BaseUrl}/ajax/anime/servers?ep=1&id={animeId}&vrf={animeidencoded}&ep=8&episode=&token=");
 
             document = new HtmlDocument();
             document.LoadHtml(JObject.Parse(epsHtml)["html"].ToString());
@@ -275,7 +275,7 @@ namespace AnimeDl.Scrapers
 
         public override async Task<List<Quality>> GetEpisodeLinksAsync(Episode episode)
         {
-            string htmlData = await Utils.GetHtmlAsync(episode.EpisodeLink);
+            string htmlData = await Http.GetHtmlAsync(episode.EpisodeLink);
 
             HtmlDocument document = new HtmlDocument();
             document.LoadHtml(htmlData);
@@ -288,7 +288,7 @@ namespace AnimeDl.Scrapers
 
             //string ll = $"{BaseUrl}/ajax/anime/servers?ep=1&id={animeId}&vrf={animeidencoded}&ep=8&episode=&token=";
 
-            string epsHtml = await Utils.GetHtmlAsync($"{BaseUrl}/ajax/anime/servers?ep=1&id={animeId}&vrf={animeidencoded}&ep=8&episode=&token=");
+            string epsHtml = await Http.GetHtmlAsync($"{BaseUrl}/ajax/anime/servers?ep=1&id={animeId}&vrf={animeidencoded}&ep=8&episode=&token=");
 
             document = new HtmlDocument();
             document.LoadHtml(JObject.Parse(epsHtml)["html"].ToString());
@@ -308,7 +308,7 @@ namespace AnimeDl.Scrapers
 
             string sourceId = JObject.Parse(sources)["41"].ToString();
 
-            var epServer = await Utils.GetHtmlAsync($"{BaseUrl}/ajax/anime/episode?id={sourceId}");
+            var epServer = await Http.GetHtmlAsync($"{BaseUrl}/ajax/anime/episode?id={sourceId}");
 
             var headers = new WebHeaderCollection()
             {
@@ -318,7 +318,7 @@ namespace AnimeDl.Scrapers
             string encryptedSourceUrl = JObject.Parse(epServer)["url"].ToString().Replace("=", "");
             string embedLink = GetLink(encryptedSourceUrl)?.Replace("/embed/", "/e/");
 
-            string embedHtml = await Utils.GetHtmlAsync(embedLink, headers);
+            string embedHtml = await Http.GetHtmlAsync(embedLink, headers);
 
             document.LoadHtml(embedHtml);
 
@@ -329,7 +329,7 @@ namespace AnimeDl.Scrapers
             string skey = skeyScript.InnerText.SubstringAfter("window.skey = \'").SubstringBefore("\'");
 
             string sourceObjectLink = GetLink(encryptedSourceUrl)?.Replace("/embed/", "/info/") + $"?skey={skey}";
-            var sourceObjectHtml = await Utils.GetHtmlAsync(sourceObjectLink, headers);
+            var sourceObjectHtml = await Http.GetHtmlAsync(sourceObjectLink, headers);
             var sourceObject = JObject.Parse(sourceObjectHtml)["media"]?["sources"];
 
             var masterUrls = sourceObject.Select(x => x["file"]?.ToString()).ToList();
@@ -347,7 +347,7 @@ namespace AnimeDl.Scrapers
             var domainInfo = domainParser.Parse(masterUrl);
             string origin = domainInfo.RegistrableDomain;
 
-            string masterPlaylist = await Utils.GetHtmlAsync(masterUrl, headers);
+            string masterPlaylist = await Http.GetHtmlAsync(masterUrl, headers);
             var playlists = masterPlaylist.SubstringAfter("#EXT-X-STREAM-INF:").Split(new string[] { "#EXT-X-STREAM-INF:" }, StringSplitOptions.None);
 
             var list = new List<Quality>();
