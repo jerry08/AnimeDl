@@ -29,28 +29,36 @@ namespace AnimeDl.Extractors
             //var tt = doc.DocumentNode.Descendants("script")
             //    .Where(x => x.Name == "script").ToList();
 
-            var cryptoScript = doc.DocumentNode.Descendants()
+            var scripts = doc.DocumentNode.Descendants()
                 .Where(x => x.Name == "script").ToList();
 
-            //string dataValue = cryptoScript.Where(x => x.Attributes["data-name"]?.Value == "crypto")
+            var cryptoScript = scripts.Where(x => x.Attributes["data-name"]?.Value == "episode")
+                .FirstOrDefault();
+
+            //string dataValue = scripts.Where(x => x.Attributes["data-name"]?.Value == "crypto")
             //    .FirstOrDefault().Attributes["data-value"].Value;
-            
-            string dataValue = cryptoScript.Where(x => x.Attributes["data-name"]?.Value == "episode")
-                .FirstOrDefault().Attributes["data-value"].Value;
 
-            var id = CryptoHandler(CryptoHandler(dataValue, false).Split('&')[0]);
+            string dataValue = cryptoScript.Attributes["data-value"].Value;
 
-            var link = $"https://gogoplay5.com/encrypt-ajax.php?id={id}";
+            var keys = KeysAndIv();
+
+            var decrypted = CryptoHandler(dataValue, keys.Item1, keys.Item3, false).Replace("\t", "");
+            var id = decrypted.FindBetween("", "&");
+            var end = decrypted.SubstringAfter(id);
+
+            string link = $"https://{new Uri(url).Host}/encrypt-ajax.php?id={CryptoHandler(id, keys.Item1, keys.Item3, true)}{end}&alias={id}";
+
+            string host = new GogoAnimeScraper().BaseUrl;
 
             string encHtmlData = await Http.GetHtmlAsync(link,
                 new WebHeaderCollection()
                 {
                     { "X-Requested-With", "XMLHttpRequest" },
+                    { "Referer", host },
                 });
 
             var jsonObj = JObject.Parse(encHtmlData);
-            var sources = CryptoHandler(jsonObj["data"].ToString(), false);
-
+            var sources = CryptoHandler(jsonObj["data"].ToString(), keys.Item2, keys.Item3, false);
             sources = sources.Replace(@"o""<P{#meme"":""", @"e"":[{""file"":""");
 
             string source = JObject.Parse(sources)["source"].ToString();
@@ -107,10 +115,19 @@ namespace AnimeDl.Extractors
             return list;
         }
 
-        private string CryptoHandler(string dataValue, bool encrypt = true)
+        private Tuple<string, string, string> KeysAndIv()
         {
-            var key = Encoding.UTF8.GetBytes("63976882873559819639988080820907");
-            var iv = Encoding.UTF8.GetBytes("4770478969418267");
+            return new Tuple<string, string, string>
+                ("37911490979715163134003223491201", "54674138327930866480207815084989", "3134003223491201");
+        }
+
+        private string CryptoHandler(string dataValue, string key, string iv, bool encrypt = true)
+        {
+            //var key = Encoding.UTF8.GetBytes("63976882873559819639988080820907");
+            //var iv = Encoding.UTF8.GetBytes("4770478969418267");
+
+            byte[] keyBytes = Encoding.UTF8.GetBytes(key);
+            byte[] ivBytes = Encoding.UTF8.GetBytes(iv);
 
             var cryptoProvider = new RijndaelManaged();
             cryptoProvider.Mode = CipherMode.CBC;
@@ -121,15 +138,15 @@ namespace AnimeDl.Extractors
                 // Convert from Base64 to binary
                 byte[] bytIn = Encoding.ASCII.GetBytes(dataValue);
 
-                var padding = new byte[] { 0x8, 0xe, 0x3, 0x8, 0x9, 0x3, 0x4, 0x9 };
-                bytIn = bytIn.Concat(padding).ToArray();
+                //var padding = new byte[] { 0x8, 0xe, 0x3, 0x8, 0x9, 0x3, 0x4, 0x9 };
+                //bytIn = bytIn.Concat(padding).ToArray();
 
                 // Create a MemoryStream
                 MemoryStream ms = new MemoryStream();
 
                 // Create Crypto Stream that encrypts a stream
                 CryptoStream cs = new CryptoStream(ms,
-                    cryptoProvider.CreateEncryptor(key, iv),
+                    cryptoProvider.CreateEncryptor(keyBytes, ivBytes),
                     CryptoStreamMode.Write);
 
                 // Write content into MemoryStream
@@ -149,7 +166,7 @@ namespace AnimeDl.Extractors
 
                 // Create a CryptoStream that decrypts the data
                 CryptoStream cs = new CryptoStream(ms,
-                    cryptoProvider.CreateDecryptor(key, iv),
+                    cryptoProvider.CreateDecryptor(keyBytes, ivBytes),
                     CryptoStreamMode.Read);
 
                 // Read the Crypto Stream
