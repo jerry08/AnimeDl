@@ -14,7 +14,7 @@ namespace AnimeDl.Scrapers
     {
         //public override string BaseUrl => "https://gogoanime.pe";
         //public override string BaseUrl => "https://www1.gogoanime.cm/";
-        public override string BaseUrl => "https://gogoanime.fi/";
+        public override string BaseUrl => "https://gogoanime.sk/";
 
         public string CdnUrl => "https://ajax.gogocdn.net/ajax/load-list-episode?ep_start=0&ep_end=10000&id=";
 
