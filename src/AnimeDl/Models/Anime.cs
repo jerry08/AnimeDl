@@ -22,7 +22,7 @@ namespace AnimeDl
         public string Category { get; set; }
         public string Link { get; set; }
         public string Image { get; set; }
-        public int LastWatchedEp { get; set; }
+        public float LastWatchedEp { get; set; }
 
         public string Type { get; set; }
         public string Status { get; set; }
