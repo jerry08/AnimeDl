@@ -14,7 +14,9 @@ namespace AnimeDl.Scrapers
     {
         //public override string BaseUrl => "https://gogoanime.pe";
         //public override string BaseUrl => "https://www1.gogoanime.cm/";
+        
         public override string BaseUrl => "https://gogoanime.sk/";
+        //public override string BaseUrl => "https://gogoanime.film/";
 
         public string CdnUrl => "https://ajax.gogocdn.net/ajax/load-list-episode?ep_start=0&ep_end=10000&id=";
 
@@ -31,13 +33,13 @@ namespace AnimeDl.Scrapers
                     htmlData = await Http.GetHtmlAsync($"{BaseUrl}//search.html?keyword=" + searchText);
                     break;
                 case SearchType.Popular:
-                    htmlData = await Http.GetHtmlAsync($"{BaseUrl}/popular.html?page=" + Page);
+                    htmlData = await Http.GetHtmlAsync($"{BaseUrl}popular.html?page=" + Page);
                     break;
                 case SearchType.NewSeason:
-                    htmlData = await Http.GetHtmlAsync($"{BaseUrl}/new-season.html?page=" + Page);
+                    htmlData = await Http.GetHtmlAsync($"{BaseUrl}new-season.html?page=" + Page);
                     break;
                 case SearchType.LastUpdated:
-                    htmlData = await Http.GetHtmlAsync($"{BaseUrl}/?page=" + Page);
+                    htmlData = await Http.GetHtmlAsync($"{BaseUrl}?page=" + Page);
                     break;
                 case SearchType.Trending:
                     break;
@@ -220,7 +222,7 @@ namespace AnimeDl.Scrapers
 
             for (int i = 0; i < liNodes.Count; i++)
             {
-                string name = "";
+                string epName = "";
                 string link = "";
                 string subOrDub = "";
 
@@ -233,7 +235,7 @@ namespace AnimeDl.Scrapers
                 var nameNode = liNodes[i].SelectSingleNode(".//div[@class='name']");
                 if (nameNode != null)
                 {
-                    name = nameNode.InnerText;
+                    epName = nameNode.InnerText;
                 }
 
                 var subDubNode = liNodes[i].SelectSingleNode(".//div[@class='cate']");
@@ -244,16 +246,9 @@ namespace AnimeDl.Scrapers
                 }
 
                 link = BaseUrl + link;
-                int epNumber = 1;
-
-                try
-                {
-                    epNumber = Convert.ToInt32(link.Split(new char[] { '-' }).LastOrDefault());
-                }
-                catch (Exception e)
-                {
-                    continue;
-                }
+                
+                //float epNumber = Convert.ToSingle(link.Split(new char[] { '-' }).LastOrDefault());
+                float epNumber = Convert.ToSingle(epName.ToLower().Replace("ep", "").Trim());
 
                 //string episodeLinkSaga = "https://animesa.ga/watchanime.html?q=/videos" + anime.Category.Replace("/category", "") + "-episode-" + epNumber.ToString();
 
@@ -261,7 +256,7 @@ namespace AnimeDl.Scrapers
                 {
                     EpisodeLink = link,
                     EpisodeNumber = epNumber,
-                    EpisodeName = anime.Title + $" - Episode {epNumber}",
+                    EpisodeName = epName,
                     //EpisodeLinkSaga = episodeLinkSaga
                 });
             }
