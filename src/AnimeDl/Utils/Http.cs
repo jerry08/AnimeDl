@@ -19,6 +19,14 @@ namespace AnimeDl
         private const int NumberOfRetries = 3;
         private const int DelayOnRetry = 500;
 
+        static Http()
+        {
+            // Increase maximum concurrent connections
+            ServicePointManager.DefaultConnectionLimit = 20;
+
+            //System.Net.WebRequest.DefaultWebProxy = null;
+        }
+
         public static string GetHtml(string url, WebHeaderCollection headers = null)
         {
             var task = GetHtmlAsync(url, headers);
@@ -26,12 +34,13 @@ namespace AnimeDl
             return task.Result;
         }
 
-        public async static Task<string> GetHtmlAsync(string url, WebHeaderCollection headers = null)
+        public async static Task<string> GetHtmlAsync(string url,
+            WebHeaderCollection headers = null, IEnumerable<Cookie> cookies = null)
         {
             url = url.Replace(" ", "%20");
 
             //Exceptions
-            if (url.Contains("https://gogoanime.fi/category/hataraku-saibou-2"))
+            if (url.Contains("https://gogoanime") && url.Contains("/category/hataraku-saibou-2"))
             {
                 url = url.Replace("hataraku-saibou-2", "hataraku-saibou");
             }
@@ -52,6 +61,17 @@ namespace AnimeDl
                         }
                     }
 
+                    if (cookies != null)
+                    {
+                        request.CookieContainer = new CookieContainer();
+
+                        foreach (var cookie in cookies)
+                        {
+                            request.CookieContainer.Add(cookie);
+                        }
+                    }
+
+                    //request.Proxy = null;
                     request.ServerCertificateValidationCallback += delegate { return true; };
 
                     HttpWebResponse response = (HttpWebResponse)await request.GetResponseAsync();
@@ -78,8 +98,10 @@ namespace AnimeDl
                     }
 
                     html = await streamReader.ReadToEndAsync();
+                    
                     streamReader.Close();
                     brotli?.Close();
+                    response.Close();
 
                     break;
                 }
