@@ -1,7 +1,9 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using HtmlAgilityPack;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,83 +13,140 @@ namespace AnimeDl.Scrapers
     {
         public override string BaseUrl => "https://tenshi.moe";
 
-        private string ApiUrl => "https://api.twist.moe/api/anime";
-
-        private string ActiveCdnUrl => "https://air-cdn.twist.moe";
-        private string CdnUrl => "https://cdn.twist.moe";
-
-        private string AesKey => "267041df55ca2b36f2e322d05ee2c9cf";
-
-        public override async Task<List<Anime>> SearchAsync(string searchText, SearchType searchType = SearchType.Find, int Page = 1)
+        public WebHeaderCollection CookieHeader = new WebHeaderCollection
         {
-            string json = await Http.GetHtmlAsync(BaseUrl);
+            { "Cookie", "__ddg1_=;__ddg2_=;loop-view=thumb" }
+        };
 
-            string lowerTxt = searchText.ToLower();
+        public List<Cookie> Cookies;
 
-            return new List<Anime>();
+        public TenshiScraper()
+        {
+            Cookies = new List<Cookie>
+            {
+                new Cookie("__ddg1_", "") { Domain = "tenshi" },
+                new Cookie("__ddg2_", "") { Domain = "tenshi" },
+                new Cookie("loop-view", "thumb") { Domain = "tenshi" },
+            };
+        }
+
+        public override async Task<List<Anime>> SearchAsync(string query, SearchType searchType = SearchType.Find, int Page = 1)
+        {
+            string url = BaseUrl + $"/anime?q={query}&s=vtt-d";
+
+            string html = await Http.GetHtmlAsync(url, CookieHeader, null);
+
+            var animes = new List<Anime>();
+
+            if (string.IsNullOrEmpty(html))
+                return animes;
+
+            HtmlDocument doc = new HtmlDocument();
+            doc.LoadHtml(html);
+
+            var nodes = doc.DocumentNode
+                .SelectNodes(".//ul[@class='loop anime-loop thumb']/li")
+                .ToList();
+
+            foreach (var node in nodes)
+            {
+                var anime = new Anime();
+                anime.Title = node.SelectSingleNode(".//a").Attributes["title"].Value;
+                anime.Link = node.SelectSingleNode(".//a").Attributes["href"].Value;
+                anime.Image = node.SelectSingleNode(".//img").Attributes["src"].Value;
+                //anime.Summary = node.SelectSingleNode(".//a").Attributes["data-content"].Value;
+
+                animes.Add(anime);
+            }
+
+            return animes;
         }
 
         public override async Task<List<Episode>> GetEpisodesAsync(Anime anime)
         {
             List<Episode> episodes = new List<Episode>();
 
-            string json = await Http.GetHtmlAsync($"{ApiUrl}/{anime.Slug}", GetDefaultHeaders());
-            //string json2 = await Http.GetHtmlAsync($"{ApiUrl}/{anime.Slug}/resources");
-            string sources = await Http.GetHtmlAsync($"{ApiUrl}/{anime.Slug}/sources", GetDefaultHeaders());
+            string html = await Http.GetHtmlAsync(anime.Link, CookieHeader);
 
-            if (string.IsNullOrEmpty(sources))
+            if (string.IsNullOrEmpty(html))
                 return episodes;
 
-            var decryptor = new TwistDecryptor();
+            HtmlDocument doc = new HtmlDocument();
+            doc.LoadHtml(html);
 
-            var jsonObj = JObject.Parse(json);
-            var jsonSources = JArray.Parse(sources);
+            var nodes = doc.DocumentNode
+                .SelectNodes(".//ul[@class='loop episode-loop thumb']/li")
+                .ToList();
 
-            anime.Summary = jsonObj["description"]?.ToString();
+            foreach (var node in nodes)
+            {
+                var episode = new Episode();
 
-            episodes = jsonSources.Select(x => {
-                DateTime? createdAt = null;
-                DateTime? updatedAt = null;
+                episode.EpisodeName = node.SelectSingleNode(".//div[@class='episode-title']").InnerText;
+                episode.EpisodeNumber = Convert.ToSingle(node.SelectSingleNode(".//div[@class='episode-slug']").InnerText.Replace("Episode ", ""));
+                episode.EpisodeLink = $"{anime.Link}/{episode.EpisodeNumber}";
+                episode.Image = node.SelectSingleNode(".//img").Attributes["src"].Value;
+                episode.Description = node.SelectSingleNode(".//a").Attributes["data-content"].Value;
 
-                if (!string.IsNullOrEmpty(x["created_at"]?.ToString()))
-                {
-                    createdAt = DateTime.Parse(x["created_at"].ToString(), System.Globalization.CultureInfo.InvariantCulture);
-                }
-
-                if (!string.IsNullOrEmpty(x["updated_at"]?.ToString()))
-                {
-                    createdAt = DateTime.Parse(x["updated_at"].ToString(), System.Globalization.CultureInfo.InvariantCulture);
-                }
-
-                int epNum = (int)x["number"];
-                string videoLink = (anime.Ongoing ? ActiveCdnUrl : CdnUrl) + decryptor.Decrypt(x["source"].ToString(), AesKey);
-
-                return new Episode()
-                {
-                    Id = (int)x["id"],
-                    EpisodeNumber = epNum,
-                    EpisodeName = $"{anime.Title} - Episode {epNum}",
-                    AnimeId = (int)x["anime_id"],
-                    CreatedAt = createdAt,
-                    UpdatedAt = updatedAt,
-                    EpisodeLink = videoLink,
-                };
-            }).ToList();
+                episodes.Add(episode);
+            }
 
             return episodes;
         }
 
-        public override Task<List<Quality>> GetEpisodeLinksAsync(Episode episode)
+        public override async Task<List<Quality>> GetEpisodeLinksAsync(Episode episode)
         {
             List<Quality> list = new List<Quality>();
 
-            list.Add(new Quality()
-            {
-                QualityUrl = episode.EpisodeLink,
-                Referer = BaseUrl,
-            });
+            string html = await Http.GetHtmlAsync(episode.EpisodeLink, CookieHeader);
 
-            return Task.FromResult(list);
+            if (string.IsNullOrEmpty(html))
+                return list;
+
+            HtmlDocument doc = new HtmlDocument();
+            doc.LoadHtml(html);
+
+            var nodes = doc.DocumentNode
+                .SelectNodes(".//ul[@class='dropdown-menu']/li/a[@class='dropdown-item']")
+                .ToList();
+
+            foreach (var node in nodes)
+            {
+                string server = node.InnerText.Replace(" ", "").Replace("/-", "");
+                bool dub = node.SelectSingleNode(".//span[@title='Audio: English']") != null;
+
+                if (dub)
+                {
+                    server = $"Dub - ${server}";
+                }
+
+                var urlParam = new Uri(node.Attributes["href"].Value).DecodeQueryParameters();
+                string url = $"{BaseUrl}/embed?" + urlParam.FirstOrDefault().Key + "=" + urlParam.FirstOrDefault().Value;
+                var headers = new WebHeaderCollection()
+                {
+                    CookieHeader,
+                    { "Referer", episode.EpisodeLink }
+                };
+
+                html = await Http.GetHtmlAsync(url, headers);
+
+                string unSanitized = html.SubstringAfter("player.source = ").SubstringBefore(";");
+                var jObj = JObject.Parse(unSanitized);
+                var sources = JArray.Parse(jObj["sources"].ToString());
+                
+                foreach (var source in sources)
+                {
+                    list.Add(new Quality()
+                    {
+                        Headers = CookieHeader,
+                        FileType = source["type"].ToString(),
+                        Resolution = source["size"].ToString(),
+                        QualityUrl = source["src"].ToString(),
+                    });
+                }
+            }
+
+            return list;
         }
     }
 }
