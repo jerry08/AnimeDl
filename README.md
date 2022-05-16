@@ -16,6 +16,7 @@ AnimeDl scrapes animes from sites.
 | [Zoro](https://zoro.to)            | WORKING | SOME      |
 | [9Anime](https://9anime.center)    | WORKING | NO        |
 | [Twist](https://twist.moe)         | WORKING | YES       |
+| [Tenshi](https://tenshi.moe)       | WORKING | YES       |
 
 
 ## Example 1: Non-Async Method
