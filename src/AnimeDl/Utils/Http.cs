@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace AnimeDl
 {
-    internal static class Http
+    public static class Http
     {
         public const string UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36";
 
@@ -29,7 +29,8 @@ namespace AnimeDl
 
         public static string GetHtml(string url, WebHeaderCollection headers = null)
         {
-            var task = GetHtmlAsync(url, headers);
+            //var task = GetHtmlAsync(url, headers);
+            var task = Task.Run(() => GetHtmlAsync(url, headers));
             task.Wait();
             return task.Result;
         }
