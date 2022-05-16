@@ -18,6 +18,8 @@ namespace AnimeDl.Extractors
     {
         public override async Task<List<Quality>> ExtractQualities(string url)
         {
+            List<Quality> list = new List<Quality>();
+
             string htmlData = await Http.GetHtmlAsync(url);
 
             HtmlDocument doc = new HtmlDocument();
@@ -36,7 +38,7 @@ namespace AnimeDl.Extractors
                 .FirstOrDefault();
 
             //string dataValue = scripts.Where(x => x.Attributes["data-name"]?.Value == "crypto")
-            //    .FirstOrDefault().Attributes["data-value"].Value;
+            //  .FirstOrDefault().Attributes["data-value"].Value;
 
             string dataValue = cryptoScript.Attributes["data-value"].Value;
 
@@ -48,14 +50,19 @@ namespace AnimeDl.Extractors
 
             string link = $"https://{new Uri(url).Host}/encrypt-ajax.php?id={CryptoHandler(id, keys.Item1, keys.Item3, true)}{end}&alias={id}";
 
-            string host = new GogoAnimeScraper().BaseUrl;
+            //string host = new GogoAnimeScraper().BaseUrl;
 
             string encHtmlData = await Http.GetHtmlAsync(link,
                 new WebHeaderCollection()
                 {
                     { "X-Requested-With", "XMLHttpRequest" },
-                    { "Referer", host },
+                    //{ "Referer", host },
                 });
+
+            if (string.IsNullOrEmpty(encHtmlData))
+            {
+                return list;
+            }
 
             var jsonObj = JObject.Parse(encHtmlData);
             var sources = CryptoHandler(jsonObj["data"].ToString(), keys.Item2, keys.Item3, false);
@@ -63,8 +70,6 @@ namespace AnimeDl.Extractors
 
             string source = JObject.Parse(sources)["source"].ToString();
             var array = JArray.Parse(source);
-
-            List<Quality> list = new List<Quality>();
 
             if (array.Count == 1 && array[0]["type"]?.ToString() == "hls")
             {
