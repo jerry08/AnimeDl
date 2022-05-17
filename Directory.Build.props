@@ -1,0 +1,37 @@
+<Project>
+
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+    <Company>Tyrrrz</Company>
+    <Copyright>Copyright (C) Jerry Berry</Copyright>
+    <LangVersion>latest</LangVersion>
+    <!--<Nullable>enable</Nullable>-->
+    <WarningsAsErrors>nullable</WarningsAsErrors>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <!-- Disable nullability warnings on frameworks where BCL is not annotated -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'net461'">
+    <Nullable>annotations</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Authors>$(Company)</Authors>
+    <PackageTags>anime animedl scraper animescraper scraping crawler gogoanime twistmoe zoro zoroto 9anime tenshi gogoplay</PackageTags>
+    <PackageProjectUrl>https://github.com/jerry08/AnimeDl</PackageProjectUrl>
+    <PackageReleaseNotes>https://github.com/jerry08/AnimeDl/blob/master/Changelog.md</PackageReleaseNotes>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>favicon.png</PackageIcon>
+    <PackageLicenseExpression>LGPL-3.0-only</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../README.md" Pack="true" PackagePath="" Visible="false" />
+    <None Include="../favicon.png" Pack="true" PackagePath="" Visible="false" />
+  </ItemGroup>
+
+</Project>
