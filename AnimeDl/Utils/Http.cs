@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using BrotliStream = BrotliSharpLib.BrotliStream;
 
 namespace AnimeDl
 {

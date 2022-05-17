@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\AnimeDl\AnimeDl.csproj" />
+    <ProjectReference Include="..\AnimeDl\AnimeDl.csproj" />
   </ItemGroup>
 
 </Project>

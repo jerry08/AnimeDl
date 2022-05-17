@@ -1,81 +1,14 @@
-﻿using AnimeDl.Scrapers;
-using System;
-using System.Diagnostics;
+﻿using System;
 using System.IO;
-using System.Linq;
 using System.Net;
-using System.Runtime.InteropServices;
+using AnimeDl.Scrapers;
 
 namespace AnimeDl.DemoConsole
 {
-    static class DisableConsoleQuickEdit
-    {
-
-        const uint ENABLE_QUICK_EDIT = 0x0040;
-
-        // STD_INPUT_HANDLE (DWORD): -10 is the standard input device.
-        const int STD_INPUT_HANDLE = -10;
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        static extern IntPtr GetStdHandle(int nStdHandle);
-
-        [DllImport("kernel32.dll")]
-        static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
-
-        [DllImport("kernel32.dll")]
-        static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
-
-        internal static bool Go()
-        {
-            IntPtr consoleHandle = GetStdHandle(STD_INPUT_HANDLE);
-
-            // get current console mode
-            uint consoleMode;
-            if (!GetConsoleMode(consoleHandle, out consoleMode))
-            {
-                // ERROR: Unable to get console mode.
-                return false;
-            }
-
-            // Clear the quick edit bit in the mode flags
-            consoleMode &= ~ENABLE_QUICK_EDIT;
-
-            // set the new mode
-            if (!SetConsoleMode(consoleHandle, consoleMode))
-            {
-                // ERROR: Unable to set console mode
-                return false;
-            }
-
-            return true;
-        }
-    }
-
     class Program
     {
-        // http://msdn.microsoft.com/en-us/library/ms686033(VS.85).aspx
-        [DllImport("kernel32.dll")]
-        public static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
-
-        private const uint ENABLE_EXTENDED_FLAGS = 0x0080;
-
-        private static void DisableQuickEditMode()
-        {
-            // Disable QuickEdit Mode
-            // Quick Edit mode freezes the app to let users select text.
-            // We don't want that. We want the app to run smoothly in the background.
-            // - https://stackoverflow.com/q/4453692
-            // - https://stackoverflow.com/a/4453779
-            // - https://stackoverflow.com/a/30517482
-
-            IntPtr handle = Process.GetCurrentProcess().MainWindowHandle;
-            SetConsoleMode(handle, ENABLE_EXTENDED_FLAGS);
-        }
-
         static void Main(string[] args)
         {
-            //DisableQuickEditMode();
-            DisableConsoleQuickEdit.Go();
             Example2();
         }
 
@@ -127,8 +60,13 @@ namespace AnimeDl.DemoConsole
         {
             AnimeScraper scraper = new AnimeScraper(AnimeSites.GogoAnime);
 
-            //var animes = scraper.Search("your lie in april", forceLoad: true);
-            var animes = scraper.Search("attack on titan final season part 2", forceLoad: true);
+            string query = "your lie in april";
+            //string query = "attack on titan final season part 2";
+            //string query = "Ascendance of a Bookworm 3rd season";
+            //string query = "naruto";
+
+            var animes = scraper.Search(query, forceLoad: true);
+            //var animes = scraper.Search(query, forceLoad: true);
             Console.WriteLine("Animes count: " + animes.Count);
 
             var episodes = scraper.GetEpisodes(animes[0], forceLoad: true);
@@ -138,7 +76,7 @@ namespace AnimeDl.DemoConsole
             Console.WriteLine($"Qualities count: " + qualities.Count);
 
             //qualities[1].Referer = qualities[0].Referer;
-            DownloadExample(qualities[0], @"D:\video1.mp4");
+            //DownloadExample(qualities[3], @"D:\video1.mp4");
 
             Console.ReadLine();
         }
@@ -155,6 +93,14 @@ namespace AnimeDl.DemoConsole
 
             var links = await scraper.GetEpisodeLinksAsync(episodes[0]);
             Console.WriteLine("Qualities count: " + links.Count);
+        }
+
+        public static void DownloadExample(string url, string filePath)
+        {
+            DownloadExample(new Quality() 
+            { 
+                QualityUrl = url
+            }, filePath);
         }
 
         public static void DownloadExample(Quality quality, string filePath)
