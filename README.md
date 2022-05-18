@@ -1,5 +1,11 @@
 # AnimeDl
-AnimeDl scrapes animes from sites. 
+
+[![Build](https://img.shields.io/github/workflow/status/Jerro/AnimeDl/CI/master)](https://github.com/Jerro/AnimeDl/actions)
+[![Coverage](https://img.shields.io/codecov/c/github/Jerry08/AnimeDl/master)](https://codecov.io/gh/Tyrrrz/AnimeDl)
+[![Version](https://img.shields.io/nuget/v/AnimeDl.svg)](https://nuget.org/packages/AnimeDl)
+[![Downloads](https://img.shields.io/nuget/dt/AnimeDl.svg)](https://nuget.org/packages/AnimeDl)
+
+**AnimeDl** scrapes animes from sites. 
 
 ### 🌟STAR THIS REPOSITORY TO SUPPORT THE DEVELOPER AND ENCOURAGE THE DEVELOPMENT OF THE APPLICATION!
 
