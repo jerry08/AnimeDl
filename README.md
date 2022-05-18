@@ -1,7 +1,5 @@
 # AnimeDl
 
-[![Build](https://img.shields.io/github/workflow/status/Jerro/AnimeDl/CI/master)](https://github.com/Jerro/AnimeDl/actions)
-[![Coverage](https://img.shields.io/codecov/c/github/Jerry08/AnimeDl/master)](https://codecov.io/gh/Tyrrrz/AnimeDl)
 [![Version](https://img.shields.io/nuget/v/AnimeDl.svg)](https://nuget.org/packages/AnimeDl)
 [![Downloads](https://img.shields.io/nuget/dt/AnimeDl.svg)](https://nuget.org/packages/AnimeDl)
 
@@ -23,6 +21,11 @@
 | [9Anime](https://9anime.center)    | WORKING | NO        |
 | [Twist](https://twist.moe)         | WORKING | YES       |
 | [Tenshi](https://tenshi.moe)       | WORKING | YES       |
+
+
+## Install
+
+- 📦 [NuGet](https://nuget.org/packages/AnimeDl): `dotnet add package AnimeDl`
 
 
 ## Example 1: Non-Async Method
