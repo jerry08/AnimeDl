@@ -15,7 +15,6 @@
     <PackageReference Include="BrotliSharpLib" Version="0.3.3" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.42" />
     <PackageReference Include="Nager.PublicSuffix" Version="2.3.0" />
-    <PackageReference Include="Nager.PublicSuffix" Version="2.3.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
