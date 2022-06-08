@@ -15,20 +15,40 @@ namespace AnimeDl.Extractors
     {        
         public override async Task<List<Quality>> ExtractQualities(string url)
         {
-            string html = await Http.GetHtmlAsync(url, new WebHeaderCollection()
+            var headers = new WebHeaderCollection()
             {
                 { "Referer", "https://zoro.to/" }
-            });
+            };
+
+            string html = await Http.GetHtmlAsync(url, headers);
 
             string key = html.FindBetween("var recaptchaSiteKey = '", "',");
             string number = html.FindBetween("recaptchaNumber = '", "';");
 
-            if (key != null && number != null)
-            {
-                var test = await Captcha(url, key);
-            }
+            var token = await Captcha(url, key);
+            var sg = $"https://rapid-cloud.ru/ajax/embed-6/getSources?id={url.FindBetween("/embed-6/", "?z=")}&_token=${token}&_number={number}";
+
+            html = await Http.GetHtmlAsync(sg, headers);
+
+            var jsonObj = JObject.Parse(html);
+
+            //if (key != null && number != null)
+            //{
+            //    var test = await Captcha(url, key);
+            //}
 
             var list = new List<Quality>();
+
+            var test = jsonObj["sources"].ToString();
+            var array = JArray.Parse(test)[0];
+            var tt = array["file"].ToString();
+
+            list.Add(new Quality()
+            {
+                QualityUrl = array["file"].ToString(),
+                Headers = headers,
+                Resolution = "Auto p"
+            });
 
             return list;
         }
@@ -36,7 +56,7 @@ namespace AnimeDl.Extractors
         private async Task<string> Captcha(string url, string key)
         {
             var uri = new Uri(url);
-            string domain = Convert.ToBase64String(Encoding.ASCII.GetBytes(uri.Scheme + "://" + uri.Host + ":443")).Replace("\n", "");
+            string domain = (Convert.ToBase64String(Encoding.ASCII.GetBytes(uri.Scheme + "://" + uri.Host + ":443")) + ".").Replace("\n", "");
             string vToken = (await Http.GetHtmlAsync($"https://www.google.com/recaptcha/api.js?render={key}", new WebHeaderCollection() 
             {
                 { "Referrer", uri.Scheme + "://" + uri.Host }
@@ -46,7 +66,7 @@ namespace AnimeDl.Extractors
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(recapTokenHtml);
 
-            return null;
+            return vToken;
         }
     }
 }

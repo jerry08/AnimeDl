@@ -110,9 +110,10 @@ namespace AnimeDl.Scrapers
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(html);
 
-            var nodes = doc.DocumentNode.SelectNodes(".//a");
+            var nodes = doc.DocumentNode.SelectNodes(".//a")
+                .Where(x => x.Attributes["data-page"] == null).ToList();
 
-            List<Episode> episodes = new List<Episode>();
+            var episodes = new List<Episode>();
             for (int i = 0; i < nodes.Count; i++)
             {
                 string title = nodes[i].Attributes["title"].Value;
@@ -147,7 +148,7 @@ namespace AnimeDl.Scrapers
 
         public override async Task<List<Quality>> GetEpisodeLinksAsync(Episode episode)
         {
-            List<Quality> list = new List<Quality>();
+            var list = new List<Quality>();
 
             string dataId = episode.EpisodeLink.Split(new string[] { "ep=" }, 
                 StringSplitOptions.None).Last();
