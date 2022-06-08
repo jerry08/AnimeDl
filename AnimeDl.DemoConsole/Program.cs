@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using AnimeDl.Scrapers;
 
@@ -9,12 +10,14 @@ namespace AnimeDl.DemoConsole
     {
         static void Main(string[] args)
         {
+            Console.Title = "AnimeDl Demo";
+
             Example2();
         }
 
         public static void Example1()
         {
-            AnimeScraper scraper = new AnimeScraper(AnimeSites.Zoro);
+            var scraper = new AnimeScraper(AnimeSites.Zoro);
 
             scraper.OnAnimesLoaded += (s, e) =>
             {
@@ -58,32 +61,95 @@ namespace AnimeDl.DemoConsole
 
         public static void Example2()
         {
-            AnimeScraper scraper = new AnimeScraper(AnimeSites.GogoAnime);
+            var scraper = new AnimeScraper(AnimeSites.Zoro);
 
-            string query = "your lie in april";
+            // Read the anime name
+            Console.Write("Enter anime name: ");
+            var query = Console.ReadLine() ?? "";
+
+            //string query = "your lie in april";
             //string query = "attack on titan final season part 2";
             //string query = "Ascendance of a Bookworm 3rd season";
             //string query = "naruto";
 
             var animes = scraper.Search(query, forceLoad: true);
-            //var animes = scraper.Search(query, forceLoad: true);
-            Console.WriteLine("Animes count: " + animes.Count);
+            Console.WriteLine("Animes found: ");
+            Console.WriteLine();
+            for (int i = 0; i < animes.Count; i++)
+            {
+                Console.WriteLine($"[{i+1}] {animes[i].Title}");
+            }
 
-            var episodes = scraper.GetEpisodes(animes[0], forceLoad: true);
-            Console.WriteLine("Episodes count: " + episodes.Count);
+            Console.WriteLine();
 
-            var qualities = scraper.GetEpisodeLinks(episodes[0], forceLoad: true);
-            Console.WriteLine($"Qualities count: " + qualities.Count);
+            // Read the anime number selected
+            Console.Write("Enter anime number: ");
 
-            //qualities[1].Referer = qualities[0].Referer;
-            //DownloadExample(qualities[3], @"D:\video1.mp4");
+            int animeIndex;
+
+            while (!int.TryParse(Console.ReadLine() ?? "", out animeIndex))
+            {
+                Console.Clear();
+                Console.WriteLine("You entered an invalid number");
+                Console.Write("Enter anime number: ");
+            }
+
+            animeIndex--;
+
+            Console.WriteLine();
+
+            // Read the anime episodes
+            var episodes = scraper.GetEpisodes(animes[animeIndex], forceLoad: true);
+            Console.WriteLine("Episodes found: " + episodes.Count);
+
+            // Read the episode number selected
+            Console.Write("Enter episode number: ");
+
+            int episodeIndex;
+
+            while (!int.TryParse(Console.ReadLine() ?? "", out episodeIndex))
+            {
+                Console.Clear();
+                Console.WriteLine("You entered an invalid number");
+                Console.Write("Enter episode number: ");
+            }
+
+            episodeIndex--;
+
+            Console.WriteLine();
+
+            var qualities = scraper.GetEpisodeLinks(episodes[episodeIndex], forceLoad: true);
+            Console.WriteLine($"Qualities found: " + qualities.Count);
+
+            for (int i = 0; i < qualities.Count; i++)
+            {
+                Console.WriteLine($"[{i + 1}] {qualities[i].Resolution}");
+            }
+
+            Console.WriteLine();
+
+            // Read the episode number selected
+            Console.Write("Enter quality number: ");
+
+            int qualityIndex;
+
+            while (!int.TryParse(Console.ReadLine() ?? "", out qualityIndex))
+            {
+                Console.Clear();
+                Console.WriteLine("You entered an invalid number");
+                Console.Write("Enter quality number: ");
+            }
+
+            qualityIndex--;
+
+            DownloadExample(qualities[qualityIndex], $@"{Environment.CurrentDirectory}\{animes[animeIndex].Title} - Ep {episodes[episodeIndex].EpisodeNumber}.mp4");
 
             Console.ReadLine();
         }
 
         public static async void Example3()
         {
-            AnimeScraper scraper = new AnimeScraper(AnimeSites.Zoro);
+            var scraper = new AnimeScraper(AnimeSites.Zoro);
 
             var animes = await scraper.SearchAsync("your lie in april");
             Console.WriteLine("Animes count: " + animes.Count);
