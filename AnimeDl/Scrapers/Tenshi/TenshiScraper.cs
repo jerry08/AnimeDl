@@ -32,6 +32,9 @@ namespace AnimeDl.Scrapers
 
         public override async Task<List<Anime>> SearchAsync(string query, SearchType searchType = SearchType.Find, int Page = 1)
         {
+            //query = query.Replace(" ", "%20");
+            query = query.Replace(" ", "+");
+
             string url = BaseUrl + $"/anime?q={query}&s=vtt-d";
 
             string html = await Http.GetHtmlAsync(url, CookieHeader, null);
@@ -74,7 +77,7 @@ namespace AnimeDl.Scrapers
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(html);
 
-            var nodes = doc.DocumentNode
+            /*var nodes = doc.DocumentNode
                 .SelectNodes(".//ul[@class='loop episode-loop thumb']/li")
                 .ToList();
 
@@ -87,6 +90,20 @@ namespace AnimeDl.Scrapers
                 episode.EpisodeLink = $"{anime.Link}/{episode.EpisodeNumber}";
                 episode.Image = node.SelectSingleNode(".//img").Attributes["src"].Value;
                 episode.Description = node.SelectSingleNode(".//a").Attributes["data-content"].Value;
+
+                episodes.Add(episode);
+            }*/
+
+            var totalEpisodes = Convert.ToInt32(doc.DocumentNode
+                .SelectSingleNode(".//section[@class='entry-episodes']/h2/span[@class='badge badge-secondary align-top']")
+                .InnerText);
+
+            for (int i = 0; i < totalEpisodes; i++)
+            {
+                var episode = new Episode();
+
+                episode.EpisodeNumber = i;
+                episode.EpisodeLink = $"{anime.Link}/{i}";
 
                 episodes.Add(episode);
             }

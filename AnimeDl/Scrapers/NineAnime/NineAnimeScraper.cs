@@ -15,7 +15,8 @@ namespace AnimeDl.Scrapers
 {
     public class NineAnimeScraper : BaseScraper
     {
-        public override string BaseUrl => "https://9anime.center";
+        //public override string BaseUrl => "https://9anime.center";
+        public override string BaseUrl => "https://9anime.pl";
 
         public override async Task<List<Anime>> SearchAsync(string query, 
             SearchType searchType = SearchType.Find, int Page = 1)
@@ -76,11 +77,15 @@ namespace AnimeDl.Scrapers
         }
 
         //Credits to https://github.com/jmir1
-        private string key = "0wMrYU+ixjJ4QdzgfN2HlyIVAt3sBOZnCT9Lm7uFDovkb/EaKpRWhqXS5168ePcG";
+        //private string key = "0wMrYU+ixjJ4QdzgfN2HlyIVAt3sBOZnCT9Lm7uFDovkb/EaKpRWhqXS5168ePcG";
+
+        //thanks to @Modder4869 for key
+        private string key = "c/aUAorINHBLxWTy3uRiPt8J+vjsOheFG1E0q2X9CYwDZlnmd4Kb5M6gSVzfk7pQ";
+        
         private string GetVrf(string id)
         {
-            string reversed = new string(ue(Encode(id) + "0000000").Take(6).Reverse().ToArray());
-            reversed += Regex.Replace(ue(je(reversed, Encode(id))), @"""=+$""", "");
+            string reversed = new string(encrypt(Encode(id) + "0000000").Take(6).Reverse().ToArray());
+            reversed += Regex.Replace(encrypt(cipher(reversed, Encode(id))), @"""=+$""", "");
             return reversed;
         }
 
@@ -88,10 +93,11 @@ namespace AnimeDl.Scrapers
         {
             var i = url.Substring(0, 6);
             var n = url.Substring(6);
-            return Decode(je(i, ze(n)));
+            return Decode(cipher(i, decrypt(n)));
         }
 
-        private string ue(string input)
+        //private string ue(string input)
+        public string encrypt(string input)
         {
             if (input.Any(x => x >= 256))
                 throw new Exception("illegal characters!");
@@ -133,7 +139,8 @@ namespace AnimeDl.Scrapers
             return output;
         }
 
-        private string je(string input1, string input2)
+        //private string je(string input1, string input2)
+        public string cipher(string input1, string input2)
         {
             var arr = new int[256];
             for (int i = 0; i < arr.Length; i++)
@@ -169,7 +176,8 @@ namespace AnimeDl.Scrapers
             return output;
         }
 
-        private string ze(string input)
+        //private string ze(string input)
+        public string decrypt(string input)
         {
             string t;
 
@@ -248,7 +256,8 @@ namespace AnimeDl.Scrapers
 
             string animeidencoded = Encode(GetVrf(animeId));
 
-            var epsHtml = await Http.GetHtmlAsync($"{BaseUrl}/ajax/anime/servers?ep=1&id={animeId}&vrf={animeidencoded}&ep=8&episode=&token=");
+            //var epsHtml = await Http.GetHtmlAsync($"{BaseUrl}/ajax/anime/servers?ep=1&id={animeId}&vrf={animeidencoded}&ep=8&episode=&token=");
+            var epsHtml = await Http.GetHtmlAsync($"{BaseUrl}/ajax/anime/servers?id={animeId}&vrf={animeidencoded}");
 
             document = new HtmlDocument();
             document.LoadHtml(JObject.Parse(epsHtml)["html"].ToString());
@@ -317,6 +326,8 @@ namespace AnimeDl.Scrapers
 
             string encryptedSourceUrl = JObject.Parse(epServer)["url"].ToString().Replace("=", "");
             string embedLink = GetLink(encryptedSourceUrl)?.Replace("/embed/", "/e/");
+
+            //await new VizCloud(this).ExtractQualities(embedLink);
 
             string embedHtml = await Http.GetHtmlAsync(embedLink, headers);
 

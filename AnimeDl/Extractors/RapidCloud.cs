@@ -39,9 +39,8 @@ namespace AnimeDl.Extractors
 
             var list = new List<Quality>();
 
-            var test = jsonObj["sources"].ToString();
-            var array = JArray.Parse(test)[0];
-            var tt = array["file"].ToString();
+            var sources = jsonObj["sources"].ToString();
+            var array = JArray.Parse(sources)[0];
 
             list.Add(new Quality()
             {

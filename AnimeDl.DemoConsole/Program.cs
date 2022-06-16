@@ -61,7 +61,11 @@ namespace AnimeDl.DemoConsole
 
         public static void Example2()
         {
-            var scraper = new AnimeScraper(AnimeSites.Zoro);
+            //var scraper = new AnimeScraper(AnimeSites.GogoAnime); //Working
+            //var scraper = new AnimeScraper(AnimeSites.TwistMoe); //Not working
+            //var scraper = new AnimeScraper(AnimeSites.Zoro); //Working
+            //var scraper = new AnimeScraper(AnimeSites.NineAnime); //Not working
+            var scraper = new AnimeScraper(AnimeSites.Tenshi);
 
             // Read the anime name
             Console.Write("Enter anime name: ");

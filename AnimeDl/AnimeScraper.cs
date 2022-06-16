@@ -61,7 +61,7 @@ namespace AnimeDl
                 new TwistScraper(),
                 new ZoroScraper(),
                 new NineAnimeScraper(),
-                new TenshiScraper()
+                new TenshiScraper(),
             };
         }
 

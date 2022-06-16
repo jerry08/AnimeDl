@@ -18,8 +18,8 @@
 |:--------------------------:|:-------:|:---------:|
 | [Gogo](https://gogoanime.cm)       | WORKING | SOME      |
 | [Zoro](https://zoro.to)            | WORKING | SOME      |
-| [9Anime](https://9anime.center)    | WORKING | NO        |
-| [Twist](https://twist.moe)         | WORKING | YES       |
+| [9Anime](https://9anime.center)    | NOT WORKING | NO        |
+| [Twist](https://twist.moe)         | NOT WORKING | YES       |
 | [Tenshi](https://tenshi.moe)       | WORKING | YES       |
 
 
