@@ -1,4 +1,5 @@
 # AnimeDl
+# (Note: Update coming soon! Major rework and improvements. (Gogoanime changed their site url but I havn't posted the update yet.))
 
 [![Version](https://img.shields.io/nuget/v/AnimeDl.svg)](https://nuget.org/packages/AnimeDl)
 [![Downloads](https://img.shields.io/nuget/dt/AnimeDl.svg)](https://nuget.org/packages/AnimeDl)
