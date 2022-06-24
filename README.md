@@ -1,5 +1,4 @@
 # AnimeDl
-# (Note: Update coming soon! Major rework and improvements. (Gogoanime changed their site url but I havn't posted the update yet.))
 
 [![Version](https://img.shields.io/nuget/v/AnimeDl.svg)](https://nuget.org/packages/AnimeDl)
 [![Downloads](https://img.shields.io/nuget/dt/AnimeDl.svg)](https://nuget.org/packages/AnimeDl)
@@ -167,11 +166,7 @@ namespace AnimeApp
         //Method with force load
         public static async Task Example2()
         {
-            //var client = new AnimeClient(AnimeSites.GogoAnime); //Working
-            //var client = new AnimeClient(AnimeSites.TwistMoe); //Not working
-            //var client = new AnimeClient(AnimeSites.Zoro); //Working
-            //var client = new AnimeClient(AnimeSites.NineAnime); //Not working
-            var client = new AnimeClient(AnimeSites.Tenshi); //Working
+            var client = new AnimeClient(AnimeSites.Tenshi);
 
             // Read the anime name
             Console.Write("Enter anime name: ");
