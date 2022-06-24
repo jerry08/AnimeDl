@@ -1,29 +1,25 @@
-﻿using HtmlAgilityPack;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.Net;
 
-namespace AnimeDl.Extractors
+namespace AnimeDl.Extractors;
+
+internal class StreamTape : BaseExtractor
 {
-    class StreamTape : BaseExtractor
+    private readonly Regex LinkRegex = new(@"'robotlink'\)\.innerHTML = '(.+?)'\+ \('(.+?)'\)");
+    public virtual string MainUrl => "https://streamtape.com";
+
+    public StreamTape(NetHttpClient netHttpClient) : base(netHttpClient)
     {
-        private Regex LinkRegex = new Regex(@"'robotlink'\)\.innerHTML = '(.+?)'\+ \('(.+?)'\)");
-        public virtual string MainUrl => "https://streamtape.com";
-        
-        public override async Task<List<Quality>> ExtractQualities(string url)
-        {
-            string text = await Http.GetHtmlAsync(url);
-            var ss = LinkRegex.Matches(text);
+    }
 
-            var list = new List<Quality>();
+    public override async Task<List<Quality>> ExtractQualities(string url)
+    {
+        var text = await _netHttpClient.SendHttpRequestAsync(url);
+        var ss = LinkRegex.Matches(text);
 
-            return list;
-        }
+        var list = new List<Quality>();
+
+        return list;
     }
 }

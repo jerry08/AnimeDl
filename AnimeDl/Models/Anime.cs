@@ -1,33 +1,32 @@
 ﻿using System;
 
-namespace AnimeDl
+namespace AnimeDl;
+
+public class Anime
 {
-    public class Anime
-    {
-        public int Id { get; set; }
+    public int Id { get; set; }
 
-        public string Title { get; set; }
-        public string AltTitle { get; set; }
-        public int Season { get; set; }
-        public bool Ongoing { get; set; }
-        public int Hb_Id { get; set; }
-        public DateTime? CreatedAt { get; set; }
-        public DateTime? UpdatedAt { get; set; }
-        public int Mal_Id { get; set; }
-        public bool Hidden { get; set; }
-        public string Slug { get; set; }
+    public string Title { get; set; } = default!;
+    public string AltTitle { get; set; } = default!;
+    public int Season { get; set; }
+    public bool Ongoing { get; set; }
+    public int Hb_Id { get; set; }
+    public DateTime? CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+    public int Mal_Id { get; set; }
+    public bool Hidden { get; set; }
+    public string Slug { get; set; } = default!;
 
-        public string Released { get; set; }
-        public int EpisodesNum { get; set; }
-        public string Category { get; set; }
-        public string Link { get; set; }
-        public string Image { get; set; }
-        public float LastWatchedEp { get; set; }
+    public string Released { get; set; } = default!;
+    public int EpisodesNum { get; set; }
+    public string Category { get; set; } = default!;
+    public string Link { get; set; } = default!;
+    public string Image { get; set; } = default!;
+    public float LastWatchedEp { get; set; }
 
-        public string Type { get; set; }
-        public string Status { get; set; }
-        public string OtherNames { get; set; }
-        public string Summary { get; set; }
-        public string Genre { get; set; }
-    }
+    public string Type { get; set; } = default!;
+    public string Status { get; set; } = default!;
+    public string OtherNames { get; set; } = default!;
+    public string Summary { get; set; } = default!;
+    public string Genre { get; set; } = default!;
 }

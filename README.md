@@ -3,9 +3,9 @@
 [![Version](https://img.shields.io/nuget/v/AnimeDl.svg)](https://nuget.org/packages/AnimeDl)
 [![Downloads](https://img.shields.io/nuget/dt/AnimeDl.svg)](https://nuget.org/packages/AnimeDl)
 
-**AnimeDl** scrapes animes from sites. 
+**AnimeDl** scrapes animes from sites.
 
-### 🌟STAR THIS REPOSITORY TO SUPPORT THE DEVELOPER AND ENCOURAGE THE DEVELOPMENT OF THE APPLICATION!
+### 🌟STAR THIS REPOSITORY TO SUPPORT THE DEVELOPER AND ENCOURAGE THE DEVELOPMENT OF THE PROJECT!
 
 <br>
 
@@ -42,54 +42,109 @@ namespace AnimeApp
     {
         public void Example1() 
         {
-            AnimeScraper scraper = new AnimeScraper(AnimeSites.GogoAnime);
+            var client = new AnimeClient(AnimeSites.Tenshi);
 
-            scraper.OnAnimesLoaded += (s, e) =>
+            client.OnAnimesLoaded += (s, e) =>
             {
                 var animes = e.Animes;
 
-                Console.WriteLine("Animes count: " + animes.Count);
+                Console.WriteLine("Animes found: ");
+                Console.WriteLine();
+                for (int i = 0; i < animes.Count; i++)
+                {
+                    Console.WriteLine($"[{i + 1}] {animes[i].Title}");
+                }
 
-                //Second (get episodes from specific anime)
-                scraper.GetEpisodes(animes[0]);
+                Console.WriteLine();
+
+                // Read the anime number selected
+                Console.Write("Enter anime number: ");
+
+                int animeIndex;
+
+                while (!int.TryParse(Console.ReadLine() ?? "", out animeIndex))
+                {
+                    Console.Clear();
+                    Console.WriteLine("You entered an invalid number");
+                    Console.Write("Enter anime number: ");
+                }
+
+                animeIndex--;
+
+                Console.WriteLine();
+
+                // Read the anime episodes
+                var episodes = client.GetEpisodes(animes[animeIndex]);
             };
 
-            scraper.OnEpisodesLoaded += (s, e) =>
+            client.OnEpisodesLoaded += (s, e) =>
             {
                 var episodes = e.Episodes;
 
-                Console.WriteLine("Episodes count: " + episodes.Count);
+                Console.WriteLine("Episodes found: " + episodes.Count);
 
-                //Thrid (get video links from specific episode).
-                //Can download video from links
-                scraper.GetEpisodeLinks(episodes[0]);
+                // Read the episode number selected
+                Console.Write("Enter episode number: ");
+
+                int episodeIndex;
+
+                while (!int.TryParse(Console.ReadLine() ?? "", out episodeIndex))
+                {
+                    Console.Clear();
+                    Console.WriteLine("You entered an invalid number");
+                    Console.Write("Enter episode number: ");
+                }
+
+                episodeIndex--;
+
+                Console.WriteLine();
+
+                var qualities = client.GetEpisodeLinks(episodes[episodeIndex]);
             };
 
-            //Optional (Only gets all genres from )
-            //scraper.OnGenresLoaded += (s, e) =>
-            //{
-            //    var genres = e.Genres;
-            //
-            //    Console.WriteLine("Genres count: " + genres.Count);
-            //};
-            //scraper.GetAllGenres();
+            client.OnQualitiesLoaded += (s, e) =>
+            {
+                var qualities = e.Qualities;
+
+                Console.WriteLine($"Qualities found: " + qualities.Count);
+
+                for (int i = 0; i < qualities.Count; i++)
+                {
+                    Console.WriteLine($"[{i + 1}] {qualities[i].Resolution}");
+                }
+
+                Console.WriteLine();
+
+                // Read the episode number selected
+                Console.Write("Enter quality number: ");
+
+                int qualityIndex;
+
+                while (!int.TryParse(Console.ReadLine() ?? "", out qualityIndex))
+                {
+                    Console.Clear();
+                    Console.WriteLine("You entered an invalid number");
+                    Console.Write("Enter quality number: ");
+                }
+
+                qualityIndex--;
+
+                // Download the stream
+                var fileName = $@"{DateTime.Now.Ticks}.mp4";
+
+                using (var progress = new ConsoleProgress())
+                    client.Download(qualities[qualityIndex], fileName, progress);
+
+                Console.WriteLine("Done");
+                Console.WriteLine($"Video saved to '{fileName}'");
+            };
+
+            // Read the anime name
+            Console.Write("Enter anime name: ");
+            var query = Console.ReadLine() ?? "";
 
             //First (Search anime by name)
-            scraper.Search("your lie in april");
-        }
-
-        public void Example2()
-        {
-            AnimeScraper scraper = new AnimeScraper();
-
-            var animes = scraper.Search("your lie in april", forceLoad: true);
-            Console.WriteLine("Animes count: " + animes.Count);
-
-            var episodes = scraper.GetEpisodes(animes[0], forceLoad: true);
-            Console.WriteLine("Episodes count: " + episodes.Count);
-
-            var links = scraper.GetEpisodeLinks(episodes[0], forceLoad: true);
-            Console.WriteLine("Episodes count: " + links.Count);
+            client.Search(query);
         }
     }
 }
@@ -108,18 +163,190 @@ namespace AnimeApp
 {
     class Class1
     {
-        public async void Example3()
+        //Method with force load
+        public static async Task Example2()
         {
-            AnimeScraper scraper = new AnimeScraper();
+            //var client = new AnimeClient(AnimeSites.GogoAnime); //Working
+            //var client = new AnimeClient(AnimeSites.TwistMoe); //Not working
+            //var client = new AnimeClient(AnimeSites.Zoro); //Working
+            //var client = new AnimeClient(AnimeSites.NineAnime); //Not working
+            var client = new AnimeClient(AnimeSites.Tenshi); //Working
 
-            var animes = await scraper.SearchAsync("your lie in april");
-            Console.WriteLine("Animes count: " + animes.Count);
+            // Read the anime name
+            Console.Write("Enter anime name: ");
+            var query = Console.ReadLine() ?? "";
 
-            var episodes = await scraper.GetEpisodesAsync(animes[0]);
-            Console.WriteLine("Episodes count: " + episodes.Count);
+            var animes = client.Search(query, forceLoad: true);
+            Console.WriteLine("Animes found: ");
+            Console.WriteLine();
+            for (int i = 0; i < animes.Count; i++)
+            {
+                Console.WriteLine($"[{i+1}] {animes[i].Title}");
+            }
 
-            var links = await scraper.GetEpisodeLinksAsync(episodes[0]);
-            Console.WriteLine("Episodes count: " + links.Count);
+            Console.WriteLine();
+
+            // Read the anime number selected
+            Console.Write("Enter anime number: ");
+
+            int animeIndex;
+
+            while (!int.TryParse(Console.ReadLine() ?? "", out animeIndex))
+            {
+                Console.Clear();
+                Console.WriteLine("You entered an invalid number");
+                Console.Write("Enter anime number: ");
+            }
+
+            animeIndex--;
+
+            Console.WriteLine();
+
+            // Read the anime episodes
+            var episodes = client.GetEpisodes(animes[animeIndex], forceLoad: true);
+            Console.WriteLine("Episodes found: " + episodes.Count);
+
+            // Read the episode number selected
+            Console.Write("Enter episode number: ");
+
+            int episodeIndex;
+
+            while (!int.TryParse(Console.ReadLine() ?? "", out episodeIndex))
+            {
+                Console.Clear();
+                Console.WriteLine("You entered an invalid number");
+                Console.Write("Enter episode number: ");
+            }
+
+            episodeIndex--;
+
+            Console.WriteLine();
+
+            var qualities = client.GetEpisodeLinks(episodes[episodeIndex], forceLoad: true);
+            Console.WriteLine($"Qualities found: " + qualities.Count);
+
+            for (int i = 0; i < qualities.Count; i++)
+            {
+                Console.WriteLine($"[{i + 1}] {qualities[i].Resolution}");
+            }
+
+            Console.WriteLine();
+
+            // Read the episode number selected
+            Console.Write("Enter quality number: ");
+
+            int qualityIndex;
+
+            while (!int.TryParse(Console.ReadLine() ?? "", out qualityIndex))
+            {
+                Console.Clear();
+                Console.WriteLine("You entered an invalid number");
+                Console.Write("Enter quality number: ");
+            }
+
+            qualityIndex--;
+
+            // Download the stream
+            var fileName = $@"{Environment.CurrentDirectory}\{animes[animeIndex].Title} - Ep {episodes[episodeIndex].EpisodeNumber}.mp4";
+
+            using (var progress = new ConsoleProgress())
+                await client.DownloadAsync(qualities[qualityIndex], fileName, progress);
+
+            Console.WriteLine("Done");
+            Console.WriteLine($"Video saved to '{fileName}'");
+
+            Console.ReadLine();
+        }
+
+        //Async Method
+        public static async Task Example3()
+        {
+            var client = new AnimeClient(AnimeSites.Tenshi);
+
+            // Read the anime name
+            Console.Write("Enter anime name: ");
+            var query = Console.ReadLine() ?? "";
+
+            var animes = await client.SearchAsync(query);
+            Console.WriteLine("Animes found: ");
+            Console.WriteLine();
+            for (int i = 0; i < animes.Count; i++)
+            {
+                Console.WriteLine($"[{i + 1}] {animes[i].Title}");
+            }
+
+            Console.WriteLine();
+
+            // Read the anime number selected
+            Console.Write("Enter anime number: ");
+
+            int animeIndex;
+
+            while (!int.TryParse(Console.ReadLine() ?? "", out animeIndex))
+            {
+                Console.Clear();
+                Console.WriteLine("You entered an invalid number");
+                Console.Write("Enter anime number: ");
+            }
+
+            animeIndex--;
+
+            Console.WriteLine();
+
+            // Read the anime episodes
+            var episodes = await client.GetEpisodesAsync(animes[animeIndex]);
+            Console.WriteLine("Episodes found: " + episodes.Count);
+
+            // Read the episode number selected
+            Console.Write("Enter episode number: ");
+
+            int episodeIndex;
+
+            while (!int.TryParse(Console.ReadLine() ?? "", out episodeIndex))
+            {
+                Console.Clear();
+                Console.WriteLine("You entered an invalid number");
+                Console.Write("Enter episode number: ");
+            }
+
+            episodeIndex--;
+
+            Console.WriteLine();
+
+            var qualities = await client.GetEpisodeLinksAsync(episodes[episodeIndex]);
+            Console.WriteLine($"Qualities found: " + qualities.Count);
+
+            for (int i = 0; i < qualities.Count; i++)
+            {
+                Console.WriteLine($"[{i + 1}] {qualities[i].Resolution}");
+            }
+
+            Console.WriteLine();
+
+            // Read the episode number selected
+            Console.Write("Enter quality number: ");
+
+            int qualityIndex;
+
+            while (!int.TryParse(Console.ReadLine() ?? "", out qualityIndex))
+            {
+                Console.Clear();
+                Console.WriteLine("You entered an invalid number");
+                Console.Write("Enter quality number: ");
+            }
+
+            qualityIndex--;
+
+            // Download the stream
+            var fileName = $@"{Environment.CurrentDirectory}\{animes[animeIndex].Title} - Ep {episodes[episodeIndex].EpisodeNumber}.mp4";
+
+            using (var progress = new ConsoleProgress())
+                await client.DownloadAsync(qualities[qualityIndex], fileName, progress);
+
+            Console.WriteLine("Done");
+            Console.WriteLine($"Video saved to '{fileName}'");
+
+            Console.ReadLine();
         }
     }
 }
@@ -137,47 +364,9 @@ namespace AnimeApp
 {
     class Class1
     {
-        public void DownloadExample(Quality quality, string filePath)
+        public void DownloadExample(AnimeClient client, Quality quality, string fileName)
         {
-            HttpWebRequest downloadRequest = (HttpWebRequest)WebRequest.Create(quality.QualityUrl);
-
-            downloadRequest.Headers = quality.Headers;
-
-            HttpWebResponse downloadResponse = (HttpWebResponse)downloadRequest.GetResponse();
-            Stream stream = downloadResponse.GetResponseStream();
-
-            //Create a stream for the file
-            Stream file = File.Create(filePath);
-
-            try
-            {
-                //This controls how many bytes to read at a time and send to the client
-                int bytesToRead = 10000;
-
-                // Buffer to read bytes in chunk size specified above
-                byte[] buffer = new byte[bytesToRead];
-
-                int length;
-                do
-                {
-                    // Read data into the buffer.
-                    length = stream.Read(buffer, 0, bytesToRead);
-
-                    // and write it out to the response's output stream
-                    file.Write(buffer, 0, length);
-
-                    // Flush the data
-                    stream.Flush();
-
-                    //Clear the buffer
-                    buffer = new byte[bytesToRead];
-                } while (length > 0); //Repeat until no data is read
-            }
-            finally
-            {
-                file?.Close();
-                stream?.Close();
-            }
+            await client.DownloadAsync(quality, fileName);
         }
     }
 }

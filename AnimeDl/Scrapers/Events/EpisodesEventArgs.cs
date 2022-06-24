@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace AnimeDl.Scrapers.Events
+namespace AnimeDl.Scrapers.Events;
+
+public class EpisodesEventArgs : EventArgs
 {
-    public class EpisodesEventArgs : EventArgs
+    public Anime Anime { get; private set; } = default!;
+
+    public List<Episode> Episodes { get; private set; } = new();
+
+    public EpisodesEventArgs(Anime anime, List<Episode> episodes)
     {
-        public Anime Anime { get; set; }
-        public List<Episode> Episodes { get; set; } = new List<Episode>();
+        Anime = anime;
+        Episodes = episodes;
     }
 }

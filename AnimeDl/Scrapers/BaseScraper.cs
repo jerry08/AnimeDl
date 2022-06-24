@@ -1,72 +1,72 @@
-﻿using System.Collections.Generic;
-using System.Net;
+﻿using System.Net;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using AnimeDl.Scrapers.Interfaces;
+using System;
 
-namespace AnimeDl.Scrapers
+namespace AnimeDl.Scrapers;
+
+public enum AnimeSites
 {
-    public enum AnimeSites
+    GogoAnime,
+    TwistMoe,
+    Zoro,
+    NineAnime,
+    Tenshi
+}
+
+//For Gogoanime
+public enum SearchType
+{
+    Find,
+    AllList,
+    Popular,
+    Ongoing,
+    NewSeason,
+    LastUpdated,
+    Trending,
+    Movies
+}
+
+internal abstract class BaseScraper : IAnimeScraper
+{
+    public virtual string BaseUrl => default!;
+
+    public readonly NetHttpClient _netHttpClient;
+
+    public BaseScraper(NetHttpClient netHttpClient)
     {
-        GogoAnime,
-        TwistMoe,
-        Zoro,
-        NineAnime,
-        Tenshi
+        _netHttpClient = netHttpClient;
     }
 
-    //For Gogoanime
-    public enum SearchType
+    public virtual Task<List<Anime>> SearchAsync(string searchQuery, SearchType searchType, int page)
     {
-        Find,
-        AllList,
-        Popular,
-        Ongoing,
-        NewSeason,
-        LastUpdated,
-        Trending,
-        Movies
+        throw new Exception("Search method not implemented");
     }
 
-    public abstract class BaseScraper
+    public virtual async Task<List<Episode>> GetEpisodesAsync(Anime anime)
     {
-        public virtual string BaseUrl { get { return ""; } }
+        return await Task.FromResult(new List<Episode>());
+    }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="searchText"></param>
-        /// <param name="searchType"></param>
-        /// <param name="Page">Applies to GogoAnime only</param>
-        /// <returns></returns>
-        public virtual async Task<List<Anime>> SearchAsync(string searchText,
-            SearchType searchType = SearchType.Find, int Page = 1)
+    public virtual async Task<List<Quality>> GetEpisodeLinksAsync(Episode episode)
+    {
+        return await Task.FromResult(new List<Quality>());
+    }
+
+    public virtual async Task<List<Genre>> GetGenresAsync()
+    {
+        return await Task.FromResult(new List<Genre>());
+    }
+
+    public virtual WebHeaderCollection GetDefaultHeaders()
+    {
+        //var headers = new NameValueCollection();
+        var headers = new WebHeaderCollection
         {
-            return await Task.FromResult(new List<Anime>());
-        }
+            { "accept-encoding", "gzip, deflate, br" }
+        };
 
-        public virtual async Task<List<Episode>> GetEpisodesAsync(Anime anime)
-        {
-            return await Task.FromResult(new List<Episode>());
-        }
-
-        public virtual async Task<List<Quality>> GetEpisodeLinksAsync(Episode episode)
-        {
-            return await Task.FromResult(new List<Quality>());
-        }
-
-        public virtual async Task<List<Genre>> GetGenresAsync()
-        {
-            return await Task.FromResult(new List<Genre>());
-        }
-
-        public virtual WebHeaderCollection GetDefaultHeaders()
-        {
-            //var headers = new NameValueCollection();
-            var headers = new WebHeaderCollection
-            {
-                { "accept-encoding", "gzip, deflate, br" }
-            };
-
-            return headers;
-        }
+        return headers;
     }
 }
