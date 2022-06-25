@@ -22,6 +22,11 @@ public class AnimeClient : IAnimeScraper
     private readonly NetHttpClient _netHttpClient;
 
     /// <summary>
+    /// Returns the current anime site.
+    /// </summary>
+    public AnimeSites Site { get; private set; }
+    
+    /// <summary>
     /// Anime list.
     /// </summary>
     public List<Anime> Animes { get; private set; } = new();
@@ -66,6 +71,7 @@ public class AnimeClient : IAnimeScraper
     /// </summary>
     public AnimeClient(AnimeSites animeSite, HttpClient httpClient)
     {
+        Site = animeSite;
         _httpClient = httpClient;
         _netHttpClient = new NetHttpClient(_httpClient);
 
@@ -157,7 +163,7 @@ public class AnimeClient : IAnimeScraper
             function().ContinueWith(t =>
             {
                 OnAnimesLoaded?.Invoke(this, new AnimeEventArgs(Animes));
-            });
+            }, _searchCancellationTokenSource.Token, TaskContinuationOptions.None, TaskScheduler.FromCurrentSynchronizationContext());
         }
 
         return Animes;
@@ -235,7 +241,7 @@ public class AnimeClient : IAnimeScraper
             function().ContinueWith(t =>
             {
                 OnEpisodesLoaded?.Invoke(this, new EpisodesEventArgs(anime, Episodes));
-            });
+            }, _episodesCancellationTokenSource.Token, TaskContinuationOptions.None, TaskScheduler.FromCurrentSynchronizationContext());
         }
 
         return Episodes;
@@ -289,7 +295,7 @@ public class AnimeClient : IAnimeScraper
             function().ContinueWith(t =>
             {
                 OnQualitiesLoaded?.Invoke(this, new QualityEventArgs(Qualities));
-            });
+            }, _linksCancellationTokenSource.Token, TaskContinuationOptions.None, TaskScheduler.FromCurrentSynchronizationContext());
         }
 
         return Qualities;
@@ -343,7 +349,7 @@ public class AnimeClient : IAnimeScraper
             function().ContinueWith(t =>
             {
                 OnGenresLoaded?.Invoke(this, new GenreEventArgs(Genres));
-            });
+            }, _genresCancellationTokenSource.Token, TaskContinuationOptions.None, TaskScheduler.FromCurrentSynchronizationContext());
         }
 
         return Genres;
