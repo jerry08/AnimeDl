@@ -114,7 +114,7 @@ internal class ZoroScraper : BaseScraper
 
             episodes.Add(new Episode()
             {
-                EpisodeName = title,
+                EpisodeName = $"{i + 1} - {title}",
                 EpisodeLink = link,
                 EpisodeNumber = dataNumber
             });

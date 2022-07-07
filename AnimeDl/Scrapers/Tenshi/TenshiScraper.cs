@@ -41,7 +41,7 @@ internal class TenshiScraper : BaseScraper
 
         var htmlData = searchFilter switch
         {
-            SearchFilter.Find => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/anime?q={searchQuery}&s=vtt-d" + searchQuery, CookieHeader),
+            SearchFilter.Find => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/anime?q={searchQuery}&s=vtt-d", CookieHeader),
             SearchFilter.NewSeason => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/anime?s=rel-d&page=" + page, CookieHeader),
             _ => throw new SearchFilterNotSupportedException("Search filter not supported")
         };
