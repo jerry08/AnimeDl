@@ -344,6 +344,21 @@ namespace AnimeApp
 
             Console.ReadLine();
         }
+
+        public static async Task Example4()
+        {
+            var client = new AnimeClient(AnimeSites.GogoAnime);
+            var animes = await client.SearchAsync("", SearchFilter.NewSeason);
+
+            Console.WriteLine("Animes found: ");
+            Console.WriteLine();
+            for (int i = 0; i < animes.Count; i++)
+            {
+                Console.WriteLine($"[{i + 1}] {animes[i].Title}");
+            }
+
+            Console.ReadLine();
+        }
     }
 }
 ```
