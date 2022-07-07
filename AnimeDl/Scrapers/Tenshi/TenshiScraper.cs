@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using HtmlAgilityPack;
 using AnimeDl.Utils.Extensions;
+using AnimeDl.Exceptions;
 
 namespace AnimeDl.Scrapers;
 
@@ -30,7 +31,7 @@ internal class TenshiScraper : BaseScraper
     }
 
     public override async Task<List<Anime>> SearchAsync(string searchQuery,
-        SearchType searchType,
+        SearchFilter searchFilter,
         int page)
     {
         var animes = new List<Anime>();
@@ -38,16 +39,20 @@ internal class TenshiScraper : BaseScraper
         //searchQuery = searchQuery.Replace(" ", "%20");
         searchQuery = searchQuery.Replace(" ", "+");
 
-        var url = BaseUrl + $"/anime?q={searchQuery}&s=vtt-d";
-        var html = await _netHttpClient.SendHttpRequestAsync(url, CookieHeader);
+        var htmlData = searchFilter switch
+        {
+            SearchFilter.Find => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/anime?q={searchQuery}&s=vtt-d" + searchQuery, CookieHeader),
+            SearchFilter.NewSeason => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/anime?s=rel-d&page=" + page, CookieHeader),
+            _ => throw new SearchFilterNotSupportedException("Search filter not supported")
+        };
 
-        if (html is null)
+        if (htmlData is null)
         {
             return animes;
         }
 
         var doc = new HtmlDocument();
-        doc.LoadHtml(html);
+        doc.LoadHtml(htmlData);
 
         var nodes = doc.DocumentNode
             .SelectNodes(".//ul[@class='loop anime-loop thumb']/li").ToList();

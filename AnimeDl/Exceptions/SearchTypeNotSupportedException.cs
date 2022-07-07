@@ -3,12 +3,12 @@
 /// <summary>
 /// Exception thrown when the search type is not supported.
 /// </summary>
-public class SearchTypeNotSupportedException : AnimeDlException
+public class SearchFilterNotSupportedException : AnimeDlException
 {
     /// <summary>
-    /// Initializes an instance of <see cref="SearchTypeNotSupportedException"/>.
+    /// Initializes an instance of <see cref="SearchFilterNotSupportedException"/>.
     /// </summary>
-    public SearchTypeNotSupportedException(string message) : base(message)
+    public SearchFilterNotSupportedException(string message) : base(message)
     {
     }
 }

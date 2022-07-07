@@ -24,21 +24,21 @@ internal class NineAnimeScraper : BaseScraper
 
     public override async Task<List<Anime>> SearchAsync(
         string searchQuery,
-        SearchType searchType,
+        SearchFilter searchFilter,
         int page)
     {
         var animes = new List<Anime>();
 
-        var htmlData = searchType switch
+        var htmlData = searchFilter switch
         {
-            SearchType.Find => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/filter?sort=title%3Aasc&keyword={searchQuery}"),
-            SearchType.Popular => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/popular.html?page=" + page),
-            SearchType.NewSeason => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/new-season.html?page=" + page),
-            SearchType.LastUpdated => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/ajax/home/widget?name=updated_all"),
-            SearchType.Trending => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/ajax/home/widget?name=trending"),
-            SearchType.AllList => await _netHttpClient.SendHttpRequestAsync($"https://animefrenzy.org/anime"),
-            //SearchType.AllList => await _netHttpClient.SendHttpRequestAsync($"https://animesa.ga/animel.php");
-            _ => throw new SearchTypeNotSupportedException("Search type not supported"),
+            SearchFilter.Find => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/filter?sort=title%3Aasc&keyword={searchQuery}"),
+            SearchFilter.Popular => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/popular.html?page=" + page),
+            SearchFilter.NewSeason => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/new-season.html?page=" + page),
+            SearchFilter.LastUpdated => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/ajax/home/widget?name=updated_all"),
+            SearchFilter.Trending => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/ajax/home/widget?name=trending"),
+            SearchFilter.AllList => await _netHttpClient.SendHttpRequestAsync($"https://animefrenzy.org/anime"),
+            //SearchFilter.AllList => await _netHttpClient.SendHttpRequestAsync($"https://animesa.ga/animel.php");
+            _ => throw new SearchFilterNotSupportedException("Search filter not supported"),
         };
 
         if (htmlData is null)

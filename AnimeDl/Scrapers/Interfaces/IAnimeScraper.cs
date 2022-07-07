@@ -17,7 +17,7 @@ public interface IAnimeScraper
     /// https://developer.spotify.com/documentation/web-api/reference-beta/#endpoint-search
     /// </remarks>
     /// <returns></returns>
-    Task<List<Anime>> SearchAsync(string searchQuery, SearchType searchType, int page);
+    Task<List<Anime>> SearchAsync(string searchQuery, SearchFilter searchFilter, int page);
 
     Task<List<Episode>> GetEpisodesAsync(Anime anime);
 

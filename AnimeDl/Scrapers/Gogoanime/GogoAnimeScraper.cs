@@ -26,20 +26,20 @@ internal class GogoAnimeScraper : BaseScraper
 
     public override async Task<List<Anime>> SearchAsync(
         string searchQuery,
-        SearchType searchType,
+        SearchFilter searchFilter,
         int page)
     {
         var animes = new List<Anime>();
 
-        var htmlData = searchType switch
+        var htmlData = searchFilter switch
         {
-            SearchType.Find => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}search.html?keyword=" + searchQuery),
-            //SearchType.AllList => await _netHttpClient.SendHttpRequestAsync($"https://animesa.ga/animel.php"),
-            SearchType.AllList => await _netHttpClient.SendHttpRequestAsync($"https://animefrenzy.org/anime"),
-            SearchType.Popular => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}popular.html?page=" + page),
-            SearchType.NewSeason => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}new-season.html?page=" + page),
-            SearchType.LastUpdated => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}?page=" + page),
-            _ => throw new SearchTypeNotSupportedException("Search type not supported")
+            SearchFilter.Find => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}search.html?keyword=" + searchQuery),
+            //SearchFilter.AllList => await _netHttpClient.SendHttpRequestAsync($"https://animesa.ga/animel.php"),
+            SearchFilter.AllList => await _netHttpClient.SendHttpRequestAsync($"https://animefrenzy.org/anime"),
+            SearchFilter.Popular => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}popular.html?page=" + page),
+            SearchFilter.NewSeason => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}new-season.html?page=" + page),
+            SearchFilter.LastUpdated => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}?page=" + page),
+            _ => throw new SearchFilterNotSupportedException("Search filter not supported")
         };
 
         if (htmlData is null)

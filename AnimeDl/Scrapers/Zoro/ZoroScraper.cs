@@ -18,20 +18,20 @@ internal class ZoroScraper : BaseScraper
     }
 
     public override async Task<List<Anime>> SearchAsync(string searchQuery,
-        SearchType searchType,
+        SearchFilter searchFilter,
         int page)
     {
         searchQuery = searchQuery.Replace(" ", "+");
 
         var animes = new List<Anime>();
 
-        var htmlData = searchType switch
+        var htmlData = searchFilter switch
         {
-            SearchType.Find => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/search?keyword=" + searchQuery),
-            SearchType.Popular => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/popular.html?page=" + page),
-            SearchType.NewSeason => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/new-season.html?page=" + page),
-            SearchType.LastUpdated => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/?page=" + page),
-            _ => throw new SearchTypeNotSupportedException("Search type not supported")
+            SearchFilter.Find => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/search?keyword=" + searchQuery),
+            SearchFilter.Popular => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/most-popular?page=" + page),
+            SearchFilter.NewSeason => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/recently-added?page=" + page),
+            SearchFilter.LastUpdated => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/?page=" + page),
+            _ => throw new SearchFilterNotSupportedException("Search filter not supported")
         };
 
         if (htmlData is null)

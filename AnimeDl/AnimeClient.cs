@@ -125,7 +125,7 @@ public class AnimeClient : IAnimeScraper
         string searchQuery,
         bool forceLoad = false)
     {
-        return Search(searchQuery, SearchType.Find, 1, forceLoad);
+        return Search(searchQuery, SearchFilter.Find, 1, forceLoad);
     }
 
     /// <summary>
@@ -133,10 +133,10 @@ public class AnimeClient : IAnimeScraper
     /// </summary>
     public List<Anime> Search(
         string searchQuery,
-        SearchType searchType,
+        SearchFilter searchFilter,
         bool forceLoad = false)
     {
-        return Search(searchQuery, searchType, 1, forceLoad);
+        return Search(searchQuery, searchFilter, 1, forceLoad);
     }
 
     /// <summary>
@@ -144,7 +144,7 @@ public class AnimeClient : IAnimeScraper
     /// </summary>
     public List<Anime> Search(
         string searchQuery,
-        SearchType searchType,
+        SearchFilter searchFilter,
         int page,
         bool forceLoad = false)
     {
@@ -153,7 +153,7 @@ public class AnimeClient : IAnimeScraper
         if (_searchCancellationTokenSource.IsCancellationRequested)
             _searchCancellationTokenSource = new CancellationTokenSource();
 
-        var function = () => SearchAsync(searchQuery, searchType, page);
+        var function = () => SearchAsync(searchQuery, searchFilter, page);
         if (forceLoad)
         {
             Animes = AsyncHelper.RunSync(function, _searchCancellationTokenSource.Token);
@@ -175,7 +175,7 @@ public class AnimeClient : IAnimeScraper
     public async Task<List<Anime>> SearchAsync(
         string searchQuery)
     {
-        Animes = await _scraper.SearchAsync(searchQuery, SearchType.Find, 1);
+        Animes = await _scraper.SearchAsync(searchQuery, SearchFilter.Find, 1);
         return Animes;
     }
 
@@ -184,9 +184,9 @@ public class AnimeClient : IAnimeScraper
     /// </summary>
     public async Task<List<Anime>> SearchAsync(
         string searchQuery,
-        SearchType searchType)
+        SearchFilter searchFilter)
     {
-        Animes = await _scraper.SearchAsync(searchQuery, searchType, 1);
+        Animes = await _scraper.SearchAsync(searchQuery, searchFilter, 1);
         return Animes;
     }
 
@@ -195,10 +195,10 @@ public class AnimeClient : IAnimeScraper
     /// </summary>
     public async Task<List<Anime>> SearchAsync(
         string searchQuery,
-        SearchType searchType,
+        SearchFilter searchFilter,
         int page)
     {
-        Animes = await _scraper.SearchAsync(searchQuery, searchType, page);
+        Animes = await _scraper.SearchAsync(searchQuery, searchFilter, page);
         return Animes;
     }
     #endregion

@@ -100,7 +100,7 @@ internal class TwistScraper : BaseScraper
     }
 
     public override async Task<List<Anime>> SearchAsync(string searchQuery,
-        SearchType searchType,
+        SearchFilter searchFilter,
         int page)
     {
         if (AllAnimes.Count <= 0)
@@ -108,7 +108,7 @@ internal class TwistScraper : BaseScraper
             await LoadAllAnimeAsync();
         }
 
-        if (searchType == SearchType.AllList)
+        if (searchFilter == SearchFilter.AllList)
         {
             return AllAnimes;
         }
