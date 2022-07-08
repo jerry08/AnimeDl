@@ -62,6 +62,7 @@ internal class TwistScraper : BaseScraper
 
             return new Anime()
             {
+                Site = AnimeSites.TwistMoe,
                 Title = x["title"]!.ToString(),
                 AltTitle = x["alt_title"]!.ToString(),
                 Hb_Id = !string.IsNullOrEmpty(x["hb_id"]?.ToString()) ? (int)x["hb_id"]! : 0,

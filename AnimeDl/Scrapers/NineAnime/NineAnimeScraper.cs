@@ -59,6 +59,7 @@ internal class NineAnimeScraper : BaseScraper
 
             animes.Add(new Anime()
             {
+                Site = AnimeSites.NineAnime,
                 Title = title,
                 EpisodesNum = 0,
                 Link = href,

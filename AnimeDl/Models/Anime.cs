@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using AnimeDl.Scrapers;
 
 namespace AnimeDl;
 
 public class Anime
 {
     public int Id { get; set; }
+
+    public AnimeSites Site { get; set; }
 
     public string Title { get; set; } = default!;
     public string AltTitle { get; set; } = default!;

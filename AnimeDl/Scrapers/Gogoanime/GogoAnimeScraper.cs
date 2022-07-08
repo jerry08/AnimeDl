@@ -111,6 +111,7 @@ internal class GogoAnimeScraper : BaseScraper
                 animes.Add(new Anime()
                 {
                     Id = i + 1,
+                    Site = AnimeSites.GogoAnime,
                     Image = img,
                     Title = title,
                     EpisodesNum = 0,

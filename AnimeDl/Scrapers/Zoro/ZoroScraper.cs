@@ -78,6 +78,7 @@ internal class ZoroScraper : BaseScraper
             animes.Add(new Anime()
             {
                 Id = i + 1,
+                Site = AnimeSites.Zoro,
                 Image = img,
                 Title = title,
                 EpisodesNum = 0,

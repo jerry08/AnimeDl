@@ -60,6 +60,7 @@ internal class TenshiScraper : BaseScraper
         foreach (var node in nodes)
         {
             var anime = new Anime();
+            anime.Site = AnimeSites.Tenshi;
             anime.Title = node.SelectSingleNode(".//a").Attributes["title"].Value;
             anime.Link = node.SelectSingleNode(".//a").Attributes["href"].Value;
             anime.Image = node.SelectSingleNode(".//img").Attributes["src"].Value;
