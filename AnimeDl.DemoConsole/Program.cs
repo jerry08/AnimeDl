@@ -224,7 +224,7 @@ public static class Program
     //Async Method
     public static async Task Example3()
     {
-        var client = new AnimeClient(AnimeSites.Zoro);
+        var client = new AnimeClient(AnimeSites.Tenshi);
 
         // Read the anime name
         Console.Write("Enter anime name: ");

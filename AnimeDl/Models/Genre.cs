@@ -2,7 +2,18 @@
 
 public class Genre
 {
-    public string GenreName { get; set; } = default!;
+    public string Name { get; set; }
 
-    public string GenreLink { get; set; } = default!;
+    public string Link { get; set; } = default!;
+
+    public Genre(string name)
+    {
+        Name = name;
+    }
+
+    public Genre(string name, string link)
+    {
+        Name = name;
+        Link = link;
+    }
 }
