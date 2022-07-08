@@ -140,6 +140,7 @@ internal class TenshiScraper : BaseScraper
             var episode = new Episode
             {
                 EpisodeNumber = i,
+                EpisodeName = $"Episode {i}",
                 EpisodeLink = $"{anime.Link}/{i}"
             };
 
