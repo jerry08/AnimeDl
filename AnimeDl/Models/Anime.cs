@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace AnimeDl;
 
@@ -28,5 +29,7 @@ public class Anime
     public string Status { get; set; } = default!;
     public string OtherNames { get; set; } = default!;
     public string Summary { get; set; } = default!;
-    public string Genre { get; set; } = default!;
+    public List<Genre> Genres { get; set; } = new();
+
+    public List<string> Productions { get; set; } = new();
 }
