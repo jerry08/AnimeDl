@@ -94,14 +94,66 @@ internal class ZoroScraper : BaseScraper
         var dataId = anime.Category.Split('-').Last().Split('?')[0];
         var url = $"{BaseUrl}/ajax/v2/episode/list/{dataId}";
 
+        var document = new HtmlDocument();
+
+        //Get anime details
+        var html = await _netHttpClient.SendHttpRequestAsync(anime.Link);
+        //https://stackoverflow.com/questions/122641/how-can-i-decode-html-characters-in-c
+        //HttpUtility.HtmlDecode();
+        document.LoadHtml(HtmlEntity.DeEntitize(html));
+
+        var itemHeadNodes = document.DocumentNode.SelectNodes(".//div[@class='anisc-info-wrap']/div[@class='anisc-info']//span[@class='item-head']");
+        //var overviewNode = document.DocumentNode.SelectNodes(".//div[@class='anisc-info-wrap']/div[@class='anisc-info']")[0];
+        //anime.Summary = overviewNode.InnerText;
+
+        var overviewNode = itemHeadNodes.Where(x => !string.IsNullOrEmpty(x.InnerHtml)
+            && x.InnerHtml.ToLower().Contains("overview")).FirstOrDefault()?
+            .ParentNode.SelectSingleNode(".//span[@class='name']")
+            ?? itemHeadNodes.Where(x => !string.IsNullOrEmpty(x.InnerHtml)
+            && x.InnerHtml.ToLower().Contains("overview")).FirstOrDefault()?
+            .ParentNode.SelectSingleNode(".//div[@class='text']");
+        if (overviewNode is not null)
+            anime.Summary = overviewNode.InnerText.Trim();
+
+        var typeNode = document.DocumentNode.SelectNodes(".//div[@class='film-stats']/span[@class='dot']")
+            .FirstOrDefault()!.NextSibling.NextSibling;
+        if (typeNode is not null)
+            anime.Type = typeNode.InnerText;
+
+        var statusNode = itemHeadNodes.Where(x => !string.IsNullOrEmpty(x.InnerHtml)
+            && x.InnerHtml.ToLower().Contains("status")).FirstOrDefault()?
+            .ParentNode.SelectSingleNode(".//span[@class='name']");
+        if (statusNode is not null)
+            anime.Status = statusNode.InnerText;
+
+        var genresNode = itemHeadNodes.Where(x => !string.IsNullOrEmpty(x.InnerHtml)
+            && x.InnerHtml.ToLower().Contains("genres")).FirstOrDefault()?
+            .ParentNode.SelectNodes(".//a").ToList();
+        if (genresNode is not null)
+            anime.Genres.AddRange(genresNode.Select(x => new Genre(x.Attributes["title"].Value)));
+
+        var airedNode = itemHeadNodes.Where(x => !string.IsNullOrEmpty(x.InnerHtml)
+            && x.InnerHtml.ToLower().Contains("aired")).FirstOrDefault()?
+            .ParentNode.SelectSingleNode(".//span[@class='name']");
+        if (airedNode is not null)
+            anime.Released = airedNode.InnerText;
+
+        var synonymsNode = itemHeadNodes.Where(x => !string.IsNullOrEmpty(x.InnerHtml)
+            && x.InnerHtml.ToLower().Contains("synonyms")).FirstOrDefault()?
+            .ParentNode.SelectSingleNode(".//span[@class='name']");
+        if (synonymsNode is not null)
+            //anime.OtherNames = HtmlEntity.DeEntitize(synonymsNode.InnerText);
+            anime.OtherNames = synonymsNode.InnerText;
+
+        //Get anime episodes
         var json = await _netHttpClient.SendHttpRequestAsync(url);
         var jObj = JObject.Parse(json);
-        var html = jObj["html"]!.ToString();
+        html = jObj["html"]!.ToString();
 
-        var doc = new HtmlDocument();
-        doc.LoadHtml(html);
+        document = new HtmlDocument();
+        document.LoadHtml(html);
 
-        var nodes = doc.DocumentNode.SelectNodes(".//a")
+        var nodes = document.DocumentNode.SelectNodes(".//a")
             .Where(x => x.Attributes["data-page"] == null).ToList();
 
         var episodes = new List<Episode>();

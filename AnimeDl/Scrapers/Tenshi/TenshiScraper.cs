@@ -81,10 +81,41 @@ internal class TenshiScraper : BaseScraper
             return episodes;
         }
 
-        var doc = new HtmlDocument();
-        doc.LoadHtml(html);
+        var document = new HtmlDocument();
+        document.LoadHtml(html);
 
-        /*var nodes = doc.DocumentNode
+        var synonymNodes = document.DocumentNode.SelectNodes
+            (".//ul[@class='info-list']/li[@class='synonym meta-data']/div[@class='info-box']/span[@class='value']");
+        if (synonymNodes is not null)
+            anime.OtherNames = synonymNodes[0].InnerText.Trim();
+
+        var typeNode = document.DocumentNode.SelectSingleNode
+            (".//ul[@class='info-list']/li[@class='type meta-data']/span[@class='value']/a");
+        if (typeNode is not null)
+            anime.Type = typeNode.InnerText.Trim();
+
+        var statusNode = document.DocumentNode.SelectSingleNode
+            (".//ul[@class='info-list']/li[@class='status meta-data']/span[@class='value']/a");
+        if (statusNode is not null)
+            anime.Status = statusNode.InnerText.Trim();
+
+        var releasedDateNodes = document.DocumentNode.SelectSingleNode
+            (".//ul[@class='info-list']/li[@class='release-date meta-data']/span[@class='value']");
+        if (releasedDateNodes is not null)
+            anime.Released = releasedDateNodes.InnerText.Trim();
+
+        var productionsNodes = document.DocumentNode.SelectNodes
+            (".//ul[@class='info-list']/li[@class='production meta-data']/span[@class='value']")
+            .ToList();
+        if (productionsNodes is not null)
+            productionsNodes.ForEach(x => anime.Productions.Add(x.InnerText.Trim()));
+
+        var genreNodes = document.DocumentNode.SelectNodes
+            (".//ul[@class='info-list']/li[@class='genre meta-data']//a");
+        if (genreNodes is not null)
+            anime.Genres.AddRange(genreNodes.Select(x => new Genre(x.InnerHtml.Trim())));
+
+        /*var nodes = document.DocumentNode
             .SelectNodes(".//ul[@class='loop episode-loop thumb']/li")
             .ToList();
 
@@ -101,9 +132,8 @@ internal class TenshiScraper : BaseScraper
             episodes.Add(episode);
         }*/
 
-        var totalEpisodes = Convert.ToInt32(doc.DocumentNode
-            .SelectSingleNode(".//section[@class='entry-episodes']/h2/span[@class='badge badge-secondary align-top']")
-            .InnerText);
+        var totalEpisodes = Convert.ToInt32(document.DocumentNode
+            .SelectSingleNode(".//section[@class='entry-episodes']/h2/span[@class='badge badge-secondary align-top']").InnerText);
 
         for (int i = 1; i <= totalEpisodes; i++)
         {

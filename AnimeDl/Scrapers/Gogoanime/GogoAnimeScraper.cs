@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
@@ -61,11 +61,11 @@ internal class GogoAnimeScraper : BaseScraper
             {
                 //var currentNode = HtmlNode.CreateNode(nodes[i].OuterHtml);
 
-                string img = "";
-                string title = "";
-                string category = "";
-                string released = "";
-                string link = "";
+                var img = "";
+                var title = "";
+                var category = "";
+                var released = "";
+                var link = "";
 
                 //HtmlNode imgNode = currentNode.Descendants()
                 //    .Where(node => node.Name == "img").FirstOrDefault();
@@ -77,7 +77,7 @@ internal class GogoAnimeScraper : BaseScraper
                 //        img = attrImg.Value;
                 //}
 
-                HtmlNode imgNode = nodes3[i].SelectSingleNode(".//div[@class='img']/a/img");
+                var imgNode = nodes3[i].SelectSingleNode(".//div[@class='img']/a/img");
                 if (imgNode != null)
                 {
                     img = imgNode.Attributes["src"].Value;
@@ -94,7 +94,7 @@ internal class GogoAnimeScraper : BaseScraper
                     title = nameNode.Attributes["title"].Value; //OR name = nameNode.InnerText;
                 }
 
-                HtmlNode releasedNode = nodes3[i].SelectSingleNode(".//p[@class='released']");
+                var releasedNode = nodes3[i].SelectSingleNode(".//p[@class='released']");
                 if (releasedNode != null)
                 {
                     released = new string(releasedNode.InnerText.Where(char.IsDigit).ToArray());
@@ -134,19 +134,13 @@ internal class GogoAnimeScraper : BaseScraper
         var document = new HtmlDocument();
         document.LoadHtml(htmlData);
 
-        var imageLink = "";
-        var summary = "";
-        var genre = "";
-        var type = "";
-        var released = "";
-        var othernames = "";
-        var status = "";
-
-        var imgNode = document.DocumentNode.SelectSingleNode(".//div[@class='anime_info_body_bg']/img");
-        if (imgNode != null)
-        {
-            imageLink = imgNode.Attributes["src"].Value;
-        }
+        //var imageLink = "";
+        //
+        //var imgNode = document.DocumentNode.SelectSingleNode(".//div[@class='anime_info_body_bg']/img");
+        //if (imgNode != null)
+        //{
+        //    imageLink = imgNode.Attributes["src"].Value;
+        //}
 
         var animeInfoNodes = document.DocumentNode
             .SelectNodes(".//div[@class='anime_info_body_bg']/p").ToList();
@@ -158,42 +152,41 @@ internal class GogoAnimeScraper : BaseScraper
                 case 0: //Bookmarks
                     break;
                 case 1: //Type (e.g TV Series)
-                    type = animeInfoNodes[i].InnerText;
-                    type = Regex.Replace(type, @"\t|\n|\r", "");
-                    type = new Regex("[ ]{2,}", RegexOptions.None).Replace(type, " ").Trim();
+                    anime.Type = animeInfoNodes[i].InnerText;
+                    anime.Type = Regex.Replace(anime.Type, @"\t|\n|\r", "");
+                    anime.Type = new Regex("[ ]{2,}", RegexOptions.None).Replace(anime.Type, " ").Trim();
+                    anime.Type = anime.Type.Trim();
                     break;
                 case 2: //Plot SUmmary
-                    summary = animeInfoNodes[i].InnerText.Trim();
+                    anime.Summary = animeInfoNodes[i].InnerText.Trim();
                     break;
                 case 3: //Genre
-                    genre = animeInfoNodes[i].InnerText.Replace("Genre:", "").Trim();
+                    var genres = animeInfoNodes[i].InnerText.Replace("Genre:", "").Trim().Split(',');
+                    foreach (var genre in genres)
+                    {
+                        anime.Genres.Add(new Genre(genre));
+                    }
                     break;
                 case 4: //Released Year
-                    released = animeInfoNodes[i].InnerText;
-                    released = Regex.Replace(released, @"\t|\n|\r", "");
-                    released = new Regex("[ ]{2,}", RegexOptions.None).Replace(released, " ").Trim();
+                    anime.Released = animeInfoNodes[i].InnerText;
+                    anime.Released = Regex.Replace(anime.Released, @"\t|\n|\r", "");
+                    anime.Released = new Regex("[ ]{2,}", RegexOptions.None).Replace(anime.Released, " ").Trim();
                     break;
                 case 5: //Status
-                    status = animeInfoNodes[i].InnerText;
-                    status = Regex.Replace(status, @"\t|\n|\r", "");
-                    status = new Regex("[ ]{2,}", RegexOptions.None).Replace(status, " ").Trim();
+                    anime.Status = animeInfoNodes[i].InnerText;
+                    anime.Status = Regex.Replace(anime.Status, @"\t|\n|\r", "");
+                    anime.Status = new Regex("[ ]{2,}", RegexOptions.None).Replace(anime.Status, " ").Trim();
+                    anime.Status = anime.Status.Trim();
                     break;
                 case 6: //Other Name
-                    othernames = animeInfoNodes[i].InnerText;
-                    othernames = Regex.Replace(othernames, @"\t|\n|\r", "");
-                    othernames = new Regex("[ ]{2,}", RegexOptions.None).Replace(othernames, " ").Trim();
+                    anime.OtherNames = animeInfoNodes[i].InnerText;
+                    anime.OtherNames = Regex.Replace(anime.OtherNames, @"\t|\n|\r", "");
+                    anime.OtherNames = new Regex("[ ]{2,}", RegexOptions.None).Replace(anime.OtherNames, " ").Trim();
                     break;
                 default:
                     break;
             }
         }
-
-        anime.Type = type.Trim();
-        anime.Genre = genre;
-        anime.Summary = summary;
-        anime.Released = released;
-        anime.Status = status.Trim();
-        anime.OtherNames = othernames;
 
         var movieId = document.DocumentNode.Descendants().Where(x => x.Id == "movie_id")
             .FirstOrDefault()?.Attributes["value"].Value;
@@ -212,9 +205,9 @@ internal class GogoAnimeScraper : BaseScraper
 
         for (int i = 0; i < liNodes.Count; i++)
         {
-            string epName = "";
-            string link = "";
-            string subOrDub = "";
+            var epName = "";
+            var link = "";
+            var subOrDub = "";
 
             var hrefNode = liNodes[i].SelectSingleNode(".//a");
             if (hrefNode != null)
@@ -322,11 +315,7 @@ internal class GogoAnimeScraper : BaseScraper
                     name = nameNode.Attributes["title"].Value; //OR name = nameNode.InnerText;
                 }
 
-                genres.Add(new Genre()
-                {
-                    GenreName = name,
-                    GenreLink = link
-                });
+                genres.Add(new Genre(name, link));
             }
         }
 
