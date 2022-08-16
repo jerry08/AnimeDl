@@ -28,9 +28,10 @@ internal class RapidCloud : BaseExtractor
         var number = html.FindBetween("recaptchaNumber = '", "';");
 
         var token = await Captcha(url, key);
-        var sg = $"https://rapid-cloud.ru/ajax/embed-6/getSources?id={url.FindBetween("/embed-6/", "?z=")}&_token=${token}&_number={number}";
+        //var jsonLink = $"https://rapid-cloud.ru/ajax/embed-6/getSources?id={url.FindBetween("/embed-6/", "?z=")}&_token=${token}&_number={number}";
+        var jsonLink = $"https://rapid-cloud.co/ajax/embed-6/getSources?id={url.FindBetween("/embed-6/", "?z=")}&_token=${token}&_number={number}";
 
-        html = await _netHttpClient.SendHttpRequestAsync(sg, headers);
+        html = await _netHttpClient.SendHttpRequestAsync(jsonLink, headers);
 
         var jsonObj = JObject.Parse(html);
 
