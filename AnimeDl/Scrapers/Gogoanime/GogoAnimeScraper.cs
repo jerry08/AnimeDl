@@ -15,7 +15,8 @@ internal class GogoAnimeScraper : BaseScraper
     //public override string BaseUrl => "https://www1.gogoanime.cm/";
 
     //public override string BaseUrl => "https://gogoanime.sk/";
-    public override string BaseUrl => "https://gogoanime.lu/";
+    //public override string BaseUrl => "https://gogoanime.lu/";
+    public override string BaseUrl => "https://gogoanime.ee/";
     //public override string BaseUrl => "https://gogoanime.film/";
 
     public string CdnUrl => "https://ajax.gogocdn.net/ajax/load-list-episode?ep_start=0&ep_end=10000&id=";

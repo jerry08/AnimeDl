@@ -1,8 +1,9 @@
 ﻿using System;
-using System.Collections.Specialized;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Specialized;
 
 namespace AnimeDl;
 
@@ -93,6 +94,11 @@ internal class NetHttpClient
             HttpCompletionOption.ResponseHeadersRead,
             cancellationToken
         );
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
 
         if (!response.IsSuccessStatusCode)
         {
