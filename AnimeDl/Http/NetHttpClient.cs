@@ -97,7 +97,7 @@ internal class NetHttpClient
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
-            return null;
+            return string.Empty;
         }
 
         if (!response.IsSuccessStatusCode)
