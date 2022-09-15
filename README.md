@@ -2,8 +2,13 @@
 
 [![Version](https://img.shields.io/nuget/v/AnimeDl.svg)](https://nuget.org/packages/AnimeDl)
 [![Downloads](https://img.shields.io/nuget/dt/AnimeDl.svg)](https://nuget.org/packages/AnimeDl)
+<a href="https://discord.gg/mhxsSMy2Nf"><img src="https://img.shields.io/badge/Discord-7289DA?style=for-the-badge&logo=discord&logoColor=white"></a>
 
 **AnimeDl** scrapes animes from sites.
+
+<br>
+<a href="https://www.buymeacoffee.com/jerry08"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=jerry08&button_colour=FFDD00&font_colour=000000&font_family=Poppins&outline_colour=000000&coffee_colour=ffffff" /></a>
+<br>
 
 ### 🌟STAR THIS REPOSITORY TO SUPPORT THE DEVELOPER AND ENCOURAGE THE DEVELOPMENT OF THE PROJECT!
 
@@ -11,16 +16,23 @@
 
 > Please do not attempt to upload AnimeDl or any of it's forks on Playstore or any other Android appstores on the internet. Doing so, may infringe their terms and conditions. This may result to legal action or immediate take-down of the app.
 
+### Official Discord Server
+
+<p align="center">
+ <a href="https://discord.gg/mhxsSMy2Nf">
+  <img src="https://invidget.switchblade.xyz/mhxsSMy2Nf">
+ </a>
+</p>
 
 * **Available Anime sources:-**
 
 | SITE                       | STATUS  | DOWNLOADS |
 |:--------------------------:|:-------:|:---------:|
-| [Gogo](https://gogoanime.cm)       | WORKING | SOME      |
-| [Zoro](https://zoro.to)            | WORKING | SOME      |
-| [9Anime](https://9anime.center)    | NOT WORKING | NO        |
-| [Twist](https://twist.moe)         | NOT WORKING | YES       |
-| [Tenshi](https://tenshi.moe)       | WORKING | YES       |
+| [Gogo](https://gogoanime.ee)       | WORKING | SOME |
+| [Zoro](https://zoro.to)            | SEMI-WORKING | SOME |
+| [9Anime](https://9anime.center)    | NOT WORKING | NO |
+| [Twist](https://twist.moe)         | NOT WORKING | NO |
+| [Tenshi](https://tenshi.moe)       | WORKING | YES |
 
 
 ## Install
