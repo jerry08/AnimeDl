@@ -1,13 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.IO;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Net.Http;
-using System.IO;
+using System.Collections.Generic;
+using AnimeDl.Helpers;
 using AnimeDl.Scrapers;
 using AnimeDl.Scrapers.Events;
 using AnimeDl.Scrapers.Interfaces;
-using AnimeDl.Helpers;
+using AnimeDl.Utils.Extensions;
 
 namespace AnimeDl;
 
@@ -416,7 +417,7 @@ public class AnimeClient : IAnimeScraper
         var stream = await response.Content.ReadAsStreamAsync();
 
         //Create a stream for the file
-        var file = File.Create(filePath);
+        var file = File.Create(filePath.ReplaceInvalidChars());
 
         try
         {

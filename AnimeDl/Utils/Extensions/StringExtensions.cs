@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace AnimeDl.Utils.Extensions;
 
-static class StringExtensions
+internal static class StringExtensions
 {
     public static string FindBetween(this string value, string a, string b)
     {
@@ -58,6 +57,11 @@ static class StringExtensions
         char[] charArray = s.ToCharArray();
         Array.Reverse(charArray);
         return new string(charArray);
+    }
+
+    public static string ReplaceInvalidChars(this string fileName)
+    {
+        return string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
     }
 
     //? - any character (one and only one)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using AnimeDl.DemoConsole.Utils;
 using AnimeDl.Scrapers;
@@ -301,7 +302,7 @@ public static class Program
         qualityIndex--;
 
         // Download the stream
-        var fileName = $@"{Environment.CurrentDirectory}\{animes[animeIndex].Title} - Ep {episodes[episodeIndex].EpisodeNumber}.mp4";
+        var fileName = $@"{Environment.CurrentDirectory}\{animes[animeIndex].Title.ReplaceInvalidChars()} - Ep {episodes[episodeIndex].EpisodeNumber}.mp4";
 
         using (var progress = new ConsoleProgress())
             await client.DownloadAsync(qualities[qualityIndex], fileName, progress);
@@ -325,5 +326,10 @@ public static class Program
         }
 
         Console.ReadLine();
+    }
+
+    public static string ReplaceInvalidChars(this string fileName)
+    {
+        return string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
     }
 }

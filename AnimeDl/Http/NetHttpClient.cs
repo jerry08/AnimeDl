@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Specialized;
+using AnimeDl.Helpers;
 
 namespace AnimeDl;
 
@@ -21,7 +22,23 @@ internal class NetHttpClient
         _httpClient = httpClient;
     }
 
-    public async Task<long> GetFileSizeAsync(
+    public string Get(
+        string url,
+        CancellationToken cancellationToken = default)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        return AsyncHelper.RunSync(() => SendHttpRequestAsync(request, cancellationToken), cancellationToken);
+    }
+
+    public async ValueTask<string> GetAsync(
+        string url,
+        CancellationToken cancellationToken = default)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        return await SendHttpRequestAsync(request, cancellationToken);
+    }
+
+    public async ValueTask<long> GetFileSizeAsync(
         string url,
         NameValueCollection headers,
         CancellationToken cancellationToken = default)
@@ -73,7 +90,7 @@ internal class NetHttpClient
         return await SendHttpRequestAsync(request, cancellationToken);
     }
 
-    public async ValueTask<string> SendHttpRequestAsync(
+    public async Task<string> SendHttpRequestAsync(
         HttpRequestMessage request,
         CancellationToken cancellationToken = default)
     {
@@ -111,7 +128,6 @@ internal class NetHttpClient
             );
         }
 
-        //return await response.Content.ReadAsStringAsync(cancellationToken);
-        return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+        return await response.Content.ReadAsStringAsync(cancellationToken);
     }
 }
