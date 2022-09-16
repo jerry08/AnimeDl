@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System.Threading.Tasks;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace AnimeDl.Extractors;
 
 internal class StreamTape : BaseExtractor
 {
     private readonly Regex LinkRegex = new(@"'robotlink'\)\.innerHTML = '(.+?)'\+ \('(.+?)'\)");
+    
     public virtual string MainUrl => "https://streamtape.com";
 
     public StreamTape(NetHttpClient netHttpClient) : base(netHttpClient)
@@ -16,9 +17,19 @@ internal class StreamTape : BaseExtractor
     public override async Task<List<Quality>> ExtractQualities(string url)
     {
         var text = await _netHttpClient.SendHttpRequestAsync(url);
-        var ss = LinkRegex.Matches(text);
+        var reg = LinkRegex.Match(text);
 
-        var list = new List<Quality>();
+        var vidUrl = $"https:{reg.Groups[1]!.Value + reg.Groups[2]!.Value.Substring(3)}";
+
+        var list = new List<Quality>
+        {
+            new Quality()
+            {
+                IsM3U8 = vidUrl.Contains(".m3u8"),
+                QualityUrl = vidUrl,
+                Resolution = "auto",
+            }
+        };
 
         return list;
     }

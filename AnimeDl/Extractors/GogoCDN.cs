@@ -1,18 +1,14 @@
-﻿using HtmlAgilityPack;
-using System;
-using System.Collections.Generic;
+﻿using System;
+using System.IO;
+using System.Net;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.Net;
+using System.Collections.Generic;
 using System.Security.Cryptography;
-using System.IO;
-using AnimeDl.Scrapers;
+using HtmlAgilityPack;
+using Newtonsoft.Json.Linq;
 using AnimeDl.Utils.Extensions;
-using AnimeDl.Extractors.Interfaces;
 
 namespace AnimeDl.Extractors;
 
@@ -97,6 +93,7 @@ internal class GogoCDN : BaseExtractor
                 list.Add(new Quality()
                 {
                     FileType = "m3u8",
+                    IsM3U8 = true,
                     QualityUrl = videoUrl,
                     Resolution = quality,
                     Headers = new WebHeaderCollection()
@@ -113,6 +110,7 @@ internal class GogoCDN : BaseExtractor
         {
             return new Quality()
             {
+                IsM3U8 = x["file"]!.ToString().Contains(".m3u8"),
                 QualityUrl = x["file"]!.ToString(),
                 Resolution = x["label"]!.ToString(),
                 FileType = x["type"]!.ToString(),
@@ -132,7 +130,7 @@ internal class GogoCDN : BaseExtractor
             ("37911490979715163134003223491201", "54674138327930866480207815084989", "3134003223491201");
     }
 
-    private string CryptoHandler(string dataValue, string key, string iv, bool encrypt = true)
+    private static string CryptoHandler(string dataValue, string key, string iv, bool encrypt = true)
     {
         //var key = Encoding.UTF8.GetBytes("63976882873559819639988080820907");
         //var iv = Encoding.UTF8.GetBytes("4770478969418267");

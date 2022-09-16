@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Net;
 using System.Linq;
 using System.Text;
-using System.Net;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
 
 namespace AnimeDl.Extractors;
@@ -12,20 +12,20 @@ namespace AnimeDl.Extractors;
 internal class StreamSB2 : StreamSB
 {
     public override string MainUrl => "https://sbplay2.com";
+
     public StreamSB2(NetHttpClient netHttpClient) : base(netHttpClient)
     {
     }
 }
 
-// This is a modified version of https://github.com/jmir1/aniyomi-extensions/blob/master/src/en/genoanime/src/eu/kanade/tachiyomi/animeextension/en/genoanime/extractors/StreamSBExtractor.kt
-// The following code is under the Apache License 2.0 https://github.com/jmir1/aniyomi-extensions/blob/master/LICENSE
 internal class StreamSB : BaseExtractor
 {
     public StreamSB(NetHttpClient netHttpClient) : base(netHttpClient)
     {
     }
 
-    public virtual string MainUrl => "https://sbplay1.com";
+    //public virtual string MainUrl => "https://sbplay1.com";
+    public virtual string MainUrl => "https://watchsb.com";
 
     private readonly char[] hexArray = "0123456789ABCDEF".ToCharArray();
 
@@ -42,75 +42,19 @@ internal class StreamSB : BaseExtractor
         return new string(hexChars);
     }
 
-    /*public async Task<List<Quality>> ExtractQualities(string url)
-    {
-        url = url.Replace("/e/", "/d/");
-        string html = await _netHttpClient.SendHttpRequestAsync(url);
-
-        var list = new List<Quality>();
-
-        HtmlDocument doc = new HtmlDocument();
-        doc.LoadHtml(html);
-
-        var qualityMatch = new Regex(@"\d+x(\d+)");
-        var downloadContent = new Regex(@"download_video\('(.+?)','(.+?)','(.+?)'\)");
-        var nodes = doc.DocumentNode.SelectNodes(".//table/tr").ToList();
-        
-        for (int i = 0; i < nodes.Count; i++)
-        {
-            var linkNode = nodes[i].SelectSingleNode(".//a");
-            if (linkNode != null)
-            {
-                string link = linkNode.Attributes["onclick"]?.Value;
-
-                Match match = qualityMatch.Match(html);
-                int quality = Convert.ToInt32(match.Groups[1].Value);
-                
-                var groups = downloadContent.Match(link).Groups;
-                string contentId = groups[1].Value;
-                string mode = groups[2].Value;
-                string contentHash = groups[3].Value;
-
-                string downloadUrl = $"{MainUrl}/dl?op=download_orig&id={contentId}&mode={mode}&hash={contentHash}";
-
-                var headers = new WebHeaderCollection
-                {
-                    { "Referer", url }
-                };
-
-                string html2 = await _netHttpClient.SendHttpRequestAsync(downloadUrl, headers);
-
-                HtmlDocument doc2 = new HtmlDocument();
-                doc2.LoadHtml(html2);
-
-                var directDownloadNodes = doc2.DocumentNode.SelectNodes(".//a")
-                    .Where(x => x.Attributes != null && x.Attributes["href"] != null &&
-                    x.Attributes["href"].Value.Contains(".mp4")).ToList();
-
-                for (int j = 0; j < directDownloadNodes.Count; j++)
-                {
-                    list.Add(new Quality()
-                    {
-                        Resolution = quality.ToString(),
-                        QualityUrl = directDownloadNodes[j].Attributes["href"].Value,
-                        Referer = url
-                    });
-                }
-            }
-        }
-
-        return list;
-    }*/
-
     public override async Task<List<Quality>> ExtractQualities(string url)
     {
         var regexID = new Regex("(embed-[a-zA-Z0-9]{0,8}[a-zA-Z0-9_-]+|\\/e\\/[a-zA-Z0-9]{0,8}[a-zA-Z0-9_-]+)");
         var id = Regex.Replace(regexID.Match(url).Groups[0].Value, "(embed-|\\/e\\/)", "");
-        var bytes = Encoding.ASCII.GetBytes(id);
+        //var bytes = Encoding.ASCII.GetBytes(id);
+        var bytes = Encoding.ASCII.GetBytes($"||{id}||||streamsb");
         var bytesToHex = BytesToHex(bytes);
         //var master = $"{MainUrl}/sources41/566d337678566f743674494a7c7c{bytesToHex}7c7c346b6767586d6934774855537c7c73747265616d7362/6565417268755339773461447c7c346133383438333436313335376136323337373433383634376337633465366534393338373136643732373736343735373237613763376334363733353737303533366236333463353333363534366137633763373337343732363536313664373336327c7c6b586c3163614468645a47617c7c73747265616d7362";
         //var jsonLink = $"{MainUrl}/sources41/6d6144797752744a454267617c7c{bytesToHex}7c7c4e61755a56456f34385243727c7c73747265616d7362/6b4a33767968506e4e71374f7c7c343837323439333133333462353935333633373836643638376337633462333634663539343137373761333635313533333835333763376333393636363133393635366136323733343435323332376137633763373337343732363536313664373336327c7c504d754478413835306633797c7c73747265616d7362";
-        var jsonLink = $"{MainUrl}/sources41/616e696d646c616e696d646c7c7c{bytesToHex}7c7c616e696d646c616e696d646c7c7c73747265616d7362/616e696d646c616e696d646c7c7c363136653639366436343663363136653639366436343663376337633631366536393664363436633631366536393664363436633763376336313665363936643634366336313665363936643634366337633763373337343732363536313664373336327c7c616e696d646c616e696d646c7c7c73747265616d7362";
+        
+        //var jsonLink = $"{MainUrl}/sources41/616e696d646c616e696d646c7c7c{bytesToHex}7c7c616e696d646c616e696d646c7c7c73747265616d7362/616e696d646c616e696d646c7c7c363136653639366436343663363136653639366436343663376337633631366536393664363436633631366536393664363436633763376336313665363936643634366336313665363936643634366337633763373337343732363536313664373336327c7c616e696d646c616e696d646c7c7c73747265616d7362";
+        
+        var jsonLink = $"{MainUrl}/sources48/" + bytesToHex + "/";
 
         //var source = "https://sbplay2.com/sources41";
         //var jsonLink = $"{source}/7361696b6f757c7c{bytesToHex}7c7c7361696b6f757c7c73747265616d7362/7361696b6f757c7c363136653639366436343663363136653639366436343663376337633631366536393664363436633631366536393664363436633763376336313665363936643634366336313665363936643634366337633763373337343732363536313664373336327c7c7361696b6f757c7c73747265616d7362";
@@ -125,7 +69,8 @@ internal class StreamSB : BaseExtractor
             { "Accept", "application/json, text/plain, */*" },
             { "Accept-Language", "en-US,en;q=0.5" },
             { "Referer", url },
-            { "watchsb", "streamsb" },
+            //{ "watchsb", "streamsb" },
+            { "watchsb", "sbstream" },
             { "DNT", "1" },
             { "Connection", "keep-alive" },
             { "Sec-Fetch-Dest", "empty" },
@@ -150,7 +95,8 @@ internal class StreamSB : BaseExtractor
             { "Accept", "application/json, text/plain, */*" },
             { "Accept-Language", "en-US,en;q=0.5" },
             //{ "Referer", url },
-            { "watchsb", "streamsb" },
+            //{ "watchsb", "streamsb" },
+            { "watchsb", "sbstream" },
             { "DNT", "1" },
             { "Connection", "keep-alive" },
             { "Sec-Fetch-Dest", "empty" },
@@ -175,8 +121,10 @@ internal class StreamSB : BaseExtractor
         {
             new Quality()
             {
+                IsM3U8 = masterUrl.Contains(".m3u8"),
                 QualityUrl = masterUrl,
-                Headers = headers
+                Headers = headers,
+                Resolution = "auto"
             }
         };
 
@@ -184,7 +132,7 @@ internal class StreamSB : BaseExtractor
         {
             var split = m3u8Stream.StreamUrl.Replace("/hls/", "/")
                 .Split('/');
-            split[split.Length - 1] = "video.mp4";
+            //split[split.Length - 1] = "video.mp4";
 
             var mp4StreamUrl = string.Join("/", split);
             //var mp4StreamUrl = m3u8Stream.StreamUrl;
@@ -194,6 +142,7 @@ internal class StreamSB : BaseExtractor
 
             list.Add(new Quality() 
             {
+                IsM3U8 = mp4StreamUrl.Contains(".m3u8"),
                 QualityUrl = mp4StreamUrl,
                 Headers = m3u8Stream.Headers,
                 Resolution = m3u8Stream.Quality

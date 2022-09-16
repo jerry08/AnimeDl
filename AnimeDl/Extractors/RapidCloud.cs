@@ -1,73 +1,88 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Net;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using HtmlAgilityPack;
+using Newtonsoft.Json.Linq;
+using AnimeDl.Scrapers;
 using AnimeDl.Utils.Extensions;
 
 namespace AnimeDl.Extractors;
 
 internal class RapidCloud : BaseExtractor
 {
+    private readonly string fallbackKey = "c1d17096f2ca11b7";
+    private readonly string consumetApi = "https://consumet-api.herokuapp.com";
+    private readonly string enimeApi = "https://api.enime.moe";
+    private readonly string host = "https://rapid-cloud.co";
+
     public RapidCloud(NetHttpClient netHttpClient) : base(netHttpClient)
     {
     }
 
     public override async Task<List<Quality>> ExtractQualities(string url)
     {
+        var id = new Stack<string>(url.Split('/')).Pop().Split('?')[0];
+        var sId = await _netHttpClient.SendHttpRequestAsync(consumetApi + "/utils/rapid-cloud");
+
         var headers = new WebHeaderCollection()
         {
-            { "Referer", "https://zoro.to/" }
+            { "X-Requested-With", "XMLHttpRequest" }
         };
 
-        var html = await _netHttpClient.SendHttpRequestAsync(url, headers);
+        var res = await _netHttpClient.SendHttpRequestAsync($"{this.host}/ajax/embed-6/getSources?id={id}&sId={sId}", headers);
 
-        var key = html.FindBetween("var recaptchaSiteKey = '", "',");
-        var number = html.FindBetween("recaptchaNumber = '", "';");
+        var decryptKey = await _netHttpClient.SendHttpRequestAsync("https://raw.githubusercontent.com/consumet/rapidclown/main/key.txt");
+        if (string.IsNullOrEmpty(decryptKey))
+            decryptKey = fallbackKey;
 
-        var token = await Captcha(url, key);
-        //var jsonLink = $"https://rapid-cloud.ru/ajax/embed-6/getSources?id={url.FindBetween("/embed-6/", "?z=")}&_token=${token}&_number={number}";
-        var jsonLink = $"https://rapid-cloud.co/ajax/embed-6/getSources?id={url.FindBetween("/embed-6/", "?z=")}&_token=${token}&_number={number}";
+        var jObj = JObject.Parse(res);
 
-        html = await _netHttpClient.SendHttpRequestAsync(jsonLink, headers);
+        var sources = jObj["sources"]?.ToString()!;
 
-        var jsonObj = JObject.Parse(html);
+        var isEncrypted = (bool)jObj["encrypted"]!;
+        if (isEncrypted)
+        {
+            sources = new TwistDecryptor().Decrypt(sources, decryptKey);
+        }
 
-        //if (key != null && number != null)
-        //{
-        //    var test = await Captcha(url, key);
-        //}
+        var m3u8File = JArray.Parse(sources)[0]["file"]?.ToString()!;
+
+        var m3u8data = (await _netHttpClient.SendHttpRequestAsync(m3u8File, headers))
+            .Split('\n').Where(x => x.Contains(".m3u8") && x.Contains("RESOLUTION="))
+            .ToList();
 
         var list = new List<Quality>();
 
-        var sources = jsonObj["sources"]!.ToString();
-        var array = JArray.Parse(sources)[0];
-
-        list.Add(new Quality()
+        for (int i = 0; i < m3u8data.Count; i++)
         {
-            QualityUrl = array["file"]!.ToString(),
-            Headers = headers,
-            Resolution = "Auto p"
-        });
+            var secondHalf = new Regex(@"(?<=RESOLUTION=).*(?<=,C)|(?<=URI=).*");
+            var s = secondHalf.Matches(m3u8data[i]);
+
+            var f1 = s[0].Value.Split(new string[] { ",C" }, StringSplitOptions.None)[0];
+            //var f2 = s[1].Value.Replace(/ "/g, '');
+            var f2 = s[1].Value;
+
+            list.Add(new Quality()
+            {
+                QualityUrl = $"{m3u8File.Split(new string[] { "master.m3u8" }, StringSplitOptions.None)[0]}${f2.Replace("iframes", "index")}",
+                Headers = headers,
+                IsM3U8 = sources.Contains(".m3u8"),
+                Resolution = "Auto p"
+            });
+        }
+
+        //list.Add(new Quality()
+        //{
+        //    QualityUrl = sources,
+        //    Headers = headers,
+        //    IsM3U8 = sources.Contains(".m3u8"),
+        //    Resolution = "Auto p"
+        //});
 
         return list;
-    }
-
-    private async Task<string> Captcha(string url, string key)
-    {
-        var uri = new Uri(url);
-        var domain = (Convert.ToBase64String(Encoding.ASCII.GetBytes(uri.Scheme + "://" + uri.Host + ":443")) + ".").Replace("\n", "");
-        var vToken = (await _netHttpClient.SendHttpRequestAsync($"https://www.google.com/recaptcha/api.js?render={key}", new WebHeaderCollection() 
-        {
-            { "Referrer", uri.Scheme + "://" + uri.Host }
-        })).Replace("\n", "").FindBetween("/releases/", "/recaptcha");
-        var recapTokenHtml = await _netHttpClient.SendHttpRequestAsync($"https://www.google.com/recaptcha/api2/anchor?ar=1&hl=en&size=invisible&cb=kr60249sk&k={key}&co={domain}&v={vToken}");
-
-        var doc = new HtmlDocument();
-        doc.LoadHtml(recapTokenHtml);
-
-        return vToken;
     }
 }
