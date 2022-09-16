@@ -176,20 +176,6 @@ internal class ZoroScraper : BaseScraper
         return episodes;
     }
 
-    /*private async Task<string> GetM3u8FromRapidCloud(string url)
-    {
-        var headers = new WebHeaderCollection()
-        {
-            { "Referer", "https://zoro.to/" },
-            { "User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:94.0) Gecko/20100101 Firefox/94.0" }
-        };
-
-        url = $"{url}&autoPlay=1&oa=0";
-        string text = await _netHttpClient.SendHttpRequestAsync(url, headers);
-
-        return text;
-    }*/
-
     public override async Task<List<Quality>> GetEpisodeLinksAsync(Episode episode)
     {
         var list = new List<Quality>();
@@ -230,16 +216,20 @@ internal class ZoroScraper : BaseScraper
             {
                 var qualityUrl = jObj2["link"]!.ToString();
 
+                qualityUrl += dataId;
+
                 switch (server)
                 {
                     case "4":
                     case "1":
                         //rapidvideo
-                        list.AddRange(await new RapidCloud(_netHttpClient).ExtractQualities(qualityUrl));
+                        //Currently not working
+                        //list.AddRange(await new RapidCloud(_netHttpClient).ExtractQualities(qualityUrl));
                         break;
                     case "5":
                         //StreamSB
-                        list.AddRange(await new StreamSB2(_netHttpClient).ExtractQualities(qualityUrl));
+                        //Currently not working
+                        //list.AddRange(await new StreamSB(_netHttpClient).ExtractQualities(qualityUrl));
                         break;
                     case "3":
                         //streamtape

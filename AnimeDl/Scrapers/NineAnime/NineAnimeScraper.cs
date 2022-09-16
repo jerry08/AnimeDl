@@ -10,13 +10,17 @@ using Nager.PublicSuffix;
 using AnimeDl.Extractors;
 using AnimeDl.Utils.Extensions;
 using AnimeDl.Exceptions;
+using System.Text;
+using System.Diagnostics;
+using System.Collections;
 
 namespace AnimeDl.Scrapers;
 
 internal class NineAnimeScraper : BaseScraper
 {
     //public override string BaseUrl => "https://9anime.center";
-    public override string BaseUrl => "https://9anime.pl";
+    //public override string BaseUrl => "https://9anime.pl";
+    public override string BaseUrl => "https://9anime.id";
 
     public NineAnimeScraper(NetHttpClient netHttpClient) : base(netHttpClient)
     {
@@ -49,11 +53,15 @@ internal class NineAnimeScraper : BaseScraper
         var document = new HtmlDocument();
         document.LoadHtml(htmlData);
 
-        foreach (var node in document.DocumentNode.SelectNodes(".//ul[@class='anime-list']/li"))
+        var listNode = document.DocumentNode.SelectSingleNode(".//div[@id='list-items']");
+
+        foreach (var node in listNode.SelectNodes(".//div[@class='ani poster tip']/a"))
         {
-            string title = node.SelectSingleNode(".//a[@class='name']").InnerText;
-            string href = node.SelectSingleNode(".//a[@href]").Attributes["href"].Value;
-            string image = node.SelectSingleNode(".//a[@class='poster']/img").Attributes["src"].Value;
+            var image = node.SelectSingleNode(".//img");
+
+            var title = image.Attributes["alt"].Value;
+            var href = BaseUrl + node.Attributes["href"].Value;
+            var cover = image.Attributes["src"].Value;
 
             href = new Regex(@"(\\?ep=(\\d+)\$)").Replace(href, "");
 
@@ -63,19 +71,32 @@ internal class NineAnimeScraper : BaseScraper
                 Title = title,
                 EpisodesNum = 0,
                 Link = href,
-                Image = image
+                Image = cover
             });
         }
 
         return animes;
     }
 
-    //Credits to https://github.com/jmir1
-    //private string key = "0wMrYU+ixjJ4QdzgfN2HlyIVAt3sBOZnCT9Lm7uFDovkb/EaKpRWhqXS5168ePcG";
+    //private string key = "c/aUAorINHBLxWTy3uRiPt8J+vjsOheFG1E0q2X9CYwDZlnmd4Kb5M6gSVzfk7pQ";
+    private string key = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-    //thanks to @Modder4869 for key
-    private string key = "c/aUAorINHBLxWTy3uRiPt8J+vjsOheFG1E0q2X9CYwDZlnmd4Kb5M6gSVzfk7pQ";
+    private string cipherKey = "kMXzgyNzT3k5dYab";
+
+    private string EncodeVrf(string text)
+    {
+        //return Encode(GetVrf(text));
+        //return Encode(encrypt(cipher(cipherKey, Encode(text))));
+        return encrypt(cipher(Encode(text), cipherKey));
+    }
     
+    private string DecodeVrf(string text)
+    {
+        //return Decode(GetVrf(text));
+        return Decode(cipher(cipherKey, decrypt(text)));
+        //return GetLink(text);
+    }
+
     private string GetVrf(string id)
     {
         string reversed = new string(encrypt(Encode(id) + "0000000").Take(6).Reverse().ToArray());
@@ -96,14 +117,12 @@ internal class NineAnimeScraper : BaseScraper
         if (input.Any(x => x >= 256))
             throw new Exception("illegal characters!");
 
-        string output = "";
+        var output = "";
 
         for (int i = 0; i < input.Length; i++)
         {
             if (i % 3 != 0)
-            {
                 continue;
-            }
 
             var a = new int[] { -1, -1, -1, -1 };
             a[0] = input[i] >> 2;
@@ -159,7 +178,7 @@ internal class NineAnimeScraper : BaseScraper
 
         for (int f = 0; f < input2.Length; f++)
         {
-            c = (c + f) % 256;
+            c = (c + 1) % 256;
             u = (u + arr[c]) % 256;
             r = arr[c];
             arr[c] = arr[u];
@@ -190,7 +209,7 @@ internal class NineAnimeScraper : BaseScraper
         }
 
         int i;
-        string r = "";
+        var r = "";
         var e = 0;
         var u = 0;
 
@@ -227,43 +246,51 @@ internal class NineAnimeScraper : BaseScraper
 
     private string Encode(string id)
     {
-        return Uri.EscapeDataString(id);
+        //return Uri.EscapeDataString(id);
+        byte[] bytes = Encoding.Default.GetBytes(id);
+        return Encoding.UTF8.GetString(bytes).Replace("+", "%20");
     }
 
     private string Decode(string id)
     {
-        return Uri.UnescapeDataString(id);
+        //return Uri.UnescapeDataString(id);
+
+        byte[] bytes = Encoding.Default.GetBytes(id);
+        return Encoding.UTF8.GetString(bytes);
     }
 
     public override async Task<List<Episode>> GetEpisodesAsync(Anime anime)
     {
-        List<Episode> episodes = new List<Episode>();
+        var episodes = new List<Episode>();
 
-        string htmlData = await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}" + anime.Link);
+        var htmlData = await _netHttpClient.SendHttpRequestAsync(anime.Link);
 
         var document = new HtmlDocument();
         document.LoadHtml(htmlData);
 
-        string animeId = document.DocumentNode
-            .SelectSingleNode(".//div[@class='player-wrapper watchpage']")
+        var animeId = document.DocumentNode
+            .SelectSingleNode(".//div[@id='watch-main']")
             .Attributes["data-id"].Value;
 
-        string animeidencoded = Encode(GetVrf(animeId));
-
         //var epsHtml = await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/ajax/anime/servers?ep=1&id={animeId}&vrf={animeidencoded}&ep=8&episode=&token=");
-        var epsHtml = await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/ajax/anime/servers?id={animeId}&vrf={animeidencoded}");
+        var epsHtml = await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/ajax/episode/list/{animeId}?vrf={EncodeVrf(animeId)}");
 
         document = new HtmlDocument();
-        document.LoadHtml(JObject.Parse(epsHtml)["html"]!.ToString());
+        //document.LoadHtml(epsHtml);
+        document.LoadHtml(JObject.Parse(epsHtml)["result"]!.ToString());
 
         var epNodes = document.DocumentNode
-            .SelectNodes(".//ul[@class='episodes']/li/a").ToList();
+            .SelectNodes(".//ul/li/a").ToList();
 
         for (int i = 0; i < epNodes.Count; i++)
         {
-            int epNum = Convert.ToInt32(epNodes[i].InnerText);
-            var link = epNodes[i].Attributes["href"]?.Value;
-            var name = $"Episode {epNum}";
+            var id = epNodes[i].Attributes["data-ids"]?.Value.Split(',')[0];
+
+            var epNum = Convert.ToInt32(epNodes[i].Attributes["data-num"].Value);
+            var link = $"{BaseUrl}/ajax/server/list/{id}?vrf={id}";
+            var title = epNodes[i].SelectNodes(".//span[@class='d-title']")
+                .FirstOrDefault()?.InnerText;
+            var name = $"Episode {epNum} - {title}";
 
             episodes.Add(new Episode() 
             {
@@ -278,115 +305,27 @@ internal class NineAnimeScraper : BaseScraper
 
     public override async Task<List<Quality>> GetEpisodeLinksAsync(Episode episode)
     {
-        string htmlData = await _netHttpClient.SendHttpRequestAsync(episode.EpisodeLink);
+        var content = await _netHttpClient.SendHttpRequestAsync(episode.EpisodeLink);
 
         var document = new HtmlDocument();
-        document.LoadHtml(htmlData);
+        document.LoadHtml(JObject.Parse(content)["result"]!.ToString());
 
-        string animeId = document.DocumentNode
-            .SelectSingleNode(".//div[@class='player-wrapper watchpage']")
-            .Attributes["data-id"].Value;
-
-        string animeidencoded = Encode(GetVrf(animeId));
-
-        //string ll = $"{BaseUrl}/ajax/anime/servers?ep=1&id={animeId}&vrf={animeidencoded}&ep=8&episode=&token=";
-
-        string epsHtml = await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/ajax/anime/servers?ep=1&id={animeId}&vrf={animeidencoded}&ep=8&episode=&token=");
-
-        document = new HtmlDocument();
-        document.LoadHtml(JObject.Parse(epsHtml)["html"]!.ToString());
-
-        var element = document.DocumentNode
-            .SelectSingleNode(".//div[@class='body']");
-
-        //var jsonregex = new Regex(@"(\\{.+\\}.*$data)");
-        //var m = jsonregex.Matches(element.InnerHtml);
-
-        //var gs = new Uri(ll).DecodeQueryParameters();
-
-        var sources = document.DocumentNode
-            .SelectNodes($".//ul[@class='episodes']/li/a")
-            .Where(x => x?.Attributes["data-base"]?.Value == episode.EpisodeNumber.ToString())
-            .FirstOrDefault()?.Attributes["data-sources"]?.Value;
-
-        //var sourceId = JObject.Parse(sources)["41"].ToString();
-        var sourceId = JObject.Parse(sources!)["28"]!.ToString();
-
-        var epServer = await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/ajax/anime/episode?id={sourceId}");
-
-        var headers = new WebHeaderCollection()
-        {
-            { "Referer", $"{BaseUrl}/" }
-        };
-
-        var encryptedSourceUrl = JObject.Parse(epServer)["url"]!.ToString().Replace("=", "");
-        var embedLink = GetLink(encryptedSourceUrl)?.Replace("/embed/", "/e/")!;
-
-        //await new VizCloud(this).ExtractQualities(embedLink);
-
-        var embedHtml = await _netHttpClient.SendHttpRequestAsync(embedLink, headers);
-
-        document.LoadHtml(embedHtml);
-
-        var skeyScript = document.DocumentNode.Descendants()
-            .Where(x => x.Name == "script" && x.InnerHtml.Contains("window.skey = "))
-            .FirstOrDefault();
-
-        var skey = skeyScript?.InnerText.SubstringAfter("window.skey = \'").SubstringBefore("\'");
-
-        var sourceObjectLink = GetLink(encryptedSourceUrl)?.Replace("/embed/", "/info/") + $"?skey={skey}";
-        var sourceObjectHtml = await _netHttpClient.SendHttpRequestAsync(sourceObjectLink, headers);
-        var sourceObject = JObject.Parse(sourceObjectHtml)["media"]?["sources"];
-
-        var masterUrls = sourceObject!.Select(x => x["file"]?.ToString()).ToList();
-        var masterUrl = masterUrls!.Where(x => !x!.Contains("/simple/")).FirstOrDefault()!;
-
-        var domainParser = new DomainParser(new WebTldRuleProvider());
-
-        //var domainInfo = domainParser.Parse("sub.test.co.uk");
-        //domainInfo.Domain = "test";
-        //domainInfo.Hostname = "sub.test.co.uk";
-        //domainInfo.RegistrableDomain = "test.co.uk";
-        //domainInfo.SubDomain = "sub";
-        //domainInfo.TLD = "co.uk";
-
-        var domainInfo = domainParser.Parse(masterUrl);
-        var origin = domainInfo.RegistrableDomain;
-
-        var masterPlaylist = await _netHttpClient.SendHttpRequestAsync(masterUrl, headers);
-        var playlists = masterPlaylist.SubstringAfter("#EXT-X-STREAM-INF:").Split(new string[] { "#EXT-X-STREAM-INF:" }, StringSplitOptions.None);
+        var dataLinksIdNodes = document.DocumentNode
+            .SelectNodes(".//li").ToList();
 
         var list = new List<Quality>();
 
-        for (int i = 0; i < playlists.Length; i++)
+        for (int i = 0; i < dataLinksIdNodes.Count; i++)
         {
-            string quality = playlists[i].SubstringAfter("RESOLUTION=").SubstringAfter("x").SubstringBefore("\n") + "p";
-            var split = masterUrl.Split('/');
-            string videoUrl = string.Join("/", split.Take(split.Length - 1)) + "/" + playlists[i].SubstringAfter("\n").SubstringBefore("\n");
+            var id = dataLinksIdNodes[i].Attributes["data-link-id"].Value;
+            var link = $"{BaseUrl}/ajax/server/{id}?vrf={EncodeVrf(id)}";
 
-            list.Add(new Quality()
-            {
-                Resolution = quality,
-                QualityUrl = videoUrl,
-                Headers = new WebHeaderCollection()
-                {
-                    { "Referer", $"{BaseUrl}/" },
-                    { "Origin", "https://" + origin }
-                }
-            });
+            var content2 = await _netHttpClient.SendHttpRequestAsync(link);
+
+            var encodedStreamUrl = JObject.Parse(content2)["result"]?["url"]?.ToString();
+
+            var realLink = DecodeVrf(encodedStreamUrl!);
         }
-
-        //return new List<Quality>()
-        //{
-        //    new Quality()
-        //    {
-        //        QualityUrl = embedLink,
-        //        Headers = new WebHeaderCollection()
-        //        {
-        //            { "Referer", $"{BaseUrl}/" }
-        //        }
-        //    }
-        //};
 
         return list;
     }

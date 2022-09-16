@@ -178,6 +178,7 @@ internal class TwistScraper : BaseScraper
 
         list.Add(new Quality() 
         {
+            IsM3U8 = episode.EpisodeLink.Contains(".m3u8"),
             QualityUrl = episode.EpisodeLink,
             Referer = BaseUrl,
         });

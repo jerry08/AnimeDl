@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using HtmlAgilityPack;
+using Newtonsoft.Json.Linq;
 using AnimeDl.Extractors;
 using AnimeDl.Exceptions;
 
@@ -11,19 +12,27 @@ namespace AnimeDl.Scrapers;
 
 internal class GogoAnimeScraper : BaseScraper
 {
-    //public override string BaseUrl => "https://gogoanime.pe";
-    //public override string BaseUrl => "https://www1.gogoanime.cm/";
+    private string _baseUrl { get; set; } = default!;
 
-    //public override string BaseUrl => "https://gogoanime.sk/";
-    //public override string BaseUrl => "https://gogoanime.lu/";
-    //public override string BaseUrl => "https://gogoanime.ee/";
-    public override string BaseUrl => "https://www1.gogoanime.ee/";
-    //public override string BaseUrl => "https://gogoanime.film/";
+    public override string BaseUrl => _baseUrl;
 
-    public string CdnUrl => "https://ajax.gogocdn.net/ajax/load-list-episode?ep_start=0&ep_end=10000&id=";
+    public string CdnUrl { get; private set; } = default!;
 
     public GogoAnimeScraper(NetHttpClient netHttpClient) : base(netHttpClient)
     {
+        SetData();
+    }
+
+    private void SetData()
+    {
+        var json = _netHttpClient.Get("https://raw.githubusercontent.com/jerry08/AnimeDl/master/AnimeDl/Data/gogoanime.json");
+        if (!string.IsNullOrEmpty(json))
+        {
+            var jObj = JObject.Parse(json);
+
+            _baseUrl = jObj["base_url"]!.ToString();
+            CdnUrl = jObj["cdn_url"]!.ToString();
+        }
     }
 
     public override async Task<List<Anime>> SearchAsync(

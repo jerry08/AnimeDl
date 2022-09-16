@@ -197,6 +197,7 @@ internal class TenshiScraper : BaseScraper
                 list.Add(new Quality()
                 {
                     Headers = CookieHeader,
+                    IsM3U8 = source["src"]!.ToString().Contains(".m3u8"),
                     FileType = source["type"]!.ToString(),
                     Resolution = source["size"]!.ToString(),
                     QualityUrl = source["src"]!.ToString(),
