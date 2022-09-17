@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 using HtmlAgilityPack;
+using Newtonsoft.Json.Linq;
 using AnimeDl.Extractors;
 using AnimeDl.Exceptions;
 
@@ -11,23 +11,28 @@ namespace AnimeDl.Scrapers;
 
 internal class ZoroScraper : BaseScraper
 {
+    public override string Name { get; set; } = "Zoro";
+
+    public override bool IsDubAvailableSeparately { get; set; } = true;
+
     public override string BaseUrl => "https://zoro.to";
 
     public ZoroScraper(NetHttpClient netHttpClient) : base(netHttpClient)
     {
     }
 
-    public override async Task<List<Anime>> SearchAsync(string searchQuery,
+    public override async Task<List<Anime>> SearchAsync(string query,
         SearchFilter searchFilter,
-        int page)
+        int page,
+        bool selectDub)
     {
-        searchQuery = searchQuery.Replace(" ", "+");
+        query = query.Replace(" ", "+");
 
         var animes = new List<Anime>();
 
         var htmlData = searchFilter switch
         {
-            SearchFilter.Find => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/search?keyword=" + searchQuery),
+            SearchFilter.Find => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/search?keyword=" + query),
             SearchFilter.Popular => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/most-popular?page=" + page),
             SearchFilter.NewSeason => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/recently-added?page=" + page),
             SearchFilter.LastUpdated => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/?page=" + page),

@@ -8,6 +8,10 @@ namespace AnimeDl.Scrapers;
 
 internal class TwistScraper : BaseScraper
 {
+    public override string Name { get; set; } = "Twist";
+
+    public override bool IsDubAvailableSeparately { get; set; } = false;
+
     public override string BaseUrl => "https://twist.moe";
 
     //string ApiUrl => "https://twist.moe/api/anime";
@@ -92,17 +96,18 @@ internal class TwistScraper : BaseScraper
         //var filtered2 = AllAnimes.Where(x =>
         //    Regex.IsMatch(x.Title, StringExtensions.WildCardToRegular("*A*n*o*h*a*n*a*"))).ToList();
         //
-        //var gg = LevenshteinDistance.Compute("aunt", searchQuery);
+        //var gg = LevenshteinDistance.Compute("aunt", query);
         //
         //var filtered3 = AllAnimes.Where(x => !string.IsNullOrEmpty(x.Title) && 
-        //    LevenshteinDistance.Compute(x.Title, searchQuery) <= 3).ToList();
+        //    LevenshteinDistance.Compute(x.Title, query) <= 3).ToList();
 
         return AllAnimes;
     }
 
-    public override async Task<List<Anime>> SearchAsync(string searchQuery,
+    public override async Task<List<Anime>> SearchAsync(string query,
         SearchFilter searchFilter,
-        int page)
+        int page,
+        bool selectDub)
     {
         if (AllAnimes.Count <= 0)
         {
@@ -114,7 +119,7 @@ internal class TwistScraper : BaseScraper
             return AllAnimes;
         }
 
-        var lowerTxt = searchQuery.ToLower();
+        var lowerTxt = query.ToLower();
 
         return AllAnimes.Where(x => (!string.IsNullOrEmpty(x.Title) &&
             x.Title.ToLower().Contains(lowerTxt)) || 

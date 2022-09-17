@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
-using AnimeDl.DemoConsole.Utils;
 using AnimeDl.Scrapers;
+using AnimeDl.DemoConsole.Utils;
 
 namespace AnimeDl.DemoConsole;
 
@@ -231,7 +231,7 @@ public static class Program
         Console.Write("Enter anime name: ");
         var query = Console.ReadLine() ?? "";
 
-        var animes = await client.SearchAsync(query);
+        var animes = await client.SearchAsync(query, true);
         Console.WriteLine("Animes found: ");
         Console.WriteLine();
         for (int i = 0; i < animes.Count; i++)

@@ -15,12 +15,18 @@ namespace AnimeDl;
 /// <summary>
 /// Client for interacting with anime sites.
 /// </summary>
-public class AnimeClient : IAnimeScraper
+public class AnimeClient
 {
     private readonly IAnimeScraper _scraper;
 
     private readonly HttpClient _httpClient;
     private readonly NetHttpClient _netHttpClient;
+
+    /// <summary>
+    /// Checks if site supports dubbed anime
+    /// </summary>
+    /// <returns></returns>
+    public bool IsDubAvailableSeparately => _scraper.GetIsDubAvailableSeparately();
 
     /// <summary>
     /// Returns the current anime site.
@@ -123,30 +129,31 @@ public class AnimeClient : IAnimeScraper
     /// Search for animes.
     /// </summary>
     public List<Anime> Search(
-        string searchQuery,
+        string query,
         bool forceLoad = false)
     {
-        return Search(searchQuery, SearchFilter.Find, 1, forceLoad);
+        return Search(query, SearchFilter.Find, 1, forceLoad);
     }
 
     /// <summary>
     /// Search for animes.
     /// </summary>
     public List<Anime> Search(
-        string searchQuery,
+        string query,
         SearchFilter searchFilter,
         bool forceLoad = false)
     {
-        return Search(searchQuery, searchFilter, 1, forceLoad);
+        return Search(query, searchFilter, 1, forceLoad);
     }
 
     /// <summary>
     /// Search for animes.
     /// </summary>
     public List<Anime> Search(
-        string searchQuery,
+        string query,
         SearchFilter searchFilter,
         int page,
+        bool selectDub = false,
         bool forceLoad = false)
     {
         IsLoadingAnimes = true;
@@ -154,7 +161,7 @@ public class AnimeClient : IAnimeScraper
         if (_searchCancellationTokenSource.IsCancellationRequested)
             _searchCancellationTokenSource = new CancellationTokenSource();
 
-        var function = () => SearchAsync(searchQuery, searchFilter, page);
+        var function = () => SearchAsync(query, searchFilter, page, selectDub);
         if (forceLoad)
         {
             Animes = AsyncHelper.RunSync(function, _searchCancellationTokenSource.Token);
@@ -174,33 +181,41 @@ public class AnimeClient : IAnimeScraper
     /// Search for animes.
     /// </summary>
     public async Task<List<Anime>> SearchAsync(
-        string searchQuery)
+        string query)
     {
-        Animes = await _scraper.SearchAsync(searchQuery, SearchFilter.Find, 1);
-        return Animes;
+        return Animes = await _scraper.SearchAsync(query, SearchFilter.Find, 1, false);
     }
 
     /// <summary>
     /// Search for animes.
     /// </summary>
     public async Task<List<Anime>> SearchAsync(
-        string searchQuery,
+        string query,
         SearchFilter searchFilter)
     {
-        Animes = await _scraper.SearchAsync(searchQuery, searchFilter, 1);
-        return Animes;
+        return Animes = await _scraper.SearchAsync(query, searchFilter, 1, false);
     }
 
     /// <summary>
     /// Search for animes.
     /// </summary>
     public async Task<List<Anime>> SearchAsync(
-        string searchQuery,
+        string query,
         SearchFilter searchFilter,
-        int page)
+        int page,
+        bool selectDub)
     {
-        Animes = await _scraper.SearchAsync(searchQuery, searchFilter, page);
-        return Animes;
+        return Animes = await _scraper.SearchAsync(query, searchFilter, page, selectDub);
+    }
+
+    public async Task<List<Anime>> SearchAsync(string query, bool selectDub)
+    {
+        return Animes = await SearchAsync(query, SearchFilter.Find, 0, selectDub);
+    }
+
+    public async Task<List<Anime>> SearchAsync(SearchFilter searchFilter)
+    {
+        return Animes = await SearchAsync("", searchFilter, 0, false);
     }
     #endregion
 

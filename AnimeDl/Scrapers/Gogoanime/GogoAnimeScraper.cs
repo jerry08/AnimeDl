@@ -12,6 +12,10 @@ namespace AnimeDl.Scrapers;
 
 internal class GogoAnimeScraper : BaseScraper
 {
+    public override string Name { get; set; } = "Gogo";
+
+    public override bool IsDubAvailableSeparately { get; set; } = true;
+
     private string _baseUrl { get; set; } = default!;
 
     public override string BaseUrl => _baseUrl;
@@ -36,15 +40,18 @@ internal class GogoAnimeScraper : BaseScraper
     }
 
     public override async Task<List<Anime>> SearchAsync(
-        string searchQuery,
+        string query,
         SearchFilter searchFilter,
-        int page)
+        int page,
+        bool selectDub)
     {
+        query = selectDub ? query + "%(Dub)" : query;
+
         var animes = new List<Anime>();
 
         var htmlData = searchFilter switch
         {
-            SearchFilter.Find => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}search.html?keyword=" + searchQuery),
+            SearchFilter.Find => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}search.html?keyword=" + query),
             //SearchFilter.AllList => await _netHttpClient.SendHttpRequestAsync($"https://animesa.ga/animel.php"),
             SearchFilter.AllList => await _netHttpClient.SendHttpRequestAsync($"https://animefrenzy.org/anime"),
             SearchFilter.Popular => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}popular.html?page=" + page),
@@ -78,26 +85,12 @@ internal class GogoAnimeScraper : BaseScraper
                 var released = "";
                 var link = "";
 
-                //HtmlNode imgNode = currentNode.Descendants()
-                //    .Where(node => node.Name == "img").FirstOrDefault();
-                //if (imgNode != null)
-                //{
-                //    var attrImg = imgNode.Attributes.Where(x => x.Name == "src")
-                //        .FirstOrDefault();
-                //    if (attrImg != null)
-                //        img = attrImg.Value;
-                //}
-
                 var imgNode = nodes3[i].SelectSingleNode(".//div[@class='img']/a/img");
                 if (imgNode != null)
                 {
                     img = imgNode.Attributes["src"].Value;
                 }
 
-                //HtmlNode nameNode = currentNode.Descendants()
-                //    .Where(node => node.HasClass("name")).FirstOrDefault();
-
-                //var nameNode = currentNode.SelectSingleNode("//p[@class='name']/a[@title='Profile View' and @href");
                 var nameNode = nodes3[i].SelectSingleNode(".//p[@class='name']/a");
                 if (nameNode != null)
                 {
@@ -113,7 +106,6 @@ internal class GogoAnimeScraper : BaseScraper
 
                 if (category.Contains("-episode"))
                 {
-                    //category = category.Remove(category.LastIndexOf('\\'));
                     category = "/category" + category.Remove(category.LastIndexOf("-episode"));
                 }
 
@@ -127,7 +119,6 @@ internal class GogoAnimeScraper : BaseScraper
                     Title = title,
                     EpisodesNum = 0,
                     Category = category,
-                    //Link = "https://animesa.ga/watchanime.html?q=/videos/" + name.RemoveBadChars1(),
                     Released = released,
                     Link = link,
                 });
@@ -145,14 +136,6 @@ internal class GogoAnimeScraper : BaseScraper
 
         var document = new HtmlDocument();
         document.LoadHtml(htmlData);
-
-        //var imageLink = "";
-        //
-        //var imgNode = document.DocumentNode.SelectSingleNode(".//div[@class='anime_info_body_bg']/img");
-        //if (imgNode != null)
-        //{
-        //    imageLink = imgNode.Attributes["src"].Value;
-        //}
 
         var animeInfoNodes = document.DocumentNode
             .SelectNodes(".//div[@class='anime_info_body_bg']/p").ToList();
@@ -245,14 +228,11 @@ internal class GogoAnimeScraper : BaseScraper
             //var epNumber = Convert.ToSingle(link.Split(new char[] { '-' }).LastOrDefault());
             var epNumber = Convert.ToSingle(epName.ToLower().Replace("ep", "").Trim());
 
-            //string episodeLinkSaga = "https://animesa.ga/watchanime.html?q=/videos" + anime.Category.Replace("/category", "") + "-episode-" + epNumber.ToString();
-
             episodes.Add(new Episode()
             {
                 EpisodeLink = link,
                 EpisodeNumber = epNumber,
                 EpisodeName = epName,
-                //EpisodeLinkSaga = episodeLinkSaga
             });
         }
 
@@ -261,10 +241,7 @@ internal class GogoAnimeScraper : BaseScraper
 
     public override async Task<List<Quality>> GetEpisodeLinksAsync(Episode episode)
     {
-        //string link = anime.Link.Replace("/category", "") + "-episode-" + episode.EpisodeNumber;
-        var link = episode.EpisodeLink;
-
-        var htmlData = await _netHttpClient.SendHttpRequestAsync(link);
+        var htmlData = await _netHttpClient.SendHttpRequestAsync(episode.EpisodeLink);
 
         var doc = new HtmlDocument();
         doc.LoadHtml(htmlData);
@@ -272,7 +249,7 @@ internal class GogoAnimeScraper : BaseScraper
         //Exception for fire force season 2 episode 1
         if (htmlData.Contains(@">404</h1>"))
         {
-            htmlData = await _netHttpClient.SendHttpRequestAsync(link + "-1");
+            htmlData = await _netHttpClient.SendHttpRequestAsync(episode.EpisodeLink + "-1");
         }
 
         var vidStreamNode = doc.DocumentNode
@@ -299,8 +276,6 @@ internal class GogoAnimeScraper : BaseScraper
         var document = new HtmlDocument();
         document.LoadHtml(htmlData);
 
-        //string nav = "menu_series genre right";
-
         var genresNode = document.DocumentNode.Descendants()
             .Where(node => node.GetClasses().Contains("genre"))
             .FirstOrDefault();
@@ -311,15 +286,9 @@ internal class GogoAnimeScraper : BaseScraper
                 .Where(node => node.Name == "li").ToList();
             for (int i = 0; i < nodes.Count; i++)
             {
-                //var currentNode = HtmlNode.CreateNode(nodes[i].OuterHtml);
-
                 var name = "";
                 var link = "";
 
-                //var nameNode = currentNode.Descendants()
-                //    .Where(node => node.HasClass("name")).FirstOrDefault();
-
-                //var nameNode = currentNode.SelectSingleNode("//p[@class='name']/a[@title='Profile View' and @href");
                 var nameNode = nodes[i].SelectSingleNode(".//a");
                 if (nameNode != null)
                 {

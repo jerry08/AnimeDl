@@ -12,6 +12,10 @@ namespace AnimeDl.Scrapers;
 
 internal class TenshiScraper : BaseScraper
 {
+    public override string Name { get; set; } = "Tenshi";
+
+    public override bool IsDubAvailableSeparately { get; set; } = false;
+
     public override string BaseUrl => "https://tenshi.moe";
 
     public WebHeaderCollection CookieHeader = new()
@@ -30,18 +34,19 @@ internal class TenshiScraper : BaseScraper
     {
     }
 
-    public override async Task<List<Anime>> SearchAsync(string searchQuery,
+    public override async Task<List<Anime>> SearchAsync(string query,
         SearchFilter searchFilter,
-        int page)
+        int page,
+        bool selectDub)
     {
         var animes = new List<Anime>();
 
-        //searchQuery = searchQuery.Replace(" ", "%20");
-        searchQuery = searchQuery.Replace(" ", "+");
+        //query = query.Replace(" ", "%20");
+        query = query.Replace(" ", "+");
 
         var htmlData = searchFilter switch
         {
-            SearchFilter.Find => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/anime?q={searchQuery}&s=vtt-d", CookieHeader),
+            SearchFilter.Find => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/anime?q={query}&s=vtt-d", CookieHeader),
             SearchFilter.NewSeason => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/anime?s=rel-d&page=" + page, CookieHeader),
             _ => throw new SearchFilterNotSupportedException("Search filter not supported")
         };

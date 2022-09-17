@@ -18,6 +18,10 @@ namespace AnimeDl.Scrapers;
 
 internal class NineAnimeScraper : BaseScraper
 {
+    public override string Name { get; set; } = "9anime";
+
+    public override bool IsDubAvailableSeparately { get; set; } = true;
+
     //public override string BaseUrl => "https://9anime.center";
     //public override string BaseUrl => "https://9anime.pl";
     public override string BaseUrl => "https://9anime.id";
@@ -27,15 +31,16 @@ internal class NineAnimeScraper : BaseScraper
     }
 
     public override async Task<List<Anime>> SearchAsync(
-        string searchQuery,
+        string query,
         SearchFilter searchFilter,
-        int page)
+        int page,
+        bool selectDub)
     {
         var animes = new List<Anime>();
 
         var htmlData = searchFilter switch
         {
-            SearchFilter.Find => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/filter?sort=title%3Aasc&keyword={searchQuery}"),
+            SearchFilter.Find => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/filter?sort=title%3Aasc&keyword={query}"),
             SearchFilter.Popular => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/popular.html?page=" + page),
             SearchFilter.NewSeason => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/new-season.html?page=" + page),
             SearchFilter.LastUpdated => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/ajax/home/widget?name=updated_all"),
