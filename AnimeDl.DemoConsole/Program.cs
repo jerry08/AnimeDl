@@ -231,7 +231,7 @@ public static class Program
         Console.Write("Enter anime name: ");
         var query = Console.ReadLine() ?? "";
 
-        var animes = await client.SearchAsync(query, true);
+        var animes = await client.SearchAsync(query, selectDub: false);
         Console.WriteLine("Animes found: ");
         Console.WriteLine();
         for (int i = 0; i < animes.Count; i++)

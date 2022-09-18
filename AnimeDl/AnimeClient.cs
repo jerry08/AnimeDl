@@ -132,7 +132,18 @@ public class AnimeClient
         string query,
         bool forceLoad = false)
     {
-        return Search(query, SearchFilter.Find, 1, forceLoad);
+        return Search(query, SearchFilter.Find, 0, forceLoad);
+    }
+
+    /// <summary>
+    /// Search for animes.
+    /// </summary>
+    public List<Anime> Search(
+        string query,
+        bool selectDub,
+        bool forceLoad = false)
+    {
+        return Search(query, SearchFilter.Find, 0, forceLoad, selectDub);
     }
 
     /// <summary>
@@ -143,7 +154,7 @@ public class AnimeClient
         SearchFilter searchFilter,
         bool forceLoad = false)
     {
-        return Search(query, searchFilter, 1, forceLoad);
+        return Search(query, searchFilter, 0, forceLoad);
     }
 
     /// <summary>
@@ -208,11 +219,17 @@ public class AnimeClient
         return Animes = await _scraper.SearchAsync(query, searchFilter, page, selectDub);
     }
 
+    /// <summary>
+    /// Search for animes.
+    /// </summary>
     public async Task<List<Anime>> SearchAsync(string query, bool selectDub)
     {
         return Animes = await SearchAsync(query, SearchFilter.Find, 0, selectDub);
     }
 
+    /// <summary>
+    /// Search for animes.
+    /// </summary>
     public async Task<List<Anime>> SearchAsync(SearchFilter searchFilter)
     {
         return Animes = await SearchAsync("", searchFilter, 0, false);

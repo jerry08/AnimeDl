@@ -233,8 +233,7 @@ internal class ZoroScraper : BaseScraper
                         break;
                     case "5":
                         //StreamSB
-                        //Currently not working
-                        //list.AddRange(await new StreamSB(_netHttpClient).ExtractQualities(qualityUrl));
+                        list.AddRange(await new StreamSB(_netHttpClient).ExtractQualities(qualityUrl));
                         break;
                     case "3":
                         //streamtape
@@ -245,10 +244,8 @@ internal class ZoroScraper : BaseScraper
                 }
             }
 
-            if (list.Count > 0)
-            {
-                break;
-            }
+            //if (list.Count > 0)
+            //    break;
         }
 
         return list;
