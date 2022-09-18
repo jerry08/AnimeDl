@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using HtmlAgilityPack;
 using Newtonsoft.Json.Linq;
+using Nager.PublicSuffix;
 using AnimeDl.Extractors;
 using AnimeDl.Exceptions;
 
@@ -239,6 +240,13 @@ internal class GogoAnimeScraper : BaseScraper
         return episodes;
     }
 
+    private string HttpsIfy(string text)
+    {
+        if (string.Join("", text.Take(2)) == "//")
+            return $"https:{text}";
+        return text;
+    }
+
     public override async Task<List<Quality>> GetEpisodeLinksAsync(Episode episode)
     {
         var htmlData = await _netHttpClient.SendHttpRequestAsync(episode.EpisodeLink);
@@ -252,19 +260,36 @@ internal class GogoAnimeScraper : BaseScraper
             htmlData = await _netHttpClient.SendHttpRequestAsync(episode.EpisodeLink + "-1");
         }
 
-        var vidStreamNode = doc.DocumentNode
-            .SelectSingleNode(".//div[@class='play-video']/iframe");
-        if (vidStreamNode != null)
-        {
-            var vidStreamUrl = "https:" + vidStreamNode.Attributes["src"].Value;
-            //var vidCdnUrl = vidStreamUrl.Replace("streaming.php", "loadserver.php");
-            //var vidCdnUrl = vidStreamUrl.Replace("streaming.php", "download");
-            var vidCdnUrl = vidStreamUrl;
+        var videos = new List<Quality>();
 
-            return await new GogoCDN(_netHttpClient).ExtractQualities(vidCdnUrl);
+        var servers = doc.DocumentNode
+            .SelectNodes(".//div[@class='anime_muti_link']/ul/li").ToList();
+        for (int i = 0; i < servers.Count; i++)
+        {
+            var name = servers[i].SelectSingleNode("a").InnerText.Replace("Choose this server", "");
+            var url = HttpsIfy(servers[i].SelectSingleNode("a").Attributes["data-video"].Value);
+
+            var domainParser = new DomainParser(new WebTldRuleProvider());
+            var domainInfo = domainParser.Parse(url);
+
+            if (domainInfo.Domain.Contains("gogo")
+                || domainInfo.Domain.Contains("goload"))
+            {
+                videos.AddRange(await new GogoCDN(_netHttpClient).ExtractQualities(url));
+            }
+            else if (domainInfo.Domain.Contains("sb")
+                || domainInfo.Domain.Contains("sss"))
+            {
+                videos.AddRange(await new StreamSB(_netHttpClient).ExtractQualities(url));
+            }
+            else if (domainInfo.Domain.Contains("fplayer")
+                || domainInfo.Domain.Contains("fembed"))
+            {
+                videos.AddRange(await new FPlayer(_netHttpClient).ExtractQualities(url));
+            }
         }
 
-        return new List<Quality>();
+        return videos;
     }
 
     public override async Task<List<Genre>> GetGenresAsync()
