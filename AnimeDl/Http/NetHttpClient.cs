@@ -38,6 +38,27 @@ internal class NetHttpClient
         return await SendHttpRequestAsync(request, cancellationToken);
     }
 
+    public async ValueTask<string> PostAsync(
+        string url,
+        CancellationToken cancellationToken = default)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, url);
+        return await SendHttpRequestAsync(request, cancellationToken);
+    }
+
+    public async ValueTask<string> PostAsync(
+        string url,
+        NameValueCollection headers,
+        CancellationToken cancellationToken = default)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, url);
+        for (int j = 0; j < headers.Count; j++)
+        {
+            request.Headers.TryAddWithoutValidation(headers.Keys[j]!, headers[j]);
+        }
+        return await SendHttpRequestAsync(request, cancellationToken);
+    }
+
     public async ValueTask<long> GetFileSizeAsync(
         string url,
         NameValueCollection headers,
