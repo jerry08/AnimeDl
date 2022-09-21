@@ -9,6 +9,10 @@ public class VideoServer
 
     public FileUrl Embed { get; set; } = default!;
 
+    public VideoServer()
+    {
+    }
+
     public VideoServer(string name, FileUrl embed)
     {
         Name = name;
