@@ -28,11 +28,10 @@
 
 | SITE                       | STATUS  | DOWNLOADS |
 |:--------------------------:|:-------:|:---------:|
-| [Gogo](https://gogoanime.ee)       | WORKING | SOME |
-| [Zoro](https://zoro.to)            | SEMI-WORKING | SOME |
-| [9Anime](https://9anime.center)    | NOT WORKING | NO |
-| [Twist](https://twist.moe)         | NOT WORKING | NO |
-| [Tenshi](https://tenshi.moe)       | WORKING | YES |
+| [Gogo](https://www1.gogoanime.ee/)   | WORKING | SOME |
+| [Zoro](https://zoro.to)              | WORKING | SOME |
+| [9Anime](https://9anime.id)          | NOT WORKING | NO |
+| [Tenshi](https://tenshi.moe)         | WORKING | YES |
 
 
 ## Install
