@@ -5,12 +5,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using HtmlAgilityPack;
-using Newtonsoft.Json.Linq;
 using AnimeDl.Exceptions;
 using AnimeDl.Utils.Extensions;
 using AnimeDl.Models;
 using AnimeDl.Extractors;
-using System.Xml.Linq;
 
 namespace AnimeDl.Scrapers;
 
@@ -87,9 +85,7 @@ internal class TenshiScraper : BaseScraper
 
         var html = await _http.SendHttpRequestAsync(anime.Link, CookieHeader);
         if (html is null)
-        {
             return episodes;
-        }
 
         var document = new HtmlDocument();
         document.LoadHtml(html);
@@ -125,24 +121,26 @@ internal class TenshiScraper : BaseScraper
         if (genreNodes is not null)
             anime.Genres.AddRange(genreNodes.Select(x => new Genre(x.InnerHtml.Trim())));
 
-        /*var nodes = document.DocumentNode
-            .SelectNodes(".//ul[@class='loop episode-loop thumb']/li")
-            .ToList();
+        //var nodes = document.DocumentNode
+        //    .SelectNodes(".//ul[@class='loop episode-loop list']/li").ToList();
+
+        var nodes = document.DocumentNode
+            .SelectNodes(".//ul[contains(@class, 'episode-loop')]/li").ToList();
 
         foreach (var node in nodes)
         {
             var episode = new Episode();
 
-            episode.EpisodeName = node.SelectSingleNode(".//div[@class='episode-title']").InnerText;
-            episode.EpisodeNumber = Convert.ToSingle(node.SelectSingleNode(".//div[@class='episode-slug']").InnerText.Replace("Episode ", ""));
-            episode.EpisodeLink = $"{anime.Link}/{episode.EpisodeNumber}";
+            episode.Name = node.SelectSingleNode(".//div[@class='episode-title']").InnerText;
+            episode.Number = Convert.ToSingle(node.SelectSingleNode(".//div[@class='episode-slug']").InnerText.Replace("Episode ", ""));
+            episode.Link = $"{anime.Link}/{episode.Number}";
             episode.Image = node.SelectSingleNode(".//img").Attributes["src"].Value;
             episode.Description = node.SelectSingleNode(".//a").Attributes["data-content"].Value;
 
             episodes.Add(episode);
-        }*/
+        }
 
-        var totalEpisodes = Convert.ToInt32(document.DocumentNode
+        /*var totalEpisodes = Convert.ToInt32(document.DocumentNode
             .SelectSingleNode(".//section[@class='entry-episodes']/h2/span[@class='badge badge-secondary align-top']").InnerText);
 
         for (int i = 1; i <= totalEpisodes; i++)
@@ -155,7 +153,7 @@ internal class TenshiScraper : BaseScraper
             };
 
             episodes.Add(episode);
-        }
+        }*/
 
         return episodes;
     }
@@ -164,7 +162,7 @@ internal class TenshiScraper : BaseScraper
     {
         var videoServers = new List<VideoServer>();
 
-        var html = await _http.SendHttpRequestAsync(episode.EpisodeLink, CookieHeader);
+        var html = await _http.SendHttpRequestAsync(episode.Link, CookieHeader);
         if (html is null)
             return videoServers;
 
@@ -186,7 +184,7 @@ internal class TenshiScraper : BaseScraper
             var headers = new WebHeaderCollection()
             {
                 CookieHeader,
-                { "Referer", episode.EpisodeLink }
+                { "Referer", episode.Link }
             };
 
             videoServers.Add(new VideoServer(server, new FileUrl(url, headers)));
