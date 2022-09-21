@@ -158,11 +158,7 @@ public static class Program
     //Method with force load
     public static async Task Example2()
     {
-        //var client = new AnimeClient(AnimeSites.GogoAnime); //Working
-        //var client = new AnimeClient(AnimeSites.TwistMoe); //Not working
-        //var client = new AnimeClient(AnimeSites.Zoro); //Working
-        //var client = new AnimeClient(AnimeSites.NineAnime); //Not working
-        var client = new AnimeClient(AnimeSites.Tenshi); //Working
+        var client = new AnimeClient(AnimeSites.Tenshi);
 
         // Read the anime name
         Console.Write("Enter anime name: ");

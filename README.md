@@ -52,7 +52,7 @@ namespace AnimeApp
 {
     class Class1
     {
-        public void Example1() 
+        public static void Example1()
         {
             var client = new AnimeClient(AnimeSites.Tenshi);
 
@@ -111,7 +111,35 @@ namespace AnimeApp
 
                 Console.WriteLine();
 
-                var videos = client.GetEpisodeLinks(episodes[episodeIndex]);
+                var videoServers = client.GetVideoServers(episodes[episodeIndex]);
+            };
+
+            client.OnVideoServersLoaded += (s, e) =>
+            {
+                var videoServers = e.VideoServers;
+
+                for (int i = 0; i < videoServers.Count; i++)
+                {
+                    Console.WriteLine($"[{i + 1}] {videoServers[i].Name}");
+                }
+
+                Console.WriteLine();
+
+                // Read the server index selected
+                Console.Write("Enter server index: ");
+
+                int videoServerIndex;
+
+                while (!int.TryParse(Console.ReadLine() ?? "", out videoServerIndex))
+                {
+                    Console.Clear();
+                    Console.WriteLine("You entered an invalid server index");
+                    Console.Write("Enter server index: ");
+                }
+
+                videoServerIndex--;
+
+                var videos = client.GetVideos(videoServers[videoServerIndex]);
             };
 
             client.OnVideosLoaded += (s, e) =>
@@ -157,6 +185,8 @@ namespace AnimeApp
 
             //First (Search anime by name)
             client.Search(query);
+
+            System.Threading.Thread.Sleep(-1);
         }
     }
 }
@@ -178,7 +208,7 @@ namespace AnimeApp
         //Method with force load
         public static async Task Example2()
         {
-            var client = new AnimeClient(AnimeSites.Tenshi);
+            var client = new AnimeClient(AnimeSites.Tenshi); //Working
 
             // Read the anime name
             Console.Write("Enter anime name: ");
@@ -230,7 +260,30 @@ namespace AnimeApp
 
             Console.WriteLine();
 
-            var videos = client.GetEpisodeLinks(episodes[episodeIndex], forceLoad: true);
+            var videoServers = client.GetVideoServers(episodes[episodeIndex], forceLoad: true);
+
+            for (int i = 0; i < videoServers.Count; i++)
+            {
+                Console.WriteLine($"[{i + 1}] {videoServers[i].Name}");
+            }
+
+            Console.WriteLine();
+
+            // Read the server index selected
+            Console.Write("Enter server index: ");
+
+            int videoServerIndex;
+
+            while (!int.TryParse(Console.ReadLine() ?? "", out videoServerIndex))
+            {
+                Console.Clear();
+                Console.WriteLine("You entered an invalid server index");
+                Console.Write("Enter server index: ");
+            }
+
+            videoServerIndex--;
+
+            var videos = client.GetVideos(videoServers[videoServerIndex], forceLoad: true);
             Console.WriteLine($"Videos found: " + videos.Count);
 
             for (int i = 0; i < videos.Count; i++)
@@ -269,13 +322,13 @@ namespace AnimeApp
         //Async Method
         public static async Task Example3()
         {
-            var client = new AnimeClient(AnimeSites.Tenshi);
+            var client = new AnimeClient(AnimeSites.GogoAnime);
 
             // Read the anime name
             Console.Write("Enter anime name: ");
             var query = Console.ReadLine() ?? "";
 
-            var animes = await client.SearchAsync(query);
+            var animes = await client.SearchAsync(query, selectDub: false);
             Console.WriteLine("Animes found: ");
             Console.WriteLine();
             for (int i = 0; i < animes.Count; i++)
@@ -321,7 +374,30 @@ namespace AnimeApp
 
             Console.WriteLine();
 
-            var videos = await client.GetEpisodeLinksAsync(episodes[episodeIndex]);
+            var videoServers = await client.GetVideoServersAsync(episodes[episodeIndex]);
+
+            for (int i = 0; i < videoServers.Count; i++)
+            {
+                Console.WriteLine($"[{i + 1}] {videoServers[i].Name}");
+            }
+
+            Console.WriteLine();
+
+            // Read the server index selected
+            Console.Write("Enter server index: ");
+
+            int videoServerIndex;
+
+            while (!int.TryParse(Console.ReadLine() ?? "", out videoServerIndex))
+            {
+                Console.Clear();
+                Console.WriteLine("You entered an invalid server index");
+                Console.Write("Enter server index: ");
+            }
+
+            videoServerIndex--;
+
+            var videos = await client.GetVideosAsync(videoServers[videoServerIndex]);
             Console.WriteLine($"Videos found: " + videos.Count);
 
             for (int i = 0; i < videos.Count; i++)
@@ -346,7 +422,7 @@ namespace AnimeApp
             videoIndex--;
 
             // Download the stream
-            var fileName = $@"{Environment.CurrentDirectory}\{animes[animeIndex].Title} - Ep {episodes[episodeIndex].EpisodeNumber}.mp4";
+            var fileName = $@"{Environment.CurrentDirectory}\{animes[animeIndex].Title.ReplaceInvalidChars()} - Ep {episodes[episodeIndex].EpisodeNumber}.mp4";
 
             using (var progress = new ConsoleProgress())
                 await client.DownloadAsync(videos[videoIndex], fileName, progress);
