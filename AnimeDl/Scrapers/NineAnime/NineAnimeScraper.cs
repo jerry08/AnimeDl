@@ -12,6 +12,7 @@ using AnimeDl.Utils.Extensions;
 using AnimeDl.Models;
 using System.Xml.Linq;
 using System.Net;
+using AnimeDl.Extractors.Interfaces;
 
 namespace AnimeDl.Scrapers;
 
@@ -344,5 +345,10 @@ internal class NineAnimeScraper : BaseScraper
         }
 
         return videoServers;
+    }
+
+    public override IVideoExtractor GetVideoExtractor(VideoServer server)
+    {
+        throw new NotImplementedException();
     }
 }

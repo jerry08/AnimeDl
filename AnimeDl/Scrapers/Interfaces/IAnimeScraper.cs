@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using System.Collections.Generic;
 using AnimeDl.Models;
+using AnimeDl.Extractors.Interfaces;
 
 namespace AnimeDl.Scrapers.Interfaces;
 
@@ -38,6 +39,13 @@ public interface IAnimeScraper
     /// <param name="episode"></param>
     /// <returns></returns>
     Task<List<VideoServer>> GetVideoServersAsync(Episode episode);
+
+    /// <summary>
+    /// Gets video extractor from specific server
+    /// </summary>
+    /// <param name="server"></param>
+    /// <returns></returns>
+    IVideoExtractor GetVideoExtractor(VideoServer server);
 
     /// <summary>
     /// Gets videos from specific server

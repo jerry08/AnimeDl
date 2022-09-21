@@ -11,6 +11,7 @@ using AnimeDl.Models;
 using AnimeDl.Extractors;
 using AnimeDl.Exceptions;
 using AnimeDl.Utils.Extensions;
+using AnimeDl.Extractors.Interfaces;
 
 namespace AnimeDl.Scrapers;
 
@@ -279,30 +280,28 @@ internal class GogoAnimeScraper : BaseScraper
         return videoServers;
     }
 
-    public override async Task<List<Video>> GetVideosAsync(VideoServer server)
+    public override IVideoExtractor GetVideoExtractor(VideoServer server)
     {
-        var videos = new List<Video>();
-
         var domainParser = new DomainParser(new WebTldRuleProvider());
         var domainInfo = domainParser.Parse(server.Embed.Url);
 
         if (domainInfo.Domain.Contains("gogo")
             || domainInfo.Domain.Contains("goload"))
         {
-            videos.AddRange(await new GogoCDN(_http, server).Extract());
+            return new GogoCDN(_http, server);
         }
         else if (domainInfo.Domain.Contains("sb")
             || domainInfo.Domain.Contains("sss"))
         {
-            videos.AddRange(await new StreamSB(_http, server).Extract());
+            return new StreamSB(_http, server);
         }
         else if (domainInfo.Domain.Contains("fplayer")
             || domainInfo.Domain.Contains("fembed"))
         {
-            videos.AddRange(await new FPlayer(_http, server).Extract());
+            return new FPlayer(_http, server);
         }
 
-        return videos;
+        return default!;
     }
 
     public override async Task<List<Genre>> GetGenresAsync()

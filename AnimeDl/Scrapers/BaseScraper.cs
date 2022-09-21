@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using AnimeDl.Models;
 using AnimeDl.Scrapers.Interfaces;
+using AnimeDl.Extractors.Interfaces;
 
 namespace AnimeDl.Scrapers;
 
@@ -16,12 +17,12 @@ internal abstract class BaseScraper : IAnimeScraper
 
     public abstract bool IsDubAvailableSeparately { get; set; }
 
+    public bool GetIsDubAvailableSeparately() => IsDubAvailableSeparately;
+
     public readonly HttpClient _http;
 
     public BaseScraper(HttpClient http)
-    {
-        _http = http;
-    }
+        => _http = http;
 
     public virtual Task<List<Anime>> SearchAsync(
         string query,
@@ -33,34 +34,19 @@ internal abstract class BaseScraper : IAnimeScraper
     }
 
     public virtual async Task<List<Episode>> GetEpisodesAsync(Anime anime)
-    {
-        return await Task.FromResult(new List<Episode>());
-    }
+        => await Task.FromResult(new List<Episode>());
 
     public virtual async Task<List<VideoServer>> GetVideoServersAsync(Episode episode)
-    {
-        return await Task.FromResult(new List<VideoServer>());
-    }
+        => await Task.FromResult(new List<VideoServer>());
+
+    public abstract IVideoExtractor GetVideoExtractor(VideoServer server);
 
     public virtual async Task<List<Video>> GetVideosAsync(VideoServer server)
-    {
-        return await Task.FromResult(new List<Video>());
-    }
+        => await GetVideoExtractor(server).Extract();
 
     public virtual async Task<List<Genre>> GetGenresAsync()
-    {
-        return await Task.FromResult(new List<Genre>());
-    }
+        => await Task.FromResult(new List<Genre>());
 
     public virtual WebHeaderCollection GetDefaultHeaders()
-    {
-        var headers = new WebHeaderCollection
-        {
-            { "accept-encoding", "gzip, deflate, br" }
-        };
-
-        return headers;
-    }
-
-    public bool GetIsDubAvailableSeparately() => IsDubAvailableSeparately;
+        => new() { { "accept-encoding", "gzip, deflate, br" } };
 }

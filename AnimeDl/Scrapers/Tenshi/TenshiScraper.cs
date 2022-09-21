@@ -9,6 +9,7 @@ using AnimeDl.Exceptions;
 using AnimeDl.Utils.Extensions;
 using AnimeDl.Models;
 using AnimeDl.Extractors;
+using AnimeDl.Extractors.Interfaces;
 
 namespace AnimeDl.Scrapers;
 
@@ -193,8 +194,8 @@ internal class TenshiScraper : BaseScraper
         return videoServers;
     }
 
-    public override async Task<List<Video>> GetVideosAsync(VideoServer server)
+    public override IVideoExtractor GetVideoExtractor(VideoServer server)
     {
-        return await new TenshiVideoExtractor(_http, server).Extract();
+        return new TenshiVideoExtractor(_http, server);
     }
 }

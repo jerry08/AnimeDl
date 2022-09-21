@@ -66,7 +66,7 @@ internal class StreamSB : VideoExtractor
                 IsM3U8 = masterUrl.Contains(".m3u8"),
                 VideoUrl = masterUrl,
                 Headers = headers,
-                Resolution = "auto"
+                Resolution = "Multi Quality"
             }
         };
 

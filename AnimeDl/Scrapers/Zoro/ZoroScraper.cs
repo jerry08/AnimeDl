@@ -11,6 +11,7 @@ using AnimeDl.Exceptions;
 using AnimeDl.Utils.Extensions;
 using AnimeDl.Models;
 using Nager.PublicSuffix;
+using AnimeDl.Extractors.Interfaces;
 
 namespace AnimeDl.Scrapers;
 
@@ -240,26 +241,24 @@ internal class ZoroScraper : BaseScraper
         return videoServers;
     }
 
-    public override async Task<List<Video>> GetVideosAsync(VideoServer server)
+    public override IVideoExtractor GetVideoExtractor(VideoServer server)
     {
-        var videos = new List<Video>();
-
         var domainParser = new DomainParser(new WebTldRuleProvider());
         var domainInfo = domainParser.Parse(server.Embed.Url);
 
         if (domainInfo.Domain.Contains("rapid"))
         {
-            videos.AddRange(await new RapidCloud(_http, server).Extract());
+            return new RapidCloud(_http, server);
         }
         else if (domainInfo.Domain.Contains("sb"))
         {
-            videos.AddRange(await new StreamSB(_http, server).Extract());
+            return new StreamSB(_http, server);
         }
         else if (domainInfo.Domain.Contains("streamta"))
         {
-            videos.AddRange(await new StreamTape(_http, server).Extract());
+            return new StreamTape(_http, server);
         }
 
-        return videos;
+        return default!;
     }
 }

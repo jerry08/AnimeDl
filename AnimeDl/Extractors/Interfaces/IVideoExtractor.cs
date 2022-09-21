@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace AnimeDl.Extractors.Interfaces;
 
-internal interface IVideoExtractor
+public interface IVideoExtractor
 {
     Task<List<Video>> Extract();
 }

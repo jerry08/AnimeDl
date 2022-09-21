@@ -33,7 +33,7 @@ internal class StreamTape : VideoExtractor
             {
                 IsM3U8 = vidUrl.Contains(".m3u8"),
                 VideoUrl = vidUrl,
-                Resolution = "auto",
+                Resolution = "Multi Quality",
             }
         };
 
