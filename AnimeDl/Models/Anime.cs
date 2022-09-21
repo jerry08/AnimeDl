@@ -4,6 +4,9 @@ using AnimeDl.Scrapers;
 
 namespace AnimeDl;
 
+/// <summary>
+/// The Class which contains all the information about an Anime
+/// </summary>
 public class Anime
 {
     public int Id { get; set; }

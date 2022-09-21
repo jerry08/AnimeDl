@@ -1,20 +1,23 @@
 ﻿using System;
 using System.Net;
+using System.Net.Http;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
+using AnimeDl.Models;
 using AnimeDl.Utils.Extensions;
 
 namespace AnimeDl.Extractors;
 
-internal class StreamSB : BaseExtractor
+internal class StreamSB : VideoExtractor
 {
     private readonly char[] hexArray = "0123456789ABCDEF".ToCharArray();
 
-    public StreamSB(NetHttpClient netHttpClient) : base(netHttpClient)
+    public StreamSB(HttpClient http,
+        VideoServer server) : base(http, server)
     {
     }
 
@@ -31,8 +34,10 @@ internal class StreamSB : BaseExtractor
         return new string(hexChars);
     }
 
-    public override async Task<List<Quality>> ExtractQualities(string url)
+    public override async Task<List<Video>> Extract()
     {
+        var url = _server.Embed.Url;
+
         var regexID = new Regex("(embed-[a-zA-Z0-9]{0,8}[a-zA-Z0-9_-]+|\\/e\\/[a-zA-Z0-9]{0,8}[a-zA-Z0-9_-]+)");
         var id = Regex.Replace(regexID.Match(url).Groups[0].Value, "(embed-|\\/e\\/)", "");
 
@@ -49,17 +54,17 @@ internal class StreamSB : BaseExtractor
             { "watchsb", "sbstream" },
         };
 
-        var json = await _netHttpClient.SendHttpRequestAsync(jsonLink, headers);
+        var json = await _http.SendHttpRequestAsync(jsonLink, headers);
 
         var jObj = JObject.Parse(json);
         var masterUrl = jObj["stream_data"]?["file"]?.ToString().Trim('"')!;
 
-        var list = new List<Quality>
+        var list = new List<Video>
         {
-            new Quality()
+            new Video()
             {
                 IsM3U8 = masterUrl.Contains(".m3u8"),
-                QualityUrl = masterUrl,
+                VideoUrl = masterUrl,
                 Headers = headers,
                 Resolution = "auto"
             }

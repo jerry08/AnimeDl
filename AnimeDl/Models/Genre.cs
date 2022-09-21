@@ -1,5 +1,8 @@
 ﻿namespace AnimeDl;
 
+/// <summary>
+/// The Class which contains all the information about a Genre
+/// </summary>
 public class Genre
 {
     public string Name { get; set; } = default!;

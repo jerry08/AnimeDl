@@ -2,6 +2,9 @@
 
 namespace AnimeDl;
 
+/// <summary>
+/// The Class which contains all the information about an Episode
+/// </summary>
 public class Episode
 {
     public int Id { get; set; }

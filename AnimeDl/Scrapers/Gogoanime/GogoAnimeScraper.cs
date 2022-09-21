@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using HtmlAgilityPack;
-using Newtonsoft.Json.Linq;
 using Nager.PublicSuffix;
+using Newtonsoft.Json.Linq;
+using AnimeDl.Models;
 using AnimeDl.Extractors;
 using AnimeDl.Exceptions;
+using AnimeDl.Utils.Extensions;
 
 namespace AnimeDl.Scrapers;
 
@@ -23,14 +26,14 @@ internal class GogoAnimeScraper : BaseScraper
 
     public string CdnUrl { get; private set; } = default!;
 
-    public GogoAnimeScraper(NetHttpClient netHttpClient) : base(netHttpClient)
+    public GogoAnimeScraper(HttpClient http) : base(http)
     {
         SetData();
     }
 
     private void SetData()
     {
-        var json = _netHttpClient.Get("https://raw.githubusercontent.com/jerry08/AnimeDl/master/AnimeDl/Data/gogoanime.json");
+        var json = _http.Get("https://raw.githubusercontent.com/jerry08/AnimeDl/master/AnimeDl/Data/gogoanime.json");
         if (!string.IsNullOrEmpty(json))
         {
             var jObj = JObject.Parse(json);
@@ -52,12 +55,12 @@ internal class GogoAnimeScraper : BaseScraper
 
         var htmlData = searchFilter switch
         {
-            SearchFilter.Find => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}search.html?keyword=" + query),
-            //SearchFilter.AllList => await _netHttpClient.SendHttpRequestAsync($"https://animesa.ga/animel.php"),
-            SearchFilter.AllList => await _netHttpClient.SendHttpRequestAsync($"https://animefrenzy.org/anime"),
-            SearchFilter.Popular => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}popular.html?page=" + page),
-            SearchFilter.NewSeason => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}new-season.html?page=" + page),
-            SearchFilter.LastUpdated => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}?page=" + page),
+            SearchFilter.Find => await _http.SendHttpRequestAsync($"{BaseUrl}search.html?keyword=" + query),
+            //SearchFilter.AllList => await _http.SendHttpRequestAsync($"https://animesa.ga/animel.php"),
+            SearchFilter.AllList => await _http.SendHttpRequestAsync($"https://animefrenzy.org/anime"),
+            SearchFilter.Popular => await _http.SendHttpRequestAsync($"{BaseUrl}popular.html?page=" + page),
+            SearchFilter.NewSeason => await _http.SendHttpRequestAsync($"{BaseUrl}new-season.html?page=" + page),
+            SearchFilter.LastUpdated => await _http.SendHttpRequestAsync($"{BaseUrl}?page=" + page),
             _ => throw new SearchFilterNotSupportedException("Search filter not supported")
         };
 
@@ -133,7 +136,7 @@ internal class GogoAnimeScraper : BaseScraper
     {
         var episodes = new List<Episode>();
 
-        var htmlData = await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}" + anime.Category);
+        var htmlData = await _http.SendHttpRequestAsync($"{BaseUrl}" + anime.Category);
 
         var document = new HtmlDocument();
         document.LoadHtml(htmlData);
@@ -191,7 +194,7 @@ internal class GogoAnimeScraper : BaseScraper
 
         //string sf = $"https://vidstream.pro/info/{movieId}?domain=gogoanime.be&skey=db04c5540929bebd456b9b16643fc436";
 
-        htmlData = await _netHttpClient.SendHttpRequestAsync(CdnUrl + movieId);
+        htmlData = await _http.SendHttpRequestAsync(CdnUrl + movieId);
 
         document = new HtmlDocument();
         document.LoadHtml(htmlData);
@@ -247,9 +250,9 @@ internal class GogoAnimeScraper : BaseScraper
         return text;
     }
 
-    public override async Task<List<Quality>> GetEpisodeLinksAsync(Episode episode)
+    public override async Task<List<VideoServer>> GetVideoServersAsync(Episode episode)
     {
-        var htmlData = await _netHttpClient.SendHttpRequestAsync(episode.EpisodeLink);
+        var htmlData = await _http.SendHttpRequestAsync(episode.EpisodeLink);
 
         var doc = new HtmlDocument();
         doc.LoadHtml(htmlData);
@@ -257,36 +260,46 @@ internal class GogoAnimeScraper : BaseScraper
         //Exception for fire force season 2 episode 1
         if (htmlData.Contains(@">404</h1>"))
         {
-            htmlData = await _netHttpClient.SendHttpRequestAsync(episode.EpisodeLink + "-1");
+            htmlData = await _http.SendHttpRequestAsync(episode.EpisodeLink + "-1");
         }
 
-        var videos = new List<Quality>();
+        var videoServers = new List<VideoServer>();
 
         var servers = doc.DocumentNode
             .SelectNodes(".//div[@class='anime_muti_link']/ul/li").ToList();
         for (int i = 0; i < servers.Count; i++)
         {
-            var name = servers[i].SelectSingleNode("a").InnerText.Replace("Choose this server", "");
+            var name = servers[i].SelectSingleNode("a").InnerText.Replace("Choose this server", "").Trim();
             var url = HttpsIfy(servers[i].SelectSingleNode("a").Attributes["data-video"].Value);
+            var embed = new FileUrl(url);
 
-            var domainParser = new DomainParser(new WebTldRuleProvider());
-            var domainInfo = domainParser.Parse(url);
+            videoServers.Add(new VideoServer(name, embed));
+        }
 
-            if (domainInfo.Domain.Contains("gogo")
-                || domainInfo.Domain.Contains("goload"))
-            {
-                videos.AddRange(await new GogoCDN(_netHttpClient).ExtractQualities(url));
-            }
-            else if (domainInfo.Domain.Contains("sb")
-                || domainInfo.Domain.Contains("sss"))
-            {
-                videos.AddRange(await new StreamSB(_netHttpClient).ExtractQualities(url));
-            }
-            else if (domainInfo.Domain.Contains("fplayer")
-                || domainInfo.Domain.Contains("fembed"))
-            {
-                videos.AddRange(await new FPlayer(_netHttpClient).ExtractQualities(url));
-            }
+        return videoServers;
+    }
+
+    public override async Task<List<Video>> GetVideosAsync(VideoServer server)
+    {
+        var videos = new List<Video>();
+
+        var domainParser = new DomainParser(new WebTldRuleProvider());
+        var domainInfo = domainParser.Parse(server.Embed.Url);
+
+        if (domainInfo.Domain.Contains("gogo")
+            || domainInfo.Domain.Contains("goload"))
+        {
+            videos.AddRange(await new GogoCDN(_http, server).Extract());
+        }
+        else if (domainInfo.Domain.Contains("sb")
+            || domainInfo.Domain.Contains("sss"))
+        {
+            videos.AddRange(await new StreamSB(_http, server).Extract());
+        }
+        else if (domainInfo.Domain.Contains("fplayer")
+            || domainInfo.Domain.Contains("fembed"))
+        {
+            videos.AddRange(await new FPlayer(_http, server).Extract());
         }
 
         return videos;
@@ -296,7 +309,7 @@ internal class GogoAnimeScraper : BaseScraper
     {
         var genres = new List<Genre>();
 
-        var htmlData = await _netHttpClient.SendHttpRequestAsync(BaseUrl);
+        var htmlData = await _http.SendHttpRequestAsync(BaseUrl);
 
         var document = new HtmlDocument();
         document.LoadHtml(htmlData);

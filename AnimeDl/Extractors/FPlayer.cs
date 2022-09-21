@@ -1,21 +1,27 @@
-﻿using System.Threading.Tasks;
+﻿using System.Net.Http;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using Newtonsoft.Json.Linq;
+using AnimeDl.Models;
+using AnimeDl.Utils.Extensions;
 
 namespace AnimeDl.Extractors;
 
-internal class FPlayer : BaseExtractor
+internal class FPlayer : VideoExtractor
 {
-    public FPlayer(NetHttpClient netHttpClient) : base(netHttpClient)
+    public FPlayer(HttpClient http,
+        VideoServer server) : base(http, server)
     {
     }
 
-    public override async Task<List<Quality>> ExtractQualities(string url)
+    public override async Task<List<Video>> Extract()
     {
+        var url = _server.Embed.Url;
+
         var apiLink = url.Replace("/v/", "/api/source/");
 
-        var list = new List<Quality>();
+        var list = new List<Video>();
 
         try
         {
@@ -24,7 +30,7 @@ internal class FPlayer : BaseExtractor
                 { "Referer", url }
             };
 
-            var json = await _netHttpClient.PostAsync(apiLink, headers);
+            var json = await _http.PostAsync(apiLink, headers);
             if (!string.IsNullOrEmpty(json))
             {
                 var data = JArray.Parse(JObject.Parse(json)["data"]!.ToString());
@@ -32,7 +38,7 @@ internal class FPlayer : BaseExtractor
                 {
                     list.Add(new()
                     {
-                        QualityUrl = data[i]["file"]!.ToString(),
+                        VideoUrl = data[i]["file"]!.ToString(),
                         Resolution = data[i]["label"]!.ToString(),
                         IsM3U8 = data[i]["file"]!.ToString().Contains(".m3u8"),
                         FileType = data[i]["type"]!.ToString(),

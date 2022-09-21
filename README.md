@@ -111,41 +111,41 @@ namespace AnimeApp
 
                 Console.WriteLine();
 
-                var qualities = client.GetEpisodeLinks(episodes[episodeIndex]);
+                var videos = client.GetEpisodeLinks(episodes[episodeIndex]);
             };
 
-            client.OnQualitiesLoaded += (s, e) =>
+            client.OnVideosLoaded += (s, e) =>
             {
-                var qualities = e.Qualities;
+                var videos = e.Videos;
 
-                Console.WriteLine($"Qualities found: " + qualities.Count);
+                Console.WriteLine($"Videos found: " + videos.Count);
 
-                for (int i = 0; i < qualities.Count; i++)
+                for (int i = 0; i < videos.Count; i++)
                 {
-                    Console.WriteLine($"[{i + 1}] {qualities[i].Resolution}");
+                    Console.WriteLine($"[{i + 1}] {videos[i].Resolution}");
                 }
 
                 Console.WriteLine();
 
                 // Read the episode number selected
-                Console.Write("Enter quality number: ");
+                Console.Write("Enter video number: ");
 
-                int qualityIndex;
+                int videoIndex;
 
-                while (!int.TryParse(Console.ReadLine() ?? "", out qualityIndex))
+                while (!int.TryParse(Console.ReadLine() ?? "", out videoIndex))
                 {
                     Console.Clear();
                     Console.WriteLine("You entered an invalid number");
-                    Console.Write("Enter quality number: ");
+                    Console.Write("Enter video number: ");
                 }
 
-                qualityIndex--;
+                videoIndex--;
 
                 // Download the stream
                 var fileName = $@"{DateTime.Now.Ticks}.mp4";
 
                 using (var progress = new ConsoleProgress())
-                    client.Download(qualities[qualityIndex], fileName, progress);
+                    client.Download(videos[videoIndex], fileName, progress);
 
                 Console.WriteLine("Done");
                 Console.WriteLine($"Video saved to '{fileName}'");
@@ -230,35 +230,35 @@ namespace AnimeApp
 
             Console.WriteLine();
 
-            var qualities = client.GetEpisodeLinks(episodes[episodeIndex], forceLoad: true);
-            Console.WriteLine($"Qualities found: " + qualities.Count);
+            var videos = client.GetEpisodeLinks(episodes[episodeIndex], forceLoad: true);
+            Console.WriteLine($"Videos found: " + videos.Count);
 
-            for (int i = 0; i < qualities.Count; i++)
+            for (int i = 0; i < videos.Count; i++)
             {
-                Console.WriteLine($"[{i + 1}] {qualities[i].Resolution}");
+                Console.WriteLine($"[{i + 1}] {videos[i].Resolution}");
             }
 
             Console.WriteLine();
 
             // Read the episode number selected
-            Console.Write("Enter quality number: ");
+            Console.Write("Enter video number: ");
 
-            int qualityIndex;
+            int videoIndex;
 
-            while (!int.TryParse(Console.ReadLine() ?? "", out qualityIndex))
+            while (!int.TryParse(Console.ReadLine() ?? "", out videoIndex))
             {
                 Console.Clear();
                 Console.WriteLine("You entered an invalid number");
-                Console.Write("Enter quality number: ");
+                Console.Write("Enter video number: ");
             }
 
-            qualityIndex--;
+            videoIndex--;
 
             // Download the stream
             var fileName = $@"{Environment.CurrentDirectory}\{animes[animeIndex].Title} - Ep {episodes[episodeIndex].EpisodeNumber}.mp4";
 
             using (var progress = new ConsoleProgress())
-                await client.DownloadAsync(qualities[qualityIndex], fileName, progress);
+                await client.DownloadAsync(videos[videoIndex], fileName, progress);
 
             Console.WriteLine("Done");
             Console.WriteLine($"Video saved to '{fileName}'");
@@ -321,35 +321,35 @@ namespace AnimeApp
 
             Console.WriteLine();
 
-            var qualities = await client.GetEpisodeLinksAsync(episodes[episodeIndex]);
-            Console.WriteLine($"Qualities found: " + qualities.Count);
+            var videos = await client.GetEpisodeLinksAsync(episodes[episodeIndex]);
+            Console.WriteLine($"Videos found: " + videos.Count);
 
-            for (int i = 0; i < qualities.Count; i++)
+            for (int i = 0; i < videos.Count; i++)
             {
-                Console.WriteLine($"[{i + 1}] {qualities[i].Resolution}");
+                Console.WriteLine($"[{i + 1}] {videos[i].Resolution}");
             }
 
             Console.WriteLine();
 
             // Read the episode number selected
-            Console.Write("Enter quality number: ");
+            Console.Write("Enter video number: ");
 
-            int qualityIndex;
+            int videoIndex;
 
-            while (!int.TryParse(Console.ReadLine() ?? "", out qualityIndex))
+            while (!int.TryParse(Console.ReadLine() ?? "", out videoIndex))
             {
                 Console.Clear();
                 Console.WriteLine("You entered an invalid number");
-                Console.Write("Enter quality number: ");
+                Console.Write("Enter video number: ");
             }
 
-            qualityIndex--;
+            videoIndex--;
 
             // Download the stream
             var fileName = $@"{Environment.CurrentDirectory}\{animes[animeIndex].Title} - Ep {episodes[episodeIndex].EpisodeNumber}.mp4";
 
             using (var progress = new ConsoleProgress())
-                await client.DownloadAsync(qualities[qualityIndex], fileName, progress);
+                await client.DownloadAsync(videos[videoIndex], fileName, progress);
 
             Console.WriteLine("Done");
             Console.WriteLine($"Video saved to '{fileName}'");
@@ -387,9 +387,9 @@ namespace AnimeApp
 {
     class Class1
     {
-        public void DownloadExample(AnimeClient client, Quality quality, string fileName)
+        public void DownloadExample(AnimeClient client, Video video, string fileName)
         {
-            await client.DownloadAsync(quality, fileName);
+            await client.DownloadAsync(video, fileName);
         }
     }
 }

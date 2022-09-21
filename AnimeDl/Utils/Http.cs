@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Net.Http;
 using System.Net.Security;
-using AnimeDl.Utils;
 
-namespace AnimeDl;
+namespace AnimeDl.Utils;
 
 internal static class Http
 {
@@ -12,7 +11,10 @@ internal static class Http
         var handler = new HttpClientHandler
         {
             //UseCookies = false
+            //AllowAutoRedirect = true
         };
+
+        //handler.MaxAutomaticRedirections = 2;
 
         //if (handler.SupportsAutomaticDecompression)
         //    handler.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;

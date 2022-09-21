@@ -1,12 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Linq;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 using HtmlAgilityPack;
-using AnimeDl.Utils.Extensions;
+using Newtonsoft.Json.Linq;
 using AnimeDl.Exceptions;
+using AnimeDl.Utils.Extensions;
+using AnimeDl.Models;
+using AnimeDl.Extractors;
+using System.Xml.Linq;
 
 namespace AnimeDl.Scrapers;
 
@@ -30,7 +34,7 @@ internal class TenshiScraper : BaseScraper
     //        new Cookie("loop-view", "thumb") { Domain = "tenshi" },
     //    };
 
-    public TenshiScraper(NetHttpClient netHttpClient) : base(netHttpClient)
+    public TenshiScraper(HttpClient http) : base(http)
     {
     }
 
@@ -46,8 +50,8 @@ internal class TenshiScraper : BaseScraper
 
         var htmlData = searchFilter switch
         {
-            SearchFilter.Find => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/anime?q={query}&s=vtt-d", CookieHeader),
-            SearchFilter.NewSeason => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/anime?s=rel-d&page=" + page, CookieHeader),
+            SearchFilter.Find => await _http.SendHttpRequestAsync($"{BaseUrl}/anime?q={query}&s=vtt-d", CookieHeader),
+            SearchFilter.NewSeason => await _http.SendHttpRequestAsync($"{BaseUrl}/anime?s=rel-d&page=" + page, CookieHeader),
             _ => throw new SearchFilterNotSupportedException("Search filter not supported")
         };
 
@@ -81,7 +85,7 @@ internal class TenshiScraper : BaseScraper
     {
         var episodes = new List<Episode>();
 
-        var html = await _netHttpClient.SendHttpRequestAsync(anime.Link, CookieHeader);
+        var html = await _http.SendHttpRequestAsync(anime.Link, CookieHeader);
         if (html is null)
         {
             return episodes;
@@ -156,15 +160,13 @@ internal class TenshiScraper : BaseScraper
         return episodes;
     }
 
-    public override async Task<List<Quality>> GetEpisodeLinksAsync(Episode episode)
+    public override async Task<List<VideoServer>> GetVideoServersAsync(Episode episode)
     {
-        var list = new List<Quality>();
+        var videoServers = new List<VideoServer>();
 
-        var html = await _netHttpClient.SendHttpRequestAsync(episode.EpisodeLink, CookieHeader);
+        var html = await _http.SendHttpRequestAsync(episode.EpisodeLink, CookieHeader);
         if (html is null)
-        {
-            return list;
-        }
+            return videoServers;
 
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
@@ -175,13 +177,9 @@ internal class TenshiScraper : BaseScraper
 
         foreach (var node in nodes)
         {
-            var server = node.InnerText.Replace(" ", "").Replace("/-", "");
-            bool dub = node.SelectSingleNode(".//span[@title='Audio: English']") != null;
-
-            if (dub)
-            {
-                server = $"Dub - ${server}";
-            }
+            var server = node.InnerText.Replace(" ", "").Replace("/-", "").Trim();
+            var dub = node.SelectSingleNode(".//span[@title='Audio: English']") != null;
+            server = dub ? $"Dub - {server}" : server;
 
             var urlParam = new Uri(node.Attributes["href"].Value).DecodeQueryParameters();
             var url = $"{BaseUrl}/embed?" + urlParam.FirstOrDefault().Key + "=" + urlParam.FirstOrDefault().Value;
@@ -191,25 +189,14 @@ internal class TenshiScraper : BaseScraper
                 { "Referer", episode.EpisodeLink }
             };
 
-            html = await _netHttpClient.SendHttpRequestAsync(url, headers);
-
-            var unSanitized = html.SubstringAfter("player.source = ").SubstringBefore(";");
-            var jObj = JObject.Parse(unSanitized);
-            var sources = JArray.Parse(jObj["sources"]!.ToString());
-            
-            foreach (var source in sources)
-            {
-                list.Add(new Quality()
-                {
-                    Headers = CookieHeader,
-                    IsM3U8 = source["src"]!.ToString().Contains(".m3u8"),
-                    FileType = source["type"]!.ToString(),
-                    Resolution = source["size"]!.ToString(),
-                    QualityUrl = source["src"]!.ToString(),
-                });
-            }
+            videoServers.Add(new VideoServer(server, new FileUrl(url, headers)));
         }
 
-        return list;
+        return videoServers;
+    }
+
+    public override async Task<List<Video>> GetVideosAsync(VideoServer server)
+    {
+        return await new TenshiVideoExtractor(_http, server).Extract();
     }
 }

@@ -4,10 +4,12 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using AnimeDl.Models;
 using AnimeDl.Helpers;
 using AnimeDl.Scrapers;
 using AnimeDl.Scrapers.Events;
 using AnimeDl.Scrapers.Interfaces;
+using AnimeDl.Utils;
 using AnimeDl.Utils.Extensions;
 
 namespace AnimeDl;
@@ -19,8 +21,7 @@ public class AnimeClient
 {
     private readonly IAnimeScraper _scraper;
 
-    private readonly HttpClient _httpClient;
-    private readonly NetHttpClient _netHttpClient;
+    private readonly HttpClient _http;
 
     /// <summary>
     /// Checks if site supports dubbed anime
@@ -44,9 +45,14 @@ public class AnimeClient
     public List<Episode> Episodes { get; private set; } = new();
 
     /// <summary>
+    /// Video servers list.
+    /// </summary>
+    public List<VideoServer> VideoServers { get; private set; } = new();
+
+    /// <summary>
     /// Video links list.
     /// </summary>
-    public List<Quality> Qualities { get; private set; } = new();
+    public List<Video> Videos { get; private set; } = new();
 
     /// <summary>
     /// Genres list.
@@ -66,7 +72,12 @@ public class AnimeClient
     /// <summary>
     /// Event after video links search is completed.
     /// </summary>
-    public event EventHandler<QualityEventArgs>? OnQualitiesLoaded;
+    public event EventHandler<VideoServerEventArgs>? OnVideoServersLoaded;
+    
+    /// <summary>
+    /// Event after video links search is completed.
+    /// </summary>
+    public event EventHandler<VideoEventArgs>? OnVideosLoaded;
 
     /// <summary>
     /// Event after genres search is completed.
@@ -79,17 +90,15 @@ public class AnimeClient
     public AnimeClient(AnimeSites animeSite, HttpClient httpClient)
     {
         Site = animeSite;
-        _httpClient = httpClient;
-        _netHttpClient = new NetHttpClient(_httpClient);
+        _http = httpClient;
 
         _scraper = animeSite switch
         {
-            AnimeSites.GogoAnime => new GogoAnimeScraper(_netHttpClient),
-            AnimeSites.TwistMoe => new TwistScraper(_netHttpClient),
-            AnimeSites.Zoro => new ZoroScraper(_netHttpClient),
-            AnimeSites.NineAnime => new NineAnimeScraper(_netHttpClient),
-            AnimeSites.Tenshi => new TenshiScraper(_netHttpClient),
-            _ => new GogoAnimeScraper(_netHttpClient),
+            AnimeSites.GogoAnime => new GogoAnimeScraper(_http),
+            AnimeSites.Zoro => new ZoroScraper(_http),
+            AnimeSites.NineAnime => new NineAnimeScraper(_http),
+            AnimeSites.Tenshi => new TenshiScraper(_http),
+            _ => new GogoAnimeScraper(_http),
         };
     }
 
@@ -170,7 +179,7 @@ public class AnimeClient
         IsLoadingAnimes = true;
 
         if (_searchCancellationTokenSource.IsCancellationRequested)
-            _searchCancellationTokenSource = new CancellationTokenSource();
+            _searchCancellationTokenSource = new();
 
         var function = () => SearchAsync(query, searchFilter, page, selectDub);
         if (forceLoad)
@@ -242,7 +251,7 @@ public class AnimeClient
     /// </summary>
     public virtual bool IsLoadingEpisodes { get; protected set; }
     
-    private CancellationTokenSource _episodesCancellationTokenSource = new CancellationTokenSource();
+    private CancellationTokenSource _episodesCancellationTokenSource = new();
 
     /// <summary>
     /// Cancel episodes search.
@@ -262,7 +271,7 @@ public class AnimeClient
         IsLoadingEpisodes = true;
 
         if (_episodesCancellationTokenSource.IsCancellationRequested)
-            _episodesCancellationTokenSource = new CancellationTokenSource();
+            _episodesCancellationTokenSource = new();
 
         var function = () => GetEpisodesAsync(anime);
         if (forceLoad)
@@ -290,57 +299,109 @@ public class AnimeClient
     }
     #endregion
 
-    #region Episode/Video Links
+    #region Video Servers
     /// <summary>
     /// Bool to check if video links search is completed.
     /// </summary>
-    public virtual bool IsLoadingEpisodeLinks { get; protected set; }
-    
-    private CancellationTokenSource _linksCancellationTokenSource = new CancellationTokenSource();
+    public virtual bool IsLoadingVideoServers { get; protected set; }
+
+    private CancellationTokenSource _videoServersCancellationTokenSource = new();
 
     /// <summary>
     /// Cancel video links search.
     /// </summary>
-    public void CancelGetEpisodeLinks()
+    public void CancelGetVideoServers()
     {
-        if (!_linksCancellationTokenSource.IsCancellationRequested)
-            _linksCancellationTokenSource.Cancel();
-        IsLoadingEpisodeLinks = false;
+        if (!_videoServersCancellationTokenSource.IsCancellationRequested)
+            _videoServersCancellationTokenSource.Cancel();
+        IsLoadingVideoServers = false;
     }
 
     /// <summary>
     /// Search for video links.
     /// </summary>
-    public List<Quality> GetEpisodeLinks(Episode episode, bool forceLoad = false)
+    public List<VideoServer> GetVideoServers(Episode episode, bool forceLoad = false)
     {
-        IsLoadingEpisodeLinks = true;
+        IsLoadingVideoServers = true;
 
-        if (_linksCancellationTokenSource.IsCancellationRequested)
-            _linksCancellationTokenSource = new CancellationTokenSource();
+        if (_videoServersCancellationTokenSource.IsCancellationRequested)
+            _videoServersCancellationTokenSource = new();
 
-        var function = () => GetEpisodeLinksAsync(episode);
+        var function = () => GetVideoServersAsync(episode);
         if (forceLoad)
         {
-            Qualities = AsyncHelper.RunSync(function, _linksCancellationTokenSource.Token);   
+            VideoServers = AsyncHelper.RunSync(function, _videoServersCancellationTokenSource.Token);
         }
         else
         {
             function().ContinueWith(t =>
             {
-                OnQualitiesLoaded?.Invoke(this, new QualityEventArgs(Qualities));
-            }, _linksCancellationTokenSource.Token, TaskContinuationOptions.None, TaskScheduler.FromCurrentSynchronizationContext());
+                OnVideoServersLoaded?.Invoke(this, new VideoServerEventArgs(VideoServers));
+            }, _videoServersCancellationTokenSource.Token, TaskContinuationOptions.None, TaskScheduler.FromCurrentSynchronizationContext());
         }
 
-        return Qualities;
+        return VideoServers;
     }
 
     /// <summary>
     /// Search for video links.
     /// </summary>
-    public async Task<List<Quality>> GetEpisodeLinksAsync(Episode episode)
+    public async Task<List<VideoServer>> GetVideoServersAsync(Episode episode)
     {
-        Qualities = await _scraper.GetEpisodeLinksAsync(episode);
-        return Qualities;
+        return VideoServers = await _scraper.GetVideoServersAsync(episode);
+    }
+    #endregion
+
+    #region Video Links
+    /// <summary>
+    /// Bool to check if video links search is completed.
+    /// </summary>
+    public virtual bool IsLoadingVideos { get; protected set; }
+    
+    private CancellationTokenSource _videosCancellationTokenSource = new();
+
+    /// <summary>
+    /// Cancel videos search.
+    /// </summary>
+    public void CancelGetVideos()
+    {
+        if (!_videosCancellationTokenSource.IsCancellationRequested)
+            _videosCancellationTokenSource.Cancel();
+        IsLoadingVideos = false;
+    }
+
+    /// <summary>
+    /// Search for videos.
+    /// </summary>
+    public List<Video> GetVideos(VideoServer server, bool forceLoad = false)
+    {
+        IsLoadingVideos = true;
+
+        if (_videosCancellationTokenSource.IsCancellationRequested)
+            _videosCancellationTokenSource = new();
+
+        var function = () => GetVideosAsync(server);
+        if (forceLoad)
+        {
+            Videos = AsyncHelper.RunSync(function, _videosCancellationTokenSource.Token);   
+        }
+        else
+        {
+            function().ContinueWith(t =>
+            {
+                OnVideosLoaded?.Invoke(this, new VideoEventArgs(Videos));
+            }, _videosCancellationTokenSource.Token, TaskContinuationOptions.None, TaskScheduler.FromCurrentSynchronizationContext());
+        }
+
+        return Videos;
+    }
+
+    /// <summary>
+    /// Search for video links.
+    /// </summary>
+    public async Task<List<Video>> GetVideosAsync(VideoServer server)
+    {
+        return Videos = await _scraper.GetVideosAsync(server);
     }
     #endregion
 
@@ -350,7 +411,7 @@ public class AnimeClient
     /// </summary>
     public virtual bool IsLoadingAllGenres { get; protected set; }
     
-    private CancellationTokenSource _genresCancellationTokenSource = new CancellationTokenSource();
+    private CancellationTokenSource _genresCancellationTokenSource = new();
 
     /// <summary>
     /// Cancel genres search.
@@ -370,7 +431,7 @@ public class AnimeClient
         IsLoadingAllGenres = true;
 
         if (_genresCancellationTokenSource.IsCancellationRequested)
-            _genresCancellationTokenSource = new CancellationTokenSource();
+            _genresCancellationTokenSource = new();
 
         var function = () => GetGenresAsync();
         if (forceLoad)
@@ -402,30 +463,30 @@ public class AnimeClient
     /// Downloads an episode
     /// </summary>
     public void Download(
-        Quality quality,
+        Video video,
         string filePath,
         IProgress<double>? progress = null,
         CancellationToken cancellationToken = default)
     {
-        AsyncHelper.RunSync(() => DownloadAsync(quality, filePath, progress, cancellationToken));
+        AsyncHelper.RunSync(() => DownloadAsync(video, filePath, progress, cancellationToken), cancellationToken);
     }
 
     /// <summary>
     /// Downloads an episode
     /// </summary>
     public async Task DownloadAsync(
-        Quality quality,
+        Video video,
         string filePath,
         IProgress<double>? progress = null,
         CancellationToken cancellationToken = default)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, quality.QualityUrl);
-        for (int j = 0; j < quality.Headers.Count; j++)
+        using var request = new HttpRequestMessage(HttpMethod.Get, video.VideoUrl);
+        for (int j = 0; j < video.Headers.Count; j++)
         {
-            request.Headers.TryAddWithoutValidation(quality.Headers.Keys[j]!, quality.Headers[j]);
+            request.Headers.TryAddWithoutValidation(video.Headers.Keys[j]!, video.Headers[j]);
         }
 
-        using var response = await _httpClient.SendAsync(
+        using var response = await _http.SendAsync(
             request,
             HttpCompletionOption.ResponseHeadersRead,
             cancellationToken
@@ -443,8 +504,8 @@ public class AnimeClient
         }
 
         long totalLength = progress is not null ?
-            await _netHttpClient.GetFileSizeAsync(quality.QualityUrl,
-                quality.Headers, cancellationToken) : 0;
+            await _http.GetFileSizeAsync(video.VideoUrl,
+                video.Headers, cancellationToken) : 0;
 
         var stream = await response.Content.ReadAsStreamAsync();
 
@@ -491,7 +552,7 @@ public class AnimeClient
     {
         Animes = new();
         Episodes = new();
-        Qualities = new();
+        Videos = new();
         Genres = new();
     }
 }

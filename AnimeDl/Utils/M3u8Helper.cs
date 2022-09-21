@@ -1,8 +1,10 @@
 ﻿using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+using AnimeDl.Utils.Extensions;
 
 namespace AnimeDl;
 
@@ -16,15 +18,15 @@ internal class M3u8Helper
     public class M3u8Stream
     {
         public string StreamUrl { get; set; } = default!;
-        public string Quality { get; set; } = default!;
+        public string Video { get; set; } = default!;
         public WebHeaderCollection Headers { get; set; } = default!;
     }
 
-    public readonly NetHttpClient _netHttpClient;
+    public readonly HttpClient _http;
 
-    public M3u8Helper(NetHttpClient netHttpClient)
+    public M3u8Helper(HttpClient http)
     {
-        _netHttpClient = netHttpClient;
+        _http = http;
     }
 
     private string? AbsoluteExtensionDetermination(string url)
@@ -54,7 +56,7 @@ internal class M3u8Helper
     public async Task<IEnumerable<M3u8Stream>> M3u8Generation(M3u8Stream m3u8)
     {
         var m3u8Parent = GetParentLink(m3u8.StreamUrl);
-        var response = await _netHttpClient.SendHttpRequestAsync(m3u8.StreamUrl, m3u8.Headers);
+        var response = await _http.SendHttpRequestAsync(m3u8.StreamUrl, m3u8.Headers);
         //var response = Http.GetHtml(m3u8Parent, m3u8.Headers);
 
         var list = new List<M3u8Stream>();
@@ -74,7 +76,7 @@ internal class M3u8Helper
 
             //var token = JToken.FromObject(match.ToString());
 
-            var quality = match.Groups[1]?.Value!;
+            var video = match.Groups[1]?.Value!;
             var m3u8Link = match.Groups[2]?.Value!;
             var m3u8Link2 = match.Groups[3]?.Value!;
             if (string.IsNullOrEmpty(m3u8Link))
@@ -92,7 +94,7 @@ internal class M3u8Helper
 
             list.Add(new M3u8Stream()
             {
-                Quality = quality,
+                Video = video,
                 StreamUrl = m3u8Link,
                 Headers = m3u8.Headers
             });

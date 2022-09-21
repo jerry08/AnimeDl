@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using HtmlAgilityPack;
 using Newtonsoft.Json.Linq;
 using AnimeDl.Extractors;
 using AnimeDl.Exceptions;
+using AnimeDl.Utils.Extensions;
+using AnimeDl.Models;
+using Nager.PublicSuffix;
 
 namespace AnimeDl.Scrapers;
 
@@ -17,7 +22,7 @@ internal class ZoroScraper : BaseScraper
 
     public override string BaseUrl => "https://zoro.to";
 
-    public ZoroScraper(NetHttpClient netHttpClient) : base(netHttpClient)
+    public ZoroScraper(HttpClient http) : base(http)
     {
     }
 
@@ -32,10 +37,10 @@ internal class ZoroScraper : BaseScraper
 
         var htmlData = searchFilter switch
         {
-            SearchFilter.Find => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/search?keyword=" + query),
-            SearchFilter.Popular => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/most-popular?page=" + page),
-            SearchFilter.NewSeason => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/recently-added?page=" + page),
-            SearchFilter.LastUpdated => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/?page=" + page),
+            SearchFilter.Find => await _http.SendHttpRequestAsync($"{BaseUrl}/search?keyword=" + query),
+            SearchFilter.Popular => await _http.SendHttpRequestAsync($"{BaseUrl}/most-popular?page=" + page),
+            SearchFilter.NewSeason => await _http.SendHttpRequestAsync($"{BaseUrl}/recently-added?page=" + page),
+            SearchFilter.LastUpdated => await _http.SendHttpRequestAsync($"{BaseUrl}/?page=" + page),
             _ => throw new SearchFilterNotSupportedException("Search filter not supported")
         };
 
@@ -103,7 +108,7 @@ internal class ZoroScraper : BaseScraper
         var document = new HtmlDocument();
 
         //Get anime details
-        var html = await _netHttpClient.SendHttpRequestAsync(anime.Link);
+        var html = await _http.SendHttpRequestAsync(anime.Link);
         //https://stackoverflow.com/questions/122641/how-can-i-decode-html-characters-in-c
         //HttpUtility.HtmlDecode();
         document.LoadHtml(HtmlEntity.DeEntitize(html));
@@ -152,7 +157,7 @@ internal class ZoroScraper : BaseScraper
             anime.OtherNames = synonymsNode.InnerText;
 
         //Get anime episodes
-        var json = await _netHttpClient.SendHttpRequestAsync(url);
+        var json = await _http.SendHttpRequestAsync(url);
         var jObj = JObject.Parse(json);
         html = jObj["html"]!.ToString();
 
@@ -181,15 +186,13 @@ internal class ZoroScraper : BaseScraper
         return episodes;
     }
 
-    public override async Task<List<Quality>> GetEpisodeLinksAsync(Episode episode)
+    public override async Task<List<VideoServer>> GetVideoServersAsync(Episode episode)
     {
-        var list = new List<Quality>();
-
-        var dataId = episode.EpisodeLink.Split(new string[] { "ep=" }, 
+        var dataId = episode.EpisodeLink.Split(new string[] { "ep=" },
             StringSplitOptions.None).Last();
         var url = $"{BaseUrl}/ajax/v2/episode/servers?episodeId={dataId}";
 
-        var json = await _netHttpClient.SendHttpRequestAsync(url);
+        var json = await _http.SendHttpRequestAsync(url);
 
         var jObj = JObject.Parse(json);
         var html = jObj["html"]!.ToString();
@@ -197,17 +200,18 @@ internal class ZoroScraper : BaseScraper
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
 
-        //var nodes = doc.DocumentNode.SelectNodes(".//div[@class='item server-item']");
         var nodes = doc.DocumentNode.Descendants()
             .Where(node => node.HasClass("server-item")).ToList();
+
+        var videoServers = new List<VideoServer>();
 
         for (int i = 0; i < nodes.Count; i++)
         {
             var dataId2 = nodes[i].Attributes["data-id"].Value;
-            var title = nodes[i].Attributes["data-type"].Value;
+            var serverName = nodes[i].Attributes["data-type"].Value.ToUpper().Trim() + $" {nodes[i].InnerText.Trim()}";
 
             var url2 = $"https://zoro.to/ajax/v2/episode/sources?id={dataId2}";
-            var json2 = await _netHttpClient.SendHttpRequestAsync(url2);
+            var json2 = await _http.SendHttpRequestAsync(url2);
 
             var jObj2 = JObject.Parse(json2);
             var type = jObj2["type"]!.ToString();
@@ -219,35 +223,43 @@ internal class ZoroScraper : BaseScraper
             }
             else
             {
-                var qualityUrl = jObj2["link"]!.ToString();
+                var videoUrl = jObj2["link"]!.ToString();
 
-                qualityUrl += dataId;
-
-                switch (server)
-                {
-                    case "4":
-                    case "1":
-                        //rapidvideo
-                        //Currently not working
-                        //list.AddRange(await new RapidCloud(_netHttpClient).ExtractQualities(qualityUrl));
-                        break;
-                    case "5":
-                        //StreamSB
-                        list.AddRange(await new StreamSB(_netHttpClient).ExtractQualities(qualityUrl));
-                        break;
-                    case "3":
-                        //streamtape
-                        list.AddRange(await new StreamTape(_netHttpClient).ExtractQualities(qualityUrl));
-                        break;
-                    default:
-                        break;
-                }
+                videoUrl += dataId;
             }
 
-            //if (list.Count > 0)
-            //    break;
+            var link = jObj2["link"]!.ToString();
+            var embedHeaders = new WebHeaderCollection()
+            {
+                { "Referer", BaseUrl + "/" }
+            };
+
+            videoServers.Add(new VideoServer(serverName, new FileUrl(link, embedHeaders)));
         }
 
-        return list;
+        return videoServers;
+    }
+
+    public override async Task<List<Video>> GetVideosAsync(VideoServer server)
+    {
+        var videos = new List<Video>();
+
+        var domainParser = new DomainParser(new WebTldRuleProvider());
+        var domainInfo = domainParser.Parse(server.Embed.Url);
+
+        if (domainInfo.Domain.Contains("rapid"))
+        {
+            videos.AddRange(await new RapidCloud(_http, server).Extract());
+        }
+        else if (domainInfo.Domain.Contains("sb"))
+        {
+            videos.AddRange(await new StreamSB(_http, server).Extract());
+        }
+        else if (domainInfo.Domain.Contains("streamta"))
+        {
+            videos.AddRange(await new StreamTape(_http, server).Extract());
+        }
+
+        return videos;
     }
 }

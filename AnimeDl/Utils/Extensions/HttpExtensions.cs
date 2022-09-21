@@ -1,52 +1,97 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Specialized;
 using AnimeDl.Helpers;
 
-namespace AnimeDl;
+namespace AnimeDl.Utils.Extensions;
 
-internal class NetHttpClient
+internal static class HttpExtensions
 {
-    private readonly HttpClient _httpClient;
-
-    public NetHttpClient()
+    public static async ValueTask<HttpResponseMessage> HeadAsync(
+        this HttpClient http,
+        string requestUri,
+        CancellationToken cancellationToken = default)
     {
-        _httpClient = new HttpClient();
+        using var request = new HttpRequestMessage(HttpMethod.Head, requestUri);
+        return await http.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            cancellationToken
+        );
     }
 
-    public NetHttpClient(HttpClient httpClient)
+    public static async ValueTask<Stream> GetStreamAsync(
+        this HttpClient http,
+        string requestUri,
+        long? from = null,
+        long? to = null,
+        bool ensureSuccess = true,
+        CancellationToken cancellationToken = default)
     {
-        _httpClient = httpClient;
+        using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+        request.Headers.Range = new RangeHeaderValue(from, to);
+
+        var response = await http.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            cancellationToken
+        );
+
+        if (ensureSuccess)
+            response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadAsStreamAsync(cancellationToken);
     }
 
-    public string Get(
+    public static async ValueTask<long?> TryGetContentLengthAsync(
+        this HttpClient http,
+        string requestUri,
+        bool ensureSuccess = true,
+        CancellationToken cancellationToken = default)
+    {
+        using var response = await http.HeadAsync(requestUri, cancellationToken);
+
+        if (ensureSuccess)
+            response.EnsureSuccessStatusCode();
+
+        return response.Content.Headers.ContentLength;
+    }
+
+    //Mine
+    public static string Get(
+        this HttpClient http,
         string url,
         CancellationToken cancellationToken = default)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        return AsyncHelper.RunSync(() => SendHttpRequestAsync(request, cancellationToken), cancellationToken);
+        return AsyncHelper.RunSync(() => http.SendHttpRequestAsync(request, cancellationToken), cancellationToken);
     }
 
-    public async ValueTask<string> GetAsync(
+    public static async ValueTask<string> GetAsync(
+        this HttpClient http,
         string url,
         CancellationToken cancellationToken = default)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        return await SendHttpRequestAsync(request, cancellationToken);
+        return await http.SendHttpRequestAsync(request, cancellationToken);
     }
 
-    public async ValueTask<string> PostAsync(
+    public static async ValueTask<string> PostAsync(
+        this HttpClient http,
         string url,
         CancellationToken cancellationToken = default)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, url);
-        return await SendHttpRequestAsync(request, cancellationToken);
+        return await http.SendHttpRequestAsync(request, cancellationToken);
     }
 
-    public async ValueTask<string> PostAsync(
+    public static async ValueTask<string> PostAsync(
+        this HttpClient http,
         string url,
         NameValueCollection headers,
         CancellationToken cancellationToken = default)
@@ -56,10 +101,11 @@ internal class NetHttpClient
         {
             request.Headers.TryAddWithoutValidation(headers.Keys[j]!, headers[j]);
         }
-        return await SendHttpRequestAsync(request, cancellationToken);
+        return await http.SendHttpRequestAsync(request, cancellationToken);
     }
 
-    public async ValueTask<long> GetFileSizeAsync(
+    public static async ValueTask<long> GetFileSizeAsync(
+        this HttpClient http,
         string url,
         NameValueCollection headers,
         CancellationToken cancellationToken = default)
@@ -70,7 +116,7 @@ internal class NetHttpClient
             request.Headers.TryAddWithoutValidation(headers.Keys[j]!, headers[j]);
         }
 
-        using var response = await _httpClient.SendAsync(
+        using var response = await http.SendAsync(
             request,
             HttpCompletionOption.ResponseHeadersRead,
             cancellationToken
@@ -90,15 +136,17 @@ internal class NetHttpClient
         return response.Content.Headers.ContentLength ?? 0;
     }
 
-    public async ValueTask<string> SendHttpRequestAsync(
+    public static async ValueTask<string> SendHttpRequestAsync(
+        this HttpClient http,
         string url,
         CancellationToken cancellationToken = default)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        return await SendHttpRequestAsync(request, cancellationToken);
+        return await http.SendHttpRequestAsync(request, cancellationToken);
     }
 
-    public async ValueTask<string> SendHttpRequestAsync(
+    public static async ValueTask<string> SendHttpRequestAsync(
+        this HttpClient http,
         string url,
         NameValueCollection headers,
         CancellationToken cancellationToken = default)
@@ -108,10 +156,11 @@ internal class NetHttpClient
         {
             request.Headers.TryAddWithoutValidation(headers.Keys[j]!, headers[j]);
         }
-        return await SendHttpRequestAsync(request, cancellationToken);
+        return await http.SendHttpRequestAsync(request, cancellationToken);
     }
 
-    public async Task<string> SendHttpRequestAsync(
+    public static async Task<string> SendHttpRequestAsync(
+        this HttpClient http,
         HttpRequestMessage request,
         CancellationToken cancellationToken = default)
     {
@@ -127,7 +176,7 @@ internal class NetHttpClient
         // Set required cookies
         //request.Headers.Add("Cookie", "CONSENT=YES+cb; YSC=DwKYllHNwuw");
 
-        using var response = await _httpClient.SendAsync(
+        using var response = await http.SendAsync(
             request,
             HttpCompletionOption.ResponseHeadersRead,
             cancellationToken

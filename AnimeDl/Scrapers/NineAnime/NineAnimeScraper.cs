@@ -1,18 +1,17 @@
 ﻿using System;
 using System.Linq;
-using System.Net;
+using System.Net.Http;
 using System.Collections.Generic;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 using Newtonsoft.Json.Linq;
-using Nager.PublicSuffix;
-using AnimeDl.Extractors;
-using AnimeDl.Utils.Extensions;
 using AnimeDl.Exceptions;
-using System.Text;
-using System.Diagnostics;
-using System.Collections;
+using AnimeDl.Utils.Extensions;
+using AnimeDl.Models;
+using System.Xml.Linq;
+using System.Net;
 
 namespace AnimeDl.Scrapers;
 
@@ -26,7 +25,7 @@ internal class NineAnimeScraper : BaseScraper
     //public override string BaseUrl => "https://9anime.pl";
     public override string BaseUrl => "https://9anime.id";
 
-    public NineAnimeScraper(NetHttpClient netHttpClient) : base(netHttpClient)
+    public NineAnimeScraper(HttpClient http) : base(http)
     {
     }
 
@@ -40,13 +39,13 @@ internal class NineAnimeScraper : BaseScraper
 
         var htmlData = searchFilter switch
         {
-            SearchFilter.Find => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/filter?sort=title%3Aasc&keyword={query}"),
-            SearchFilter.Popular => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/popular.html?page=" + page),
-            SearchFilter.NewSeason => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/new-season.html?page=" + page),
-            SearchFilter.LastUpdated => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/ajax/home/widget?name=updated_all"),
-            SearchFilter.Trending => await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/ajax/home/widget?name=trending"),
-            SearchFilter.AllList => await _netHttpClient.SendHttpRequestAsync($"https://animefrenzy.org/anime"),
-            //SearchFilter.AllList => await _netHttpClient.SendHttpRequestAsync($"https://animesa.ga/animel.php");
+            SearchFilter.Find => await _http.SendHttpRequestAsync($"{BaseUrl}/filter?sort=title%3Aasc&keyword={query}"),
+            SearchFilter.Popular => await _http.SendHttpRequestAsync($"{BaseUrl}/popular.html?page=" + page),
+            SearchFilter.NewSeason => await _http.SendHttpRequestAsync($"{BaseUrl}/new-season.html?page=" + page),
+            SearchFilter.LastUpdated => await _http.SendHttpRequestAsync($"{BaseUrl}/ajax/home/widget?name=updated_all"),
+            SearchFilter.Trending => await _http.SendHttpRequestAsync($"{BaseUrl}/ajax/home/widget?name=trending"),
+            SearchFilter.AllList => await _http.SendHttpRequestAsync($"https://animefrenzy.org/anime"),
+            //SearchFilter.AllList => await _http.SendHttpRequestAsync($"https://animesa.ga/animel.php");
             _ => throw new SearchFilterNotSupportedException("Search filter not supported"),
         };
 
@@ -268,7 +267,7 @@ internal class NineAnimeScraper : BaseScraper
     {
         var episodes = new List<Episode>();
 
-        var htmlData = await _netHttpClient.SendHttpRequestAsync(anime.Link);
+        var htmlData = await _http.SendHttpRequestAsync(anime.Link);
 
         var document = new HtmlDocument();
         document.LoadHtml(htmlData);
@@ -277,8 +276,8 @@ internal class NineAnimeScraper : BaseScraper
             .SelectSingleNode(".//div[@id='watch-main']")
             .Attributes["data-id"].Value;
 
-        //var epsHtml = await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/ajax/anime/servers?ep=1&id={animeId}&vrf={animeidencoded}&ep=8&episode=&token=");
-        var epsHtml = await _netHttpClient.SendHttpRequestAsync($"{BaseUrl}/ajax/episode/list/{animeId}?vrf={EncodeVrf(animeId)}");
+        //var epsHtml = await _http.SendHttpRequestAsync($"{BaseUrl}/ajax/anime/servers?ep=1&id={animeId}&vrf={animeidencoded}&ep=8&episode=&token=");
+        var epsHtml = await _http.SendHttpRequestAsync($"{BaseUrl}/ajax/episode/list/{animeId}?vrf={EncodeVrf(animeId)}");
 
         document = new HtmlDocument();
         //document.LoadHtml(epsHtml);
@@ -308,9 +307,9 @@ internal class NineAnimeScraper : BaseScraper
         return episodes;
     }
 
-    public override async Task<List<Quality>> GetEpisodeLinksAsync(Episode episode)
+    public override async Task<List<VideoServer>> GetVideoServersAsync(Episode episode)
     {
-        var content = await _netHttpClient.SendHttpRequestAsync(episode.EpisodeLink);
+        var content = await _http.SendHttpRequestAsync(episode.EpisodeLink);
 
         var document = new HtmlDocument();
         document.LoadHtml(JObject.Parse(content)["result"]!.ToString());
@@ -318,20 +317,32 @@ internal class NineAnimeScraper : BaseScraper
         var dataLinksIdNodes = document.DocumentNode
             .SelectNodes(".//li").ToList();
 
-        var list = new List<Quality>();
+        var videoServers = new List<VideoServer>();
+
+        var embedHeaders = new WebHeaderCollection();
 
         for (int i = 0; i < dataLinksIdNodes.Count; i++)
         {
+            var name = dataLinksIdNodes[i].InnerText;
             var id = dataLinksIdNodes[i].Attributes["data-link-id"].Value;
             var link = $"{BaseUrl}/ajax/server/{id}?vrf={EncodeVrf(id)}";
 
-            var content2 = await _netHttpClient.SendHttpRequestAsync(link);
+            var content2 = await _http.SendHttpRequestAsync(link);
 
             var encodedStreamUrl = JObject.Parse(content2)["result"]?["url"]?.ToString();
 
-            var realLink = DecodeVrf(encodedStreamUrl!);
+            var realLink = new FileUrl(DecodeVrf(encodedStreamUrl!), embedHeaders);
+            
+            if (name == "VideoVard")
+            {
+                videoServers.Add(new VideoServer($"{Name} Mp4", realLink));
+            }
+            else
+            {
+                videoServers.Add(new VideoServer(name, realLink));
+            }
         }
 
-        return list;
+        return videoServers;
     }
 }

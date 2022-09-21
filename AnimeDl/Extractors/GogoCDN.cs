@@ -8,21 +8,26 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using HtmlAgilityPack;
 using Newtonsoft.Json.Linq;
+using AnimeDl.Models;
 using AnimeDl.Utils.Extensions;
+using System.Net.Http;
 
 namespace AnimeDl.Extractors;
 
-internal class GogoCDN : BaseExtractor
+internal class GogoCDN : VideoExtractor
 {
-    public GogoCDN(NetHttpClient netHttpClient) : base(netHttpClient)
+    public GogoCDN(HttpClient http,
+        VideoServer server) : base(http, server)
     {
     }
 
-    public override async Task<List<Quality>> ExtractQualities(string url)
+    public override async Task<List<Video>> Extract()
     {
-        var list = new List<Quality>();
+        var url = _server.Embed.Url;
 
-        var htmlData = await _netHttpClient.SendHttpRequestAsync(url);
+        var list = new List<Video>();
+
+        var htmlData = await _http.SendHttpRequestAsync(url);
 
         var doc = new HtmlDocument();
         doc.LoadHtml(htmlData);
@@ -54,7 +59,7 @@ internal class GogoCDN : BaseExtractor
 
         //var host = new GogoAnimeScraper().BaseUrl;
 
-        var encHtmlData = await _netHttpClient.SendHttpRequestAsync(link,
+        var encHtmlData = await _http.SendHttpRequestAsync(link,
             new WebHeaderCollection()
             {
                 { "X-Requested-With", "XMLHttpRequest" },
@@ -76,7 +81,7 @@ internal class GogoCDN : BaseExtractor
         if (array.Count == 1 && array[0]["type"]?.ToString() == "hls")
         {
             string fileURL = array[0]["file"]!.ToString().Trim('"');
-            string masterPlaylist = await _netHttpClient.SendHttpRequestAsync(fileURL);
+            string masterPlaylist = await _http.SendHttpRequestAsync(fileURL);
             var masterSplit = masterPlaylist.Split(new string[] { "#EXT-X-STREAM-INF:" }, StringSplitOptions.None).ToList();
             masterSplit.Remove(masterSplit[0]);
 
@@ -87,15 +92,15 @@ internal class GogoCDN : BaseExtractor
                 var itSplit = masterSplit[i].Split(new string[] { "\n" }, StringSplitOptions.None).ToList();
                 itSplit.RemoveAll(x => string.IsNullOrEmpty(x));
 
-                var quality = itSplit[0].SubstringAfter("RESOLUTION=").SubstringBefore("x") + " p";
+                var video = itSplit[0].SubstringAfter("RESOLUTION=").SubstringBefore("x") + " p";
                 var videoUrl = string.Join("/", videoUrlSplit) + "/" + itSplit.LastOrDefault();
 
-                list.Add(new Quality()
+                list.Add(new Video()
                 {
                     FileType = "m3u8",
                     IsM3U8 = true,
-                    QualityUrl = videoUrl,
-                    Resolution = quality,
+                    VideoUrl = videoUrl,
+                    Resolution = video,
                     Headers = new WebHeaderCollection()
                     {
                         { "Referer", url },
@@ -108,10 +113,10 @@ internal class GogoCDN : BaseExtractor
 
         list = array.Select(x =>
         {
-            return new Quality()
+            return new Video()
             {
                 IsM3U8 = x["file"]!.ToString().Contains(".m3u8"),
-                QualityUrl = x["file"]!.ToString(),
+                VideoUrl = x["file"]!.ToString(),
                 Resolution = x["label"]!.ToString(),
                 FileType = x["type"]!.ToString(),
                 Headers = new WebHeaderCollection()

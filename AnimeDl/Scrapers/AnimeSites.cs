@@ -11,11 +11,6 @@ public enum AnimeSites
     GogoAnime,
 
     /// <summary>
-    /// Parses anime and information from TwistMoe.
-    /// </summary>
-    TwistMoe,
-
-    /// <summary>
     /// Parses anime and information from Zoro.
     /// </summary>
     Zoro,

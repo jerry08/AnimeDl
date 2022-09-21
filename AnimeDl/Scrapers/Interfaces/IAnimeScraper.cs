@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using System.Collections.Generic;
+using AnimeDl.Models;
 
 namespace AnimeDl.Scrapers.Interfaces;
 
@@ -32,11 +33,18 @@ public interface IAnimeScraper
     Task<List<Episode>> GetEpisodesAsync(Anime anime);
 
     /// <summary>
-    /// Gets episode links from specific episode
+    /// Gets video servers from specific episode
     /// </summary>
     /// <param name="episode"></param>
     /// <returns></returns>
-    Task<List<Quality>> GetEpisodeLinksAsync(Episode episode);
+    Task<List<VideoServer>> GetVideoServersAsync(Episode episode);
+
+    /// <summary>
+    /// Gets videos from specific server
+    /// </summary>
+    /// <param name="server"></param>
+    /// <returns></returns>
+    Task<List<Video>> GetVideosAsync(VideoServer server);
 
     /// <summary>
     /// Gets Genres from anime site
