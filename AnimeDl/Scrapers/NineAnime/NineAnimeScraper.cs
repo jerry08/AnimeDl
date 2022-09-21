@@ -298,9 +298,9 @@ internal class NineAnimeScraper : BaseScraper
 
             episodes.Add(new Episode() 
             {
-                EpisodeLink = link!,
-                EpisodeName = name,
-                EpisodeNumber = epNum
+                Link = link!,
+                Name = name,
+                Number = epNum
             });
         }
 
@@ -309,7 +309,7 @@ internal class NineAnimeScraper : BaseScraper
 
     public override async Task<List<VideoServer>> GetVideoServersAsync(Episode episode)
     {
-        var content = await _http.SendHttpRequestAsync(episode.EpisodeLink);
+        var content = await _http.SendHttpRequestAsync(episode.Link);
 
         var document = new HtmlDocument();
         document.LoadHtml(JObject.Parse(content)["result"]!.ToString());

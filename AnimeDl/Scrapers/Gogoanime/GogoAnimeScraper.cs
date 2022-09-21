@@ -234,9 +234,9 @@ internal class GogoAnimeScraper : BaseScraper
 
             episodes.Add(new Episode()
             {
-                EpisodeLink = link,
-                EpisodeNumber = epNumber,
-                EpisodeName = epName,
+                Link = link,
+                Number = epNumber,
+                Name = epName,
             });
         }
 
@@ -252,7 +252,7 @@ internal class GogoAnimeScraper : BaseScraper
 
     public override async Task<List<VideoServer>> GetVideoServersAsync(Episode episode)
     {
-        var htmlData = await _http.SendHttpRequestAsync(episode.EpisodeLink);
+        var htmlData = await _http.SendHttpRequestAsync(episode.Link);
 
         var doc = new HtmlDocument();
         doc.LoadHtml(htmlData);
@@ -260,7 +260,7 @@ internal class GogoAnimeScraper : BaseScraper
         //Exception for fire force season 2 episode 1
         if (htmlData.Contains(@">404</h1>"))
         {
-            htmlData = await _http.SendHttpRequestAsync(episode.EpisodeLink + "-1");
+            htmlData = await _http.SendHttpRequestAsync(episode.Link + "-1");
         }
 
         var videoServers = new List<VideoServer>();

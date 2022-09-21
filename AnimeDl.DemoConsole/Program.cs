@@ -258,7 +258,7 @@ public static class Program
         videoIndex--;
 
         // Download the stream
-        var fileName = $@"{Environment.CurrentDirectory}\{animes[animeIndex].Title} - Ep {episodes[episodeIndex].EpisodeNumber}.mp4";
+        var fileName = $@"{Environment.CurrentDirectory}\{animes[animeIndex].Title} - Ep {episodes[episodeIndex].Number}.mp4";
 
         using (var progress = new ConsoleProgress())
             await client.DownloadAsync(videos[videoIndex], fileName, progress);
@@ -272,7 +272,7 @@ public static class Program
     //Async Method
     public static async Task Example3()
     {
-        var client = new AnimeClient(AnimeSites.GogoAnime);
+        var client = new AnimeClient(AnimeSites.Tenshi);
 
         // Read the anime name
         Console.Write("Enter anime name: ");
@@ -372,7 +372,7 @@ public static class Program
         videoIndex--;
 
         // Download the stream
-        var fileName = $@"{Environment.CurrentDirectory}\{animes[animeIndex].Title.ReplaceInvalidChars()} - Ep {episodes[episodeIndex].EpisodeNumber}.mp4";
+        var fileName = $@"{Environment.CurrentDirectory}\{animes[animeIndex].Title.ReplaceInvalidChars()} - Ep {episodes[episodeIndex].Number}.mp4";
 
         using (var progress = new ConsoleProgress())
             await client.DownloadAsync(videos[videoIndex], fileName, progress);

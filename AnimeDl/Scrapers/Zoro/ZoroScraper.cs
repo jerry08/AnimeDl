@@ -177,9 +177,9 @@ internal class ZoroScraper : BaseScraper
 
             episodes.Add(new Episode()
             {
-                EpisodeName = $"{i + 1} - {title}",
-                EpisodeLink = link,
-                EpisodeNumber = dataNumber
+                Name = $"{i + 1} - {title}",
+                Link = link,
+                Number = dataNumber
             });
         }
 
@@ -188,7 +188,7 @@ internal class ZoroScraper : BaseScraper
 
     public override async Task<List<VideoServer>> GetVideoServersAsync(Episode episode)
     {
-        var dataId = episode.EpisodeLink.Split(new string[] { "ep=" },
+        var dataId = episode.Link.Split(new string[] { "ep=" },
             StringSplitOptions.None).Last();
         var url = $"{BaseUrl}/ajax/v2/episode/servers?episodeId={dataId}";
 

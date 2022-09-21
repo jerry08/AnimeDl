@@ -11,13 +11,13 @@ public class Episode
 
     public int AnimeId { get; set; }
 
-    public string EpisodeName { get; set; } = default!;
+    public string Name { get; set; } = default!;
 
     public string Description { get; set; } = default!;
 
-    public float EpisodeNumber { get; set; }
+    public float Number { get; set; }
 
-    public string EpisodeLink { get; set; } = default!;
+    public string Link { get; set; } = default!;
 
     public string Image { get; set; } = default!;
 
