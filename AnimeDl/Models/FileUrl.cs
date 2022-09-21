@@ -6,7 +6,7 @@ public class FileUrl
 {
     public string Url { get; set; } = default!;
 
-    public WebHeaderCollection Headers { get; set; } = new();
+    public WebHeaderCollection Headers { get; set; } = default!;
 
     public FileUrl()
     {
