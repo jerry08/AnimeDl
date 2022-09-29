@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using AnimeDl.Scrapers;
 
 namespace AnimeDl;
@@ -14,14 +13,7 @@ public class Anime
     public AnimeSites Site { get; set; }
 
     public string Title { get; set; } = default!;
-    public string AltTitle { get; set; } = default!;
-    public int Season { get; set; }
-    public bool Ongoing { get; set; }
-    public int Hb_Id { get; set; }
-    public DateTime? CreatedAt { get; set; }
-    public DateTime? UpdatedAt { get; set; }
     public int Mal_Id { get; set; }
-    public bool Hidden { get; set; }
     public string Slug { get; set; } = default!;
 
     public string Released { get; set; } = default!;
