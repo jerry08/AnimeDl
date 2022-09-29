@@ -98,9 +98,24 @@ internal static class HttpExtensions
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, url);
         for (int j = 0; j < headers.Count; j++)
-        {
             request.Headers.TryAddWithoutValidation(headers.Keys[j]!, headers[j]);
-        }
+
+        return await http.SendHttpRequestAsync(request, cancellationToken);
+    }
+
+    public static async ValueTask<string> PostAsync(
+        this HttpClient http,
+        string url,
+        NameValueCollection headers,
+        HttpContent content,
+        CancellationToken cancellationToken = default)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, url);
+        for (int j = 0; j < headers.Count; j++)
+            request.Headers.TryAddWithoutValidation(headers.Keys[j]!, headers[j]);
+
+        request.Content = content;
+
         return await http.SendHttpRequestAsync(request, cancellationToken);
     }
 
@@ -112,9 +127,7 @@ internal static class HttpExtensions
     {
         using var request = new HttpRequestMessage(HttpMethod.Head, url);
         for (int j = 0; j < headers.Count; j++)
-        {
             request.Headers.TryAddWithoutValidation(headers.Keys[j]!, headers[j]);
-        }
 
         using var response = await http.SendAsync(
             request,
@@ -153,9 +166,8 @@ internal static class HttpExtensions
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         for (int j = 0; j < headers.Count; j++)
-        {
             request.Headers.TryAddWithoutValidation(headers.Keys[j]!, headers[j]);
-        }
+
         return await http.SendHttpRequestAsync(request, cancellationToken);
     }
 
