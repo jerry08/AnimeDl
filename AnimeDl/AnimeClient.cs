@@ -11,6 +11,8 @@ using AnimeDl.Scrapers.Events;
 using AnimeDl.Scrapers.Interfaces;
 using AnimeDl.Utils;
 using AnimeDl.Utils.Extensions;
+using System.Collections.Specialized;
+using AnimeDl.Anilist;
 
 namespace AnimeDl;
 
@@ -114,6 +116,44 @@ public class AnimeClient
     /// </summary>
     public AnimeClient(AnimeSites animeSite) : this(animeSite, Http.Client)
     {
+    }
+
+    public async Task<List<Anime>> FindBestMatch(string query)
+    {
+        var ss = await new AnilistClient().SearchAsync("ANIME", search: "86 season 2");
+
+        var list = new List<Anime>();
+
+        var url = "https://api.myanimelist.net/v2/anime";
+        url = "https://api.myanimelist.net/v2/anime?q=one&limit=4";
+        var animeURL = "${config.url}/${animeID}?fields=id,title,main_picture,alternative_titles,start_date,end_date,synopsis,mean,rank,popularity,num_list_users,num_scoring_users,status,genres,my_list_status,num_episodes,start_season,background,related_anime,related_manga,studios,";
+        var clientId = "057e21278f0a33a664133e70dce8047d";
+        var headers = new NameValueCollection()
+        {
+            { "X-MAL-CLIENT-ID", clientId }
+        };
+
+        //Keyword too short
+        if (query.Length < 2)
+        {
+
+        }
+        else if (query.Length == 2)
+        {
+            query += query[1];
+        }
+
+        query = query.Replace(" ", "%20");
+
+        //url = "https://myanimelist.net/anime.php?cat=anime&q=86%20&type=0&score=0&status=0&p=0&r=0&sm=0&sd=0&sy=0&em=0&ed=0&ey=0&c%5B%5D=a&c%5B%5D=b&c%5B%5D=c&c%5B%5D=f";
+        url = $"https://api.myanimelist.net/v2/anime?q={query}";
+
+        url = "https://api.myanimelist.net/v2/anime/21?fields=id,title,main_picture,alternative_titles,start_date,end_date,synopsis,mean,rank,popularity,num_list_users,num_scoring_users,status,genres,my_list_status,num_episodes,start_season,background,related_anime,related_manga,studios,";
+
+        //var client = new HttpClient();
+        var tt = await _http.SendHttpRequestAsync(url, headers);
+
+        return list;
     }
 
     #region Search for Animes
@@ -352,7 +392,7 @@ public class AnimeClient
     }
     #endregion
 
-    #region Video Links
+    #region Videos
     /// <summary>
     /// Bool to check if video links search is completed.
     /// </summary>
@@ -389,7 +429,7 @@ public class AnimeClient
         {
             function().ContinueWith(t =>
             {
-                OnVideosLoaded?.Invoke(this, new VideoEventArgs(Videos));
+                OnVideosLoaded?.Invoke(this, new VideoEventArgs(Videos, server));
             }, _videosCancellationTokenSource.Token, TaskContinuationOptions.None, TaskScheduler.FromCurrentSynchronizationContext());
         }
 
@@ -482,9 +522,7 @@ public class AnimeClient
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, video.VideoUrl);
         for (int j = 0; j < video.Headers.Count; j++)
-        {
             request.Headers.TryAddWithoutValidation(video.Headers.Keys[j]!, video.Headers[j]);
-        }
 
         using var response = await _http.SendAsync(
             request,

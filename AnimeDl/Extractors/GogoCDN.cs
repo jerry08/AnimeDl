@@ -101,7 +101,7 @@ internal class GogoCDN : VideoExtractor
                     IsM3U8 = true,
                     VideoUrl = videoUrl,
                     Resolution = video,
-                    Headers = new WebHeaderCollection()
+                    Headers = new()
                     {
                         { "Referer", url },
                     }
@@ -119,7 +119,7 @@ internal class GogoCDN : VideoExtractor
                 VideoUrl = x["file"]!.ToString(),
                 Resolution = x["label"]!.ToString(),
                 FileType = x["type"]!.ToString(),
-                Headers = new WebHeaderCollection()
+                Headers = new()
                 {
                     { "Referer", url },
                 }

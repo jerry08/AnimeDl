@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿using System.Collections.Specialized;
+using Newtonsoft.Json;
+using AnimeDl.Utils.JsonConverters;
 
 namespace AnimeDl;
 
@@ -44,5 +46,11 @@ public class Video
     /// <summary>
     /// 
     /// </summary>
-    public WebHeaderCollection Headers { get; set; } = new();
+    //[JsonConverter(typeof(WebHeaderCollectionConverter))]
+    //public WebHeaderCollection Headers { get; set; } = new();
+
+    //public Dictionary<string, string> Headers { get; set; } = new();
+
+    [JsonConverter(typeof(NameValueCollectionConverter))]
+    public NameValueCollection Headers { get; set; } = new();
 }
