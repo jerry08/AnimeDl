@@ -128,9 +128,7 @@ var resolution = videos[0].Resolution;
 var format = videos[0].Format;
 ```
 
-### Downloading videos
-
-#### Retrieving video and metadata
+#### Downloading videos
 
 ```csharp
 using AnimeDl;
