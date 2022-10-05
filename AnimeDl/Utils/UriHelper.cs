@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 
-namespace AnimeDl;
+namespace AnimeDl.Utils;
 
 internal static class UriHelper
 {

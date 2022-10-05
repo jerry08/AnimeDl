@@ -24,7 +24,7 @@ internal abstract class BaseScraper : IAnimeScraper
     public BaseScraper(HttpClient http)
         => _http = http;
 
-    public virtual Task<List<Anime>> SearchAsync(
+    public virtual async Task<List<Anime>> SearchAsync(
         string query,
         SearchFilter searchFilter,
         int page,

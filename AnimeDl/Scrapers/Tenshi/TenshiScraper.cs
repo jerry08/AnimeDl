@@ -10,6 +10,7 @@ using AnimeDl.Utils.Extensions;
 using AnimeDl.Models;
 using AnimeDl.Extractors;
 using AnimeDl.Extractors.Interfaces;
+using AnimeDl.Utils;
 
 namespace AnimeDl.Scrapers;
 
@@ -137,6 +138,11 @@ internal class TenshiScraper : BaseScraper
             episode.Link = $"{anime.Link}/{episode.Number}";
             episode.Image = node.SelectSingleNode(".//img").Attributes["src"].Value;
             episode.Description = node.SelectSingleNode(".//a").Attributes["data-content"].Value;
+
+            if (episode.Name == "No Title")
+            {
+                episode.Name = $"Ep - {episode.Number}";
+            }
 
             episodes.Add(episode);
         }

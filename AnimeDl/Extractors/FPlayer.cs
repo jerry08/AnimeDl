@@ -40,7 +40,7 @@ internal class FPlayer : VideoExtractor
                     {
                         VideoUrl = data[i]["file"]!.ToString(),
                         Resolution = data[i]["label"]!.ToString(),
-                        IsM3U8 = data[i]["file"]!.ToString().Contains(".m3u8"),
+                        Format = VideoType.M3u8,
                         FileType = data[i]["type"]!.ToString(),
                     });
                 }

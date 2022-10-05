@@ -50,7 +50,11 @@ internal class GogoAnimeScraper : BaseScraper
         int page,
         bool selectDub)
     {
-        query = selectDub ? query + "%(Dub)" : query;
+        //query = selectDub ? query + "%(Dub)" : query;
+        //query = query.Replace(" ", "+");
+
+        query = selectDub ? query + " (Dub)" : query;
+        query = Uri.EscapeUriString(query);
 
         var animes = new List<Anime>();
 

@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using AnimeDl.Utils.JsonConverters;
 
-namespace AnimeDl;
+namespace AnimeDl.Models;
 
 /// <summary>
 /// The Class which contains all the information about a Video
@@ -17,35 +17,40 @@ public class Video
     public string Resolution { get; set; } = default!;
 
     /// <summary>
-    /// If the video is an M3U8 file, set this variable to true,
-    /// This makes the app show it as a "Multi Quality" Link
-    /// </summary>
-    public bool IsM3U8 { get; set; }
-
-    /// <summary>
     /// The direct url to the Video.
     /// Supports mp4, mkv and m3u8 for now, afaik
     /// </summary>
     public string VideoUrl { get; set; } = default!;
 
     /// <summary>
-    /// 
+    /// No need to set it on M3U8 links
     /// </summary>
-    public string FileSize { get; set; } = default!;
+    public double? Size { get; set; }
 
     /// <summary>
-    /// 
+    /// The direct url to the Video
+    /// Supports mp4, mkv, dash &#38; m3u8, afaik
     /// </summary>
     public string FileType { get; set; } = default!;
 
     /// <summary>
-    /// 
+    /// If not a "CONTAINER" format, the app show video as a "Multi Quality" Link
+    /// "CONTAINER" formats are Mp4 &#38; Mkv
     /// </summary>
-    public string Referer { get; set; } = default!;
+    public VideoType Format { get; set; }
 
     /// <summary>
-    /// 
+    /// The direct url to the Video
+    /// Supports mp4, mkv, dash &#38; m3u8, afaik
     /// </summary>
+    //public FileUrl Url { get; set; } = default!;
+
+    /// <summary>
+    /// In case, you want to show some extra notes to the User
+    /// Ex: "Backup" which could be used if the site provides some
+    /// </summary>
+    public string ExtraNote { get; set; } = default!;
+
     //[JsonConverter(typeof(WebHeaderCollectionConverter))]
     //public WebHeaderCollection Headers { get; set; } = new();
 
@@ -53,4 +58,11 @@ public class Video
 
     [JsonConverter(typeof(NameValueCollectionConverter))]
     public NameValueCollection Headers { get; set; } = new();
+}
+
+public enum VideoType
+{
+    Container,
+    M3u8,
+    Dash
 }

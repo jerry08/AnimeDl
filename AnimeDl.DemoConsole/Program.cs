@@ -1,28 +1,89 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
-using AnimeDl.Scrapers;
 using AnimeDl.DemoConsole.Utils;
+using AnimeDl.Scrapers;
+using AnimeDl.Anilist;
 
 namespace AnimeDl.DemoConsole;
 
 public static class Program
 {
+    private readonly static AnimeClient _client = new(AnimeSites.GogoAnime);
+    private readonly static AnilistClient _client2 = new();
+
     public static async Task Main()
     {
         Console.Title = "AnimeDl Demo";
 
-        //Example1();
-        //await Example2();
         await Example3();
+        //await AnilistExample1();
+    }
+
+    public static async Task AnilistExample1()
+    {
+        // Read the anime name
+        Console.Write("Enter anime name: ");
+        var query = Console.ReadLine() ?? "";
+
+        //var ss1 = await _client2.GetRecentlyUpdatedAsync();
+        var searchResults = await _client2.SearchAsync("ANIME", search: query);
+
+        //Filter animes to "ANIME" format
+        //var animes = searchResults?.Results.Where(x => x.Format == "ANIME").ToList();
+        
+        //Filter to animes available by mal
+        var animes = searchResults?.Results.Where(x => x.IdMal is not null).ToList();
+
+        Console.WriteLine("Animes found: ");
+        Console.WriteLine();
+        //for (int i = 0; i < animes?.Results.Count; i++)
+        //{
+        //    Console.Write($"[{i + 1}] English Title: {animes.Results[i].Title?.English}");
+        //    Console.Write($"  / (Romaji Title: {animes.Results[i].Title?.Romaji})");
+        //    Console.WriteLine($"  / (Native Title: {animes.Results[i].Title?.Native})");
+        //}
+
+        for (int i = 0; i < animes?.Count; i++)
+        {
+            Console.Write($"[{i + 1}] Name: {animes[i].Name}");
+            Console.WriteLine($"  / (Name Romaji: {animes[i].NameRomaji})");
+            Console.WriteLine();
+        }
+
+        //var tt = await _client.FindBestMatch("86");
+
+        Console.WriteLine();
+
+        // Read the anime number selected
+        Console.Write("Enter anime number: ");
+
+        int animeIndex;
+
+        while (!int.TryParse(Console.ReadLine() ?? "", out animeIndex))
+        {
+            Console.Clear();
+            Console.WriteLine("You entered an invalid number");
+            Console.Write("Enter anime number: ");
+        }
+
+        animeIndex--;
+
+        Console.WriteLine();
+
+        var test = await _client2.GetMediaDetailsAsync(animes![animeIndex]);
+        
+        var test2 = await _client.AutoSearch(animes[animeIndex]);
+
+        Console.WriteLine($"Specific anime found: {test2?.Title}");
+        Console.WriteLine();
     }
 
     //Method with events
     public static void Example1()
     {
-        var client = new AnimeClient(AnimeSites.Tenshi);
-
-        client.OnAnimesLoaded += (s, e) =>
+        _client.OnAnimesLoaded += (s, e) =>
         {
             var animes = e.Animes;
 
@@ -52,10 +113,10 @@ public static class Program
             Console.WriteLine();
 
             // Read the anime episodes
-            var episodes = client.GetEpisodes(animes[animeIndex]);
+            var episodes = _client.GetEpisodes(animes[animeIndex]);
         };
 
-        client.OnEpisodesLoaded += (s, e) =>
+        _client.OnEpisodesLoaded += (s, e) =>
         {
             var episodes = e.Episodes;
 
@@ -77,10 +138,10 @@ public static class Program
 
             Console.WriteLine();
 
-            var videoServers = client.GetVideoServers(episodes[episodeIndex]);
+            var videoServers = _client.GetVideoServers(episodes[episodeIndex]);
         };
 
-        client.OnVideoServersLoaded += (s, e) =>
+        _client.OnVideoServersLoaded += (s, e) =>
         {
             var videoServers = e.VideoServers;
 
@@ -105,10 +166,10 @@ public static class Program
 
             videoServerIndex--;
 
-            var videos = client.GetVideos(videoServers[videoServerIndex]);
+            var videos = _client.GetVideos(videoServers[videoServerIndex]);
         };
 
-        client.OnVideosLoaded += (s, e) =>
+        _client.OnVideosLoaded += (s, e) =>
         {
             var videos = e.Videos;
 
@@ -116,7 +177,7 @@ public static class Program
 
             for (int i = 0; i < videos.Count; i++)
             {
-                Console.WriteLine($"[{i + 1}] {videos[i].Resolution}");
+                Console.WriteLine($"[{i + 1}] {videos[i].Resolution} - {videos[i].Format}");
             }
 
             Console.WriteLine();
@@ -139,7 +200,7 @@ public static class Program
             var fileName = $@"{DateTime.Now.Ticks}.mp4";
 
             using (var progress = new ConsoleProgress())
-                client.Download(videos[videoIndex], fileName, progress);
+                _client.Download(videos[videoIndex], fileName, progress);
 
             Console.WriteLine("Done");
             Console.WriteLine($"Video saved to '{fileName}'");
@@ -150,7 +211,7 @@ public static class Program
         var query = Console.ReadLine() ?? "";
 
         //First (Search anime by name)
-        client.Search(query);
+        _client.Search(query);
 
         System.Threading.Thread.Sleep(-1);
     }
@@ -158,13 +219,11 @@ public static class Program
     //Method with force load
     public static async Task Example2()
     {
-        var client = new AnimeClient(AnimeSites.Tenshi);
-
         // Read the anime name
         Console.Write("Enter anime name: ");
         var query = Console.ReadLine() ?? "";
 
-        var animes = client.Search(query, forceLoad: true);
+        var animes = _client.Search(query, forceLoad: true);
         Console.WriteLine("Animes found: ");
         Console.WriteLine();
         for (int i = 0; i < animes.Count; i++)
@@ -191,7 +250,7 @@ public static class Program
         Console.WriteLine();
 
         // Read the anime episodes
-        var episodes = client.GetEpisodes(animes[animeIndex], forceLoad: true);
+        var episodes = _client.GetEpisodes(animes[animeIndex], forceLoad: true);
         Console.WriteLine("Episodes found: " + episodes.Count);
 
         // Read the episode number selected
@@ -210,7 +269,7 @@ public static class Program
 
         Console.WriteLine();
 
-        var videoServers = client.GetVideoServers(episodes[episodeIndex], forceLoad: true);
+        var videoServers = _client.GetVideoServers(episodes[episodeIndex], forceLoad: true);
 
         for (int i = 0; i < videoServers.Count; i++)
         {
@@ -233,12 +292,12 @@ public static class Program
 
         videoServerIndex--;
 
-        var videos = client.GetVideos(videoServers[videoServerIndex], forceLoad: true);
+        var videos = _client.GetVideos(videoServers[videoServerIndex], forceLoad: true);
         Console.WriteLine($"Videos found: " + videos.Count);
 
         for (int i = 0; i < videos.Count; i++)
         {
-            Console.WriteLine($"[{i + 1}] {videos[i].Resolution}");
+            Console.WriteLine($"[{i + 1}] {videos[i].Resolution} - {videos[i].Format}");
         }
 
         Console.WriteLine();
@@ -261,7 +320,7 @@ public static class Program
         var fileName = $@"{Environment.CurrentDirectory}\{animes[animeIndex].Title} - Ep {episodes[episodeIndex].Number}.mp4";
 
         using (var progress = new ConsoleProgress())
-            await client.DownloadAsync(videos[videoIndex], fileName, progress);
+            await _client.DownloadAsync(videos[videoIndex], fileName, progress);
 
         Console.WriteLine("Done");
         Console.WriteLine($"Video saved to '{fileName}'");
@@ -272,13 +331,11 @@ public static class Program
     //Async Method
     public static async Task Example3()
     {
-        var client = new AnimeClient(AnimeSites.Zoro);
-
         // Read the anime name
         Console.Write("Enter anime name: ");
         var query = Console.ReadLine() ?? "";
 
-        var animes = await client.SearchAsync(query, selectDub: false);
+        var animes = await _client.SearchAsync(query, selectDub: false);
         Console.WriteLine("Animes found: ");
         Console.WriteLine();
         for (int i = 0; i < animes.Count; i++)
@@ -305,7 +362,7 @@ public static class Program
         Console.WriteLine();
 
         // Read the anime episodes
-        var episodes = await client.GetEpisodesAsync(animes[animeIndex]);
+        var episodes = await _client.GetEpisodesAsync(animes[animeIndex]);
         Console.WriteLine("Episodes found: " + episodes.Count);
 
         // Read the episode number selected
@@ -324,7 +381,7 @@ public static class Program
 
         Console.WriteLine();
 
-        var videoServers = await client.GetVideoServersAsync(episodes[episodeIndex]);
+        var videoServers = await _client.GetVideoServersAsync(episodes[episodeIndex]);
 
         for (int i = 0; i < videoServers.Count; i++)
         {
@@ -347,12 +404,12 @@ public static class Program
 
         videoServerIndex--;
 
-        var videos = await client.GetVideosAsync(videoServers[videoServerIndex]);
+        var videos = await _client.GetVideosAsync(videoServers[videoServerIndex]);
         Console.WriteLine($"Videos found: " + videos.Count);
 
         for (int i = 0; i < videos.Count; i++)
         {
-            Console.WriteLine($"[{i + 1}] {videos[i].Resolution}");
+            Console.WriteLine($"[{i + 1}] {videos[i].Resolution} - {videos[i].Format}");
         }
 
         Console.WriteLine();
@@ -375,7 +432,7 @@ public static class Program
         var fileName = $@"{Environment.CurrentDirectory}\{animes[animeIndex].Title.ReplaceInvalidChars()} - Ep {episodes[episodeIndex].Number}.mp4";
 
         using (var progress = new ConsoleProgress())
-            await client.DownloadAsync(videos[videoIndex], fileName, progress);
+            await _client.DownloadAsync(videos[videoIndex], fileName, progress);
 
         Console.WriteLine("Done");
         Console.WriteLine($"Video saved to '{fileName}'");

@@ -47,6 +47,9 @@ public class CharacterConnection
 
 public class CharacterEdge
 {
+    [JsonProperty("node")]
+    public Character? Node { get; set; }
+
     /// <summary>
     /// The id of the connection
     /// </summary>

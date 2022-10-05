@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Linq;
 using System.Text;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Security.Cryptography;
@@ -10,7 +11,6 @@ using HtmlAgilityPack;
 using Newtonsoft.Json.Linq;
 using AnimeDl.Models;
 using AnimeDl.Utils.Extensions;
-using System.Net.Http;
 
 namespace AnimeDl.Extractors;
 
@@ -24,107 +24,129 @@ internal class GogoCDN : VideoExtractor
     public override async Task<List<Video>> Extract()
     {
         var url = _server.Embed.Url;
+        //var host = _server.Embed.Headers["Referer"];
+        var host = new Uri(url).Host;
 
         var list = new List<Video>();
 
-        var htmlData = await _http.SendHttpRequestAsync(url);
+        var response = await _http.SendHttpRequestAsync(url);
 
-        var doc = new HtmlDocument();
-        doc.LoadHtml(htmlData);
-
-        //var script = doc.DocumentNode
-        //    .SelectSingleNode("script[data-name='crypto'");
-
-        //var tt = doc.DocumentNode.Descendants("script")
-        //    .Where(x => x.Name == "script").ToList();
-
-        var scripts = doc.DocumentNode.Descendants()
-            .Where(x => x.Name == "script").ToList();
-
-        var cryptoScript = scripts.Where(x => x.Attributes["data-name"]?.Value == "episode")
-            .FirstOrDefault()!;
-
-        //string dataValue = scripts.Where(x => x.Attributes["data-name"]?.Value == "crypto")
-        //  .FirstOrDefault().Attributes["data-value"].Value;
-
-        var dataValue = cryptoScript.Attributes["data-value"].Value;
-
-        var keys = KeysAndIv();
-
-        var decrypted = CryptoHandler(dataValue, keys.Item1, keys.Item3, false).Replace("\t", "");
-        var id = decrypted.FindBetween("", "&");
-        var end = decrypted.SubstringAfter(id);
-
-        var link = $"https://{new Uri(url).Host}/encrypt-ajax.php?id={CryptoHandler(id, keys.Item1, keys.Item3, true)}{end}&alias={id}";
-
-        //var host = new GogoAnimeScraper().BaseUrl;
-
-        var encHtmlData = await _http.SendHttpRequestAsync(link,
-            new WebHeaderCollection()
-            {
-                { "X-Requested-With", "XMLHttpRequest" },
-                //{ "Referer", host },
-            });
-
-        if (string.IsNullOrEmpty(encHtmlData))
+        if (url.Contains("streaming.php"))
         {
-            return list;
+            var doc = new HtmlDocument();
+            doc.LoadHtml(response);
+
+            //var script = doc.DocumentNode
+            //    .SelectSingleNode("script[data-name='crypto'");
+
+            //var tt = doc.DocumentNode.Descendants("script")
+            //    .Where(x => x.Name == "script").ToList();
+
+            var scripts = doc.DocumentNode.Descendants()
+                .Where(x => x.Name == "script").ToList();
+
+            var cryptoScript = scripts.Where(x => x.Attributes["data-name"]?.Value == "episode")
+                .FirstOrDefault()!;
+
+            //var dataValue = scripts.Where(x => x.Attributes["data-name"]?.Value == "crypto")
+            //  .FirstOrDefault().Attributes["data-value"].Value;
+
+            var dataValue = cryptoScript.Attributes["data-value"].Value;
+
+            var keys = KeysAndIv();
+
+            var decrypted = CryptoHandler(dataValue, keys.Item1, keys.Item3, false).Replace("\t", "");
+            var id = decrypted.FindBetween("", "&");
+            var end = decrypted.SubstringAfter(id);
+
+            var link = $"https://{host}/encrypt-ajax.php?id={CryptoHandler(id, keys.Item1, keys.Item3, true)}{end}&alias={id}";
+
+            var encHtmlData = await _http.SendHttpRequestAsync(link,
+                new WebHeaderCollection()
+                {
+                    { "X-Requested-With", "XMLHttpRequest" },
+                    //{ "Referer", host },
+                });
+
+            if (string.IsNullOrEmpty(encHtmlData))
+            {
+                return list;
+            }
+
+            var jsonObj = JObject.Parse(encHtmlData);
+            var sources = CryptoHandler(jsonObj["data"]!.ToString(), keys.Item2, keys.Item3, false);
+            sources = sources.Replace(@"o""<P{#meme"":""", @"e"":[{""file"":""");
+
+            var source = JObject.Parse(sources)["source"]!.ToString();
+            var array = JArray.Parse(source);
+
+            for (int i = 0; i < array.Count; i++)
+            {
+                var type = array[i]["type"]?.ToString().ToLower();
+
+                if (type == "hls" || type == "auto")
+                {
+                    var fileURL = array[i]["file"]!.ToString().Trim('"');
+                    var masterPlaylist = await _http.SendHttpRequestAsync(fileURL);
+                    var masterSplit = masterPlaylist.Split(new string[] { "#EXT-X-STREAM-INF:" }, StringSplitOptions.None).ToList();
+                    masterSplit.Remove(masterSplit[0]);
+
+                    for (int j = 0; j < masterSplit.Count; j++)
+                    {
+                        var videoUrlSplit = fileURL.Split('/').ToList();
+                        videoUrlSplit.RemoveAt(videoUrlSplit.Count - 1);
+                        var itSplit = masterSplit[j].Split(new string[] { "\n" }, StringSplitOptions.None).ToList();
+                        itSplit.RemoveAll(x => string.IsNullOrEmpty(x));
+
+                        var video = itSplit[0].SubstringAfter("RESOLUTION=").SubstringBefore("x") + " p";
+                        var videoUrl = string.Join("/", videoUrlSplit) + "/" + itSplit.LastOrDefault();
+
+                        list.Add(new Video()
+                        {
+                            Format = VideoType.M3u8,
+                            VideoUrl = videoUrl,
+                            Resolution = video,
+                            Headers = new()
+                            {
+                                { "Referer", url },
+                            }
+                        });
+                    }
+                }
+                else
+                {
+                    var label = array[i]["label"]!.ToString();
+                    var fileURL = array[i]["file"]!.ToString().Trim('"');
+
+                    list.Add(new Video()
+                    {
+                        Format = VideoType.Container,
+                        VideoUrl = fileURL,
+                        Resolution = label,
+                        Headers = new()
+                        {
+                            { "Referer", url },
+                        }
+                    });
+                }
+            }
         }
-
-        var jsonObj = JObject.Parse(encHtmlData);
-        var sources = CryptoHandler(jsonObj["data"]!.ToString(), keys.Item2, keys.Item3, false);
-        sources = sources.Replace(@"o""<P{#meme"":""", @"e"":[{""file"":""");
-
-        var source = JObject.Parse(sources)["source"]!.ToString();
-        var array = JArray.Parse(source);
-
-        if (array.Count == 1 && array[0]["type"]?.ToString() == "hls")
+        else if (url.Contains("embedplus"))
         {
-            string fileURL = array[0]["file"]!.ToString().Trim('"');
-            string masterPlaylist = await _http.SendHttpRequestAsync(fileURL);
-            var masterSplit = masterPlaylist.Split(new string[] { "#EXT-X-STREAM-INF:" }, StringSplitOptions.None).ToList();
-            masterSplit.Remove(masterSplit[0]);
-
-            for (int i = 0; i < masterSplit.Count; i++)
+            var file = response.FindBetween("sources:[{file: '", "',");
+            if (!string.IsNullOrEmpty(file))
             {
-                var videoUrlSplit = fileURL.Split('/').ToList();
-                videoUrlSplit.RemoveAt(videoUrlSplit.Count - 1);
-                var itSplit = masterSplit[i].Split(new string[] { "\n" }, StringSplitOptions.None).ToList();
-                itSplit.RemoveAll(x => string.IsNullOrEmpty(x));
-
-                var video = itSplit[0].SubstringAfter("RESOLUTION=").SubstringBefore("x") + " p";
-                var videoUrl = string.Join("/", videoUrlSplit) + "/" + itSplit.LastOrDefault();
-
                 list.Add(new Video()
                 {
-                    FileType = "m3u8",
-                    IsM3U8 = true,
-                    VideoUrl = videoUrl,
-                    Resolution = video,
+                    Format = VideoType.M3u8,
+                    VideoUrl = file,
                     Headers = new()
                     {
                         { "Referer", url },
                     }
                 });
             }
-
-            return list;
         }
-
-        list = array.Select(x =>
-        {
-            return new Video()
-            {
-                IsM3U8 = x["file"]!.ToString().Contains(".m3u8"),
-                VideoUrl = x["file"]!.ToString(),
-                Resolution = x["label"]!.ToString(),
-                FileType = x["type"]!.ToString(),
-                Headers = new()
-                {
-                    { "Referer", url },
-                }
-            };
-        }).ToList();
 
         return list;
     }

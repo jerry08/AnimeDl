@@ -1,4 +1,4 @@
-﻿namespace AnimeDl;
+﻿namespace AnimeDl.Models;
 
 /// <summary>
 /// The Class which contains all the information about a Genre

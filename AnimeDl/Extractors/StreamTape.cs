@@ -31,7 +31,7 @@ internal class StreamTape : VideoExtractor
         {
             new Video()
             {
-                IsM3U8 = vidUrl.Contains(".m3u8"),
+                Format = VideoType.M3u8,
                 VideoUrl = vidUrl,
                 Resolution = "Multi Quality",
             }

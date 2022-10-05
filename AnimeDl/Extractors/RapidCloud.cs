@@ -75,18 +75,10 @@ internal class RapidCloud : VideoExtractor
             {
                 VideoUrl = $"{m3u8File.Split(new string[] { "master.m3u8" }, StringSplitOptions.None)[0]}${f2.Replace("iframes", "index")}",
                 Headers = headers,
-                IsM3U8 = sources.Contains(".m3u8"),
+                Format = VideoType.M3u8,
                 Resolution = "Multi Quality"
             });
         }
-
-        //list.Add(new Video()
-        //{
-        //    VideoUrl = sources,
-        //    Headers = headers,
-        //    IsM3U8 = sources.Contains(".m3u8"),
-        //    Resolution = "Multi Quality"
-        //});
 
         return list;
     }

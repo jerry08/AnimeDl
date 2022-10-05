@@ -13,6 +13,9 @@ using AnimeDl.Utils;
 using AnimeDl.Utils.Extensions;
 using System.Collections.Specialized;
 using AnimeDl.Anilist;
+using AnimeDl.Anilist.Models;
+using System.Linq;
+using Newtonsoft.Json.Linq;
 
 namespace AnimeDl;
 
@@ -156,6 +159,52 @@ public class AnimeClient
         return list;
     }
 
+    public virtual async Task<Anime?> AutoSearch(Media mediaObj)
+    {
+        var response = await SearchAsync(mediaObj.Name!);
+        //response ??= await SearchAsync(mediaObj.NameRomaji!);
+        response = response.Count <= 0 ? await SearchAsync(mediaObj.NameRomaji!) : response;
+
+        if (response is null)
+            return null;
+
+        response = response.OrderBy(x => LevenshteinDistance.Compute(
+            mediaObj.Name!.ToLower(), x.Title.ToLower())).ToList();
+
+        if (response.Count <= 0 || LevenshteinDistance.Compute(
+            mediaObj.Name!.ToLower(), response[0].Title.ToLower()) > 1)
+        {
+            var idMal = mediaObj.IdMal;
+
+            //Find by mal
+            var url = $"https://api.myanimelist.net/v2/anime/{idMal}?fields=id,title,main_picture,alternative_titles,start_date,end_date,synopsis,mean,rank,popularity,num_list_users,num_scoring_users,status,genres,my_list_status,num_episodes,start_season,background,related_anime,related_manga,studios,";
+
+            var clientId = "057e21278f0a33a664133e70dce8047d";
+            var headers = new NameValueCollection()
+            {
+                { "X-MAL-CLIENT-ID", clientId }
+            };
+
+            var tt = await _http.SendHttpRequestAsync(url, headers);
+
+            var title = JObject.Parse(tt)?["title"]?.ToString();
+            response = await SearchAsync(title!);
+
+            response = response.OrderBy(x => LevenshteinDistance.Compute(
+                title!.ToLower(), x.Title.ToLower())).ToList();
+        }
+
+        /*for (int i = 0; i < response.Count; i++)
+        {
+            var anime = response[i];
+
+            var distance = LevenshteinDistance.Compute(
+                mediaObj.Name!.ToLower(), anime.Title.ToLower());
+        }*/
+
+        return response[0];
+    }
+
     #region Search for Animes
     /// <summary>
     /// Bool to check if anime search is completed.
@@ -243,7 +292,7 @@ public class AnimeClient
     public async Task<List<Anime>> SearchAsync(
         string query)
     {
-        return Animes = await _scraper.SearchAsync(query, SearchFilter.Find, 1, false);
+        return Animes = await SearchAsync(query, SearchFilter.Find, 1, false);
     }
 
     /// <summary>
@@ -253,19 +302,7 @@ public class AnimeClient
         string query,
         SearchFilter searchFilter)
     {
-        return Animes = await _scraper.SearchAsync(query, searchFilter, 1, false);
-    }
-
-    /// <summary>
-    /// Search for animes.
-    /// </summary>
-    public async Task<List<Anime>> SearchAsync(
-        string query,
-        SearchFilter searchFilter,
-        int page,
-        bool selectDub)
-    {
-        return Animes = await _scraper.SearchAsync(query, searchFilter, page, selectDub);
+        return Animes = await SearchAsync(query, searchFilter, 1, false);
     }
 
     /// <summary>
@@ -282,6 +319,21 @@ public class AnimeClient
     public async Task<List<Anime>> SearchAsync(SearchFilter searchFilter)
     {
         return Animes = await SearchAsync("", searchFilter, 0, false);
+    }
+
+    /// <summary>
+    /// Search for animes.
+    /// </summary>
+    public async Task<List<Anime>> SearchAsync(
+        string query,
+        SearchFilter searchFilter,
+        int page,
+        bool selectDub)
+    {
+        if (string.IsNullOrEmpty(query))
+            return new();
+
+        return Animes = await _scraper.SearchAsync(query, searchFilter, page, selectDub);
     }
     #endregion
 

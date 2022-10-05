@@ -1,7 +1,6 @@
 ﻿using System.Net.Http;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using Newtonsoft.Json.Linq;
 using AnimeDl.Models;
 using AnimeDl.Utils.Extensions;
@@ -33,7 +32,7 @@ internal class TenshiVideoExtractor : VideoExtractor
             list.Add(new Video()
             {
                 Headers = headers,
-                IsM3U8 = source["src"]!.ToString().Contains(".m3u8"),
+                Format = VideoType.Container,
                 FileType = source["type"]!.ToString(),
                 Resolution = source["size"]!.ToString(),
                 VideoUrl = source["src"]!.ToString(),

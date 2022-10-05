@@ -31,8 +31,12 @@ internal class NameValueCollectionConverter : JsonConverter
     public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
     {
         var nvc = ((NameValueCollection)value!).ToDictionary();
-        var json = JsonConvert.SerializeObject(nvc);
+        //var json = JsonConvert.SerializeObject(nvc);
 
-        writer.WriteRaw(json);
+        var jToken = JToken.FromObject(nvc);
+
+        jToken.WriteTo(writer);
+
+        //writer.WriteRaw(json);
     }
 }

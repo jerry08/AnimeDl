@@ -63,7 +63,7 @@ internal class StreamSB : VideoExtractor
         {
             new Video()
             {
-                IsM3U8 = masterUrl.Contains(".m3u8"),
+                Format = VideoType.M3u8,
                 VideoUrl = masterUrl,
                 Headers = headers,
                 Resolution = "Multi Quality"

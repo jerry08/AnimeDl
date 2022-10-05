@@ -1,0 +1,39 @@
+{
+  "data": {
+    "Page": {
+      "pageInfo": {
+        "total": 1,
+        "perPage": 50,
+        "currentPage": 1,
+        "lastPage": 1,
+        "hasNextPage": false
+      },
+      "media": [
+        {
+          "id": 131586,
+          "idMal": 48569,
+          "isAdult": false,
+          "status": "FINISHED",
+          "chapters": null,
+          "episodes": 12,
+          "nextAiringEpisode": null,
+          "type": "ANIME",
+          "genres": [ "Action", "Drama", "Mecha", "Sci-Fi" ],
+          "meanScore": 86,
+          "isFavourite": false,
+          "bannerImage": "https:\/\/s4.anilist.co\/file\/anilistcdn\/media\/anime\/banner\/131586-NX87XwV4S9os.jpg",
+          "coverImage": {
+            "large": "https:\/\/s4.anilist.co\/file\/anilistcdn\/media\/anime\/cover\/medium\/bx131586-k0X2kVpUOkqX.jpg",
+            "extraLarge": "https:\/\/s4.anilist.co\/file\/anilistcdn\/media\/anime\/cover\/large\/bx131586-k0X2kVpUOkqX.jpg"
+          },
+          "title": {
+            "english": "86 EIGHTY-SIX Season 2",
+            "romaji": "86: Eighty Six Part 2",
+            "userPreferred": "86: Eighty Six Part 2"
+          },
+          "mediaListEntry": null
+        }
+      ]
+    }
+  }
+}

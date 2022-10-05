@@ -1,17 +1,22 @@
-﻿using AnimeDl.Utils;
-using AnimeDl.Utils.Extensions;
-using Newtonsoft.Json;
-using System;
+﻿using System;
+using System.Linq;
+using System.Text;
+using System.Net.Http;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
+using Newtonsoft.Json;
 using AnimeDl.Anilist.Api;
+using AnimeDl.Utils;
+using AnimeDl.Utils.Extensions;
+using Media = AnimeDl.Anilist.Models.Media;
+using Character = AnimeDl.Anilist.Models.Character;
 
 namespace AnimeDl.Anilist;
 
+/// <summary>
+/// Client for interacting with Anilist.
+/// </summary>
 public class AnilistClient
 {
     private readonly HttpClient _http;
@@ -20,11 +25,17 @@ public class AnilistClient
 
     public bool ListOnly { get; set; } = false;
 
+    /// <summary>
+    /// Initializes an instance of <see cref="AnilistClient"/>.
+    /// </summary>
     public AnilistClient(HttpClient httpClient)
     {
         _http = httpClient;
     }
 
+    /// <summary>
+    /// Initializes an instance of <see cref="AnilistClient"/>.
+    /// </summary>
     public AnilistClient() : this(Http.Client)
     {
     }
@@ -56,14 +67,95 @@ public class AnilistClient
         return JsonConvert.DeserializeObject<T>(json);
     }
 
+    public async Task<Media?> GetMediaDetailsAsync(Media media)
+    {
+        media.CameFromContinue = false;
+
+        var query = "{Media(id:" + media.Id + "){id mediaListEntry{id status score(format:POINT_100) progress private repeat customLists updatedAt startedAt{year month day}completedAt{year month day}}isFavourite siteUrl idMal nextAiringEpisode{episode airingAt}source countryOfOrigin format duration season seasonYear startDate{year month day}endDate{year month day}genres studios(isMain:true){nodes{id name siteUrl}}description trailer { site id } synonyms tags { name rank isMediaSpoiler } characters(sort:[ROLE,FAVOURITES_DESC],perPage:25,page:1){edges{role node{id image{medium}name{userPreferred}}}}relations{edges{relationType(version:2)node{id idMal mediaListEntry{progress private score(format:POINT_100) status} episodes chapters nextAiringEpisode{episode} popularity meanScore isAdult isFavourite title{english romaji userPreferred}type status(version:2)bannerImage coverImage{large}}}}recommendations(sort:RATING_DESC){nodes{mediaRecommendation{id idMal mediaListEntry{progress private score(format:POINT_100) status} episodes chapters nextAiringEpisode{episode}meanScore isAdult isFavourite title{english romaji userPreferred}type status(version:2)bannerImage coverImage{large}}}}externalLinks{url site}}}";
+        
+        var response = await ExecuteQueryAsync<Query.Media>(query);
+        if (response is not null)
+        {
+            var fetchedMedia = response?.Data?.Media;
+            if (fetchedMedia is null)
+                return null;
+
+            media.Source = fetchedMedia.Source.ToString();
+            media.CountryOfOrigin = fetchedMedia.CountryOfOrigin;
+            media.Format = fetchedMedia.Format.ToString();
+
+            media.StartDate = fetchedMedia.StartDate;
+            media.EndDate = fetchedMedia.EndDate;
+
+            if (fetchedMedia.Genres is not null)
+            {
+                media.Genres = new List<string>();
+                media.Genres.AddRange(fetchedMedia.Genres);
+            }
+
+            media.Trailer = fetchedMedia.Trailer?.Site == "youtube" ?
+                 $"https://www.youtube.com/embed/{fetchedMedia.Trailer.Id?.ToString().Trim('"')}" : null;
+
+            if (fetchedMedia.Synonyms is not null)
+            {
+                media.Synonyms = new();
+                media.Synonyms?.AddRange(fetchedMedia.Synonyms);
+            }
+
+            if (fetchedMedia.Tags is not null)
+            {
+                media.Tags = new();
+
+                fetchedMedia.Tags.ForEach(i =>
+                {
+                    if (i.IsMediaSpoiler == false)
+                        media.Tags.Add($"{i.Name} : {i.Rank}%");
+                });
+            }
+
+            media.Description = fetchedMedia.Description;
+
+            if (fetchedMedia.Characters is not null)
+            {
+                media.Characters = new List<Character>();
+
+                fetchedMedia.Characters.Edges?.ForEach(i =>
+                {
+                    if (i.Node is not null)
+                    {
+                        var character = new Character()
+                        {
+                            Id = i.Node.Id,
+                            Name = i.Node?.Name?.UserPreferred,
+                            Image = i.Node?.Image?.Medium,
+                            Banner = media.Banner ?? media.Cover,
+                            Role = i.Role
+                        };
+
+                        media.Characters.Add(character);
+                    }
+                });
+            }
+
+            if (fetchedMedia.Relations is not null)
+            {
+
+            }
+
+            return media;
+        }
+
+        return null;
+    }
+
     public async Task<SearchResults?> SearchAsync(
         string type,
         int? page = null,
         int? perPage = null,
         string? search = null,
         string? sort = null,
-        string[]? genres = null,
-        string[]? tags = null,
+        List<string>? genres = null,
+        List<string>? tags = null,
         string? format = null,
         bool isAdult = false,
         bool? onList = null,
@@ -133,8 +225,8 @@ public class AnilistClient
         variables += id is not null ? @$",""id"":{id}" : "";
         variables += search is not null ? @$",""search"":""{search}""" : "";
         variables += format is not null ? @$",""format"":{format}" : "";
-        variables += genres is not null && genres!.Length > 0 ? @$",""genres"":{genres[0]}" : "";
-        variables += tags is not null && tags!.Length > 0 ? @$",""tags"":{tags[0]}" : "";
+        variables += genres is not null && genres!.Count > 0 ? @$",""genres"":{genres[0]}" : "";
+        variables += tags is not null && tags!.Count > 0 ? @$",""tags"":{tags[0]}" : "";
 
         variables = "{" + variables.Replace("\n", " ").Replace(@"""  """, "") + "}";
         
@@ -144,14 +236,22 @@ public class AnilistClient
         if (response is null || response.Media is null)
             return null;
 
-        response.Media.ForEach(x =>
+        response.Media.ForEach(i =>
         {
-            var userStatus = x.MediaListEntry?.Status.ToString();
+            var userStatus = i.MediaListEntry?.Status.ToString();
             var genresArr = new List<string>();
-            if (x.Genres is not null)
+            if (i.Genres is not null)
             {
-
+                i.Genres.AddRange(i.Genres);
             }
+
+            var media = new Media(i);
+            if (!hd)
+                media.Cover = i.CoverImage?.Large;
+            media.Relation = onList == true ? userStatus : null;
+            media.Genres = genresArr;
+
+            responseArray.Add(media);
         });
 
         var pageInfo = response?.PageInfo;
@@ -164,11 +264,10 @@ public class AnilistClient
             Sort = sort,
             IsAdult = isAdult,
             OnList = onList,
-            //Genres = genres,
-            //Tags = tags,
+            Genres = genres,
+            Tags = tags,
             Format = format,
-            //Results = responseArray,
-            Results = response!.Media,
+            Results = responseArray,
             Page =  pageInfo?.CurrentPage ?? 0,
             HasNextPage = pageInfo?.HasNextPage == true,
         };
@@ -231,7 +330,7 @@ public class AnilistClient
                     (x.Media.IsAdult == IsAdult || (ListOnly && x.Media.MediaListEntry is not null))))
                 {
                     idArr.Add(x.Media.Id);
-                    responseArray.Add(x.Media);
+                    responseArray.Add(new Media(x.Media));
                 }
             }
         });

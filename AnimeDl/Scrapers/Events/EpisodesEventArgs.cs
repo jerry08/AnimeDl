@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AnimeDl.Models;
+using System;
 using System.Collections.Generic;
 
 namespace AnimeDl.Scrapers.Events;

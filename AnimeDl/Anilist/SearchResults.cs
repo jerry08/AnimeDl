@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using AnimeDl.Anilist.Api;
+using AnimeDl.Anilist.Models;
 
 namespace AnimeDl.Anilist;
 

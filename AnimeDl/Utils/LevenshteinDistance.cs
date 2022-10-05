@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AnimeDl;
+namespace AnimeDl.Utils;
 
 /// <summary>
 /// Contains approximate string matching
