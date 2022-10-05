@@ -27,6 +27,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Data\anilist_test.json" />
+    <None Remove="Data\anilist_test2.json" />
+    <None Remove="Data\vv - Copy.json" />
+    <None Remove="Data\vv.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BrotliSharpLib" Version="0.3.3" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.42" />
     <PackageReference Include="Nager.PublicSuffix" Version="2.3.0" />
