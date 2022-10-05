@@ -25,7 +25,7 @@ public class Video
     /// <summary>
     /// No need to set it on M3U8 links
     /// </summary>
-    public double? Size { get; set; }
+    public long? Size { get; set; }
 
     /// <summary>
     /// The direct url to the Video

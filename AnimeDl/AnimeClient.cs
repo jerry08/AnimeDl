@@ -465,14 +465,15 @@ public class AnimeClient
     /// <summary>
     /// Search for videos.
     /// </summary>
-    public List<Video> GetVideos(VideoServer server, bool forceLoad = false)
+    public List<Video> GetVideos(VideoServer server,
+        bool showSizeIfAvailable = true, bool forceLoad = false)
     {
         IsLoadingVideos = true;
 
         if (_videosCancellationTokenSource.IsCancellationRequested)
             _videosCancellationTokenSource = new();
 
-        var function = () => GetVideosAsync(server);
+        var function = () => GetVideosAsync(server, showSizeIfAvailable);
         if (forceLoad)
         {
             Videos = AsyncHelper.RunSync(function, _videosCancellationTokenSource.Token);   
@@ -491,9 +492,21 @@ public class AnimeClient
     /// <summary>
     /// Search for video links.
     /// </summary>
-    public async Task<List<Video>> GetVideosAsync(VideoServer server)
+    public async Task<List<Video>> GetVideosAsync(VideoServer server,
+        bool showSizeIfAvailable = true)
     {
-        return Videos = await _scraper.GetVideosAsync(server);
+        Videos = await _scraper.GetVideosAsync(server);
+        
+        if (showSizeIfAvailable)
+        {
+            foreach (var video in Videos)
+            {
+                if (video.Format == VideoType.Container)
+                    video.Size = await _http.TryGetContentLengthAsync(video.VideoUrl);
+            }
+        }
+
+        return Videos;
     }
     #endregion
 

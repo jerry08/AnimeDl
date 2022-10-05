@@ -404,12 +404,12 @@ public static class Program
 
         videoServerIndex--;
 
-        var videos = await _client.GetVideosAsync(videoServers[videoServerIndex]);
+        var videos = await _client.GetVideosAsync(videoServers[videoServerIndex], false);
         Console.WriteLine($"Videos found: " + videos.Count);
 
         for (int i = 0; i < videos.Count; i++)
         {
-            Console.WriteLine($"[{i + 1}] {videos[i].Resolution} - {videos[i].Format}");
+            Console.WriteLine($"[{i + 1}] {videos[i].Resolution} - {videos[i].Format} (Size: {videos[i].Size})");
         }
 
         Console.WriteLine();
