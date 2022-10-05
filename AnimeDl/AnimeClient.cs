@@ -502,7 +502,7 @@ public class AnimeClient
             foreach (var video in Videos)
             {
                 if (video.Format == VideoType.Container)
-                    video.Size = await _http.TryGetContentLengthAsync(video.VideoUrl);
+                    video.Size = await _http.GetFileSizeAsync(video.VideoUrl, video.Headers);
             }
         }
 
