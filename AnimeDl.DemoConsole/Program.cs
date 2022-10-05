@@ -404,7 +404,7 @@ public static class Program
 
         videoServerIndex--;
 
-        var videos = await _client.GetVideosAsync(videoServers[videoServerIndex], false);
+        var videos = await _client.GetVideosAsync(videoServers[videoServerIndex]);
         Console.WriteLine($"Videos found: " + videos.Count);
 
         for (int i = 0; i < videos.Count; i++)
