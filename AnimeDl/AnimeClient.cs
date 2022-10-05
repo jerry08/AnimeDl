@@ -330,7 +330,7 @@ public class AnimeClient
         int page,
         bool selectDub)
     {
-        if (string.IsNullOrEmpty(query))
+        if (searchFilter == SearchFilter.Find && string.IsNullOrEmpty(query))
             return new();
 
         return Animes = await _scraper.SearchAsync(query, searchFilter, page, selectDub);
