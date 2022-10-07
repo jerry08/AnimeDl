@@ -23,8 +23,8 @@ internal class NineAnimeScraper : BaseScraper
     public override bool IsDubAvailableSeparately { get; set; } = true;
 
     //public override string BaseUrl => "https://9anime.center";
-    //public override string BaseUrl => "https://9anime.pl";
-    public override string BaseUrl => "https://9anime.id";
+    public override string BaseUrl => "https://9anime.pl";
+    //public override string BaseUrl => "https://9anime.id";
 
     public NineAnimeScraper(HttpClient http) : base(http)
     {
@@ -51,9 +51,7 @@ internal class NineAnimeScraper : BaseScraper
         };
 
         if (htmlData is null)
-        {
             return animes;
-        }
 
         var document = new HtmlDocument();
         document.LoadHtml(htmlData);
