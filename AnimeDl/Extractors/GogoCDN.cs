@@ -27,7 +27,7 @@ internal class GogoCDN : VideoExtractor
         //var host = _server.Embed.Headers["Referer"];
         var host = new Uri(url).Host;
 
-        var list = new List<Video>();
+        var videoList = new List<Video>();
 
         var response = await _http.SendHttpRequestAsync(url);
 
@@ -69,18 +69,59 @@ internal class GogoCDN : VideoExtractor
                 });
 
             if (string.IsNullOrEmpty(encHtmlData))
-            {
-                return list;
-            }
+                return videoList;
 
             var jsonObj = JObject.Parse(encHtmlData);
-            var sources = CryptoHandler(jsonObj["data"]!.ToString(), keys.Item2, keys.Item3, false);
-            sources = sources.Replace(@"o""<P{#meme"":""", @"e"":[{""file"":""");
+            var jumbledJson = CryptoHandler(jsonObj["data"]!.ToString(), keys.Item2, keys.Item3, false);
+            jumbledJson = jumbledJson.Replace(@"o""<P{#meme"":""", @"e"":[{""file"":""");
 
-            var source = JObject.Parse(sources)["source"]!.ToString();
+            var source = JObject.Parse(jumbledJson)["source"]!.ToString();
             var array = JArray.Parse(source);
 
-            for (int i = 0; i < array.Count; i++)
+            var sourceBk = JObject.Parse(jumbledJson)["source_bk"]!.ToString();
+            var arrayBk = JArray.Parse(source);
+
+            void AddSources(JArray array)
+            {
+                for (int i = 0; i < array.Count; i++)
+                {
+                    var label = array[i]["label"]!.ToString();
+                    var fileURL = array[i]["file"]!.ToString().Trim('"');
+                    var type = array[i]["type"]?.ToString().ToLower();
+
+                    if (type == "hls" || type == "auto")
+                    {
+                        videoList!.Add(new Video()
+                        {
+                            Format = VideoType.M3u8,
+                            VideoUrl = fileURL,
+                            Resolution = "Multi Quality",
+                            Headers = new()
+                            {
+                                { "Referer", url },
+                            }
+                        });
+                    }
+                    else
+                    {
+                        videoList!.Add(new Video()
+                        {
+                            Format = VideoType.Container,
+                            VideoUrl = fileURL,
+                            Resolution = label,
+                            Headers = new()
+                            {
+                                { "Referer", url },
+                            }
+                        });
+                    }
+                }
+            }
+
+            AddSources(array);
+            AddSources(arrayBk);
+
+            /*for (int i = 0; i < array.Count; i++)
             {
                 var type = array[i]["type"]?.ToString().ToLower();
 
@@ -101,7 +142,7 @@ internal class GogoCDN : VideoExtractor
                         var video = itSplit[0].SubstringAfter("RESOLUTION=").SubstringBefore("x") + " p";
                         var videoUrl = string.Join("/", videoUrlSplit) + "/" + itSplit.LastOrDefault();
 
-                        list.Add(new Video()
+                        videoList.Add(new Video()
                         {
                             Format = VideoType.M3u8,
                             VideoUrl = videoUrl,
@@ -118,7 +159,7 @@ internal class GogoCDN : VideoExtractor
                     var label = array[i]["label"]!.ToString();
                     var fileURL = array[i]["file"]!.ToString().Trim('"');
 
-                    list.Add(new Video()
+                    videoList.Add(new Video()
                     {
                         Format = VideoType.Container,
                         VideoUrl = fileURL,
@@ -129,14 +170,14 @@ internal class GogoCDN : VideoExtractor
                         }
                     });
                 }
-            }
+            }*/
         }
         else if (url.Contains("embedplus"))
         {
             var file = response.FindBetween("sources:[{file: '", "',");
             if (!string.IsNullOrEmpty(file))
             {
-                list.Add(new Video()
+                videoList.Add(new Video()
                 {
                     Format = VideoType.M3u8,
                     VideoUrl = file,
@@ -148,7 +189,7 @@ internal class GogoCDN : VideoExtractor
             }
         }
 
-        return list;
+        return videoList;
     }
 
     private Tuple<string, string, string> KeysAndIv()
