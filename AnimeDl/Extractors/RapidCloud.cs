@@ -17,7 +17,8 @@ namespace AnimeDl.Extractors;
 internal class RapidCloud : VideoExtractor
 {
     private readonly string fallbackKey = "c1d17096f2ca11b7";
-    private readonly string consumetApi = "https://consumet-api.herokuapp.com";
+    //private readonly string consumetApi = "https://consumet-api.herokuapp.com";
+    private readonly string consumetApi = "https://api.consumet.org";
     private readonly string enimeApi = "https://api.enime.moe";
     private readonly string host = "https://rapid-cloud.co";
 
@@ -32,6 +33,11 @@ internal class RapidCloud : VideoExtractor
 
         var id = new Stack<string>(url.Split('/')).Pop().Split('?')[0];
         var sId = await _http.SendHttpRequestAsync(consumetApi + "/utils/rapid-cloud");
+
+        if (string.IsNullOrEmpty(sId))
+        {
+            sId = await _http.SendHttpRequestAsync(enimeApi + "/tool/rapid-cloud/server-id");
+        }
 
         var headers = new WebHeaderCollection()
         {
@@ -50,9 +56,7 @@ internal class RapidCloud : VideoExtractor
 
         var isEncrypted = (bool)jObj["encrypted"]!;
         if (isEncrypted)
-        {
             sources = new RapidCloudDecryptor().Decrypt(sources, decryptKey);
-        }
 
         var m3u8File = JArray.Parse(sources)[0]["file"]?.ToString()!;
 
@@ -60,7 +64,7 @@ internal class RapidCloud : VideoExtractor
             .Split('\n').Where(x => x.Contains(".m3u8") && x.Contains("RESOLUTION="))
             .ToList();
 
-        var list = new List<Video>();
+        var videoList = new List<Video>();
 
         for (int i = 0; i < m3u8data.Count; i++)
         {
@@ -71,7 +75,7 @@ internal class RapidCloud : VideoExtractor
             //var f2 = s[1].Value.Replace(/ "/g, '');
             var f2 = s[1].Value;
 
-            list.Add(new Video()
+            videoList.Add(new Video()
             {
                 VideoUrl = $"{m3u8File.Split(new string[] { "master.m3u8" }, StringSplitOptions.None)[0]}${f2.Replace("iframes", "index")}",
                 Headers = headers,
@@ -80,6 +84,6 @@ internal class RapidCloud : VideoExtractor
             });
         }
 
-        return list;
+        return videoList;
     }
 }
