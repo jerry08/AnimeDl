@@ -14,7 +14,10 @@ using AnimeDl.Utils;
 
 namespace AnimeDl.Scrapers;
 
-internal class TenshiScraper : BaseScraper
+/// <summary>
+/// Scraper for interacting with tenshi.
+/// </summary>
+public class TenshiScraper : BaseScraper
 {
     public override string Name { get; set; } = "Tenshi";
 

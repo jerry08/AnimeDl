@@ -15,7 +15,10 @@ using AnimeDl.Extractors.Interfaces;
 
 namespace AnimeDl.Scrapers;
 
-internal class ZoroScraper : BaseScraper
+/// <summary>
+/// Scraper for interacting with zoro.
+/// </summary>
+public class ZoroScraper : BaseScraper
 {
     public override string Name { get; set; } = "Zoro";
 

@@ -9,7 +9,10 @@ using AnimeDl.Extractors.Interfaces;
 
 namespace AnimeDl.Scrapers;
 
-internal abstract class BaseScraper : IAnimeScraper
+/// <summary>
+/// Base scraper for interacting with anime sites.
+/// </summary>
+public abstract class BaseScraper : IAnimeScraper
 {
     public abstract string Name { get; set; }
 

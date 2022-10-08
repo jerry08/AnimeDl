@@ -15,7 +15,10 @@ using AnimeDl.Extractors.Interfaces;
 
 namespace AnimeDl.Scrapers;
 
-internal class GogoAnimeScraper : BaseScraper
+/// <summary>
+/// Scraper for interacting with gogoanime.
+/// </summary>
+public class GogoAnimeScraper : BaseScraper
 {
     public override string Name { get; set; } = "Gogo";
 

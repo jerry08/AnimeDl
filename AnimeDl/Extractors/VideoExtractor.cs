@@ -6,7 +6,10 @@ using AnimeDl.Extractors.Interfaces;
 
 namespace AnimeDl.Extractors;
 
-internal abstract class VideoExtractor : IVideoExtractor
+/// <summary>
+/// Base class for video extractors.
+/// </summary>
+public abstract class VideoExtractor : IVideoExtractor
 {
     public readonly HttpClient _http;
     public readonly VideoServer _server;

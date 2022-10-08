@@ -7,7 +7,10 @@ using AnimeDl.Utils.Extensions;
 
 namespace AnimeDl.Extractors;
 
-internal class TenshiVideoExtractor : VideoExtractor
+/// <summary>
+/// Video extractor for tenshi.
+/// </summary>
+public class TenshiVideoExtractor : VideoExtractor
 {
     public TenshiVideoExtractor(HttpClient http,
         VideoServer server) : base(http, server)

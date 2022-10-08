@@ -16,7 +16,10 @@ using AnimeDl.Extractors.Interfaces;
 
 namespace AnimeDl.Scrapers;
 
-internal class NineAnimeScraper : BaseScraper
+/// <summary>
+/// Scraper for interacting with 9anime.
+/// </summary>
+public class NineAnimeScraper : BaseScraper
 {
     public override string Name { get; set; } = "9anime";
 
