@@ -9,7 +9,7 @@ namespace AnimeDl.Extractors;
 /// <summary>
 /// An Aes Encryptor/Decryptor
 /// </summary>
-internal class RapidCloudDecryptor
+public class RapidCloudDecryptor
 {
     public string Encrypt(string plainText, string passphrase)
     {

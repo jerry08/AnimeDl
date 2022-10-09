@@ -14,7 +14,7 @@ using AnimeDl.Utils.Extensions;
 
 namespace AnimeDl.Extractors;
 
-internal class GogoCDN : VideoExtractor
+public class GogoCDN : VideoExtractor
 {
     public GogoCDN(HttpClient http,
         VideoServer server) : base(http, server)

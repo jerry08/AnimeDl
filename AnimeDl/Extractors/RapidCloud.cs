@@ -14,7 +14,7 @@ using AnimeDl.Utils.Extensions;
 
 namespace AnimeDl.Extractors;
 
-internal class RapidCloud : VideoExtractor
+public class RapidCloud : VideoExtractor
 {
     private readonly string fallbackKey = "c1d17096f2ca11b7";
     //private readonly string consumetApi = "https://consumet-api.herokuapp.com";

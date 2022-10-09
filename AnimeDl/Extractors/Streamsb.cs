@@ -12,7 +12,7 @@ using AnimeDl.Utils.Extensions;
 
 namespace AnimeDl.Extractors;
 
-internal class StreamSB : VideoExtractor
+public class StreamSB : VideoExtractor
 {
     private readonly char[] hexArray = "0123456789ABCDEF".ToCharArray();
 

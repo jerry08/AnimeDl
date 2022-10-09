@@ -10,7 +10,7 @@ using AnimeDl.Helpers;
 
 namespace AnimeDl.Utils.Extensions;
 
-internal static class HttpExtensions
+public static class HttpExtensions
 {
     public static async ValueTask<HttpResponseMessage> HeadAsync(
         this HttpClient http,

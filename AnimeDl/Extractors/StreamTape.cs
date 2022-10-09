@@ -7,7 +7,7 @@ using AnimeDl.Utils.Extensions;
 
 namespace AnimeDl.Extractors;
 
-internal class StreamTape : VideoExtractor
+public class StreamTape : VideoExtractor
 {
     private readonly Regex LinkRegex = new(@"'robotlink'\)\.innerHTML = '(.+?)'\+ \('(.+?)'\)");
     

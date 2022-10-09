@@ -8,7 +8,7 @@ using AnimeDl.Utils.Extensions;
 
 namespace AnimeDl.Extractors;
 
-internal class FPlayer : VideoExtractor
+public class FPlayer : VideoExtractor
 {
     public FPlayer(HttpClient http,
         VideoServer server) : base(http, server)
