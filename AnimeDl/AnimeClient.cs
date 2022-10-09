@@ -655,6 +655,7 @@ public class AnimeClient
     {
         Animes = new();
         Episodes = new();
+        VideoServers = new();
         Videos = new();
         Genres = new();
     }
