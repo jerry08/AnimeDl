@@ -4,7 +4,7 @@ using System.Net.Security;
 
 namespace AnimeDl.Utils;
 
-internal static class Http
+public static class Http
 {
     private static readonly Lazy<HttpClient> HttpClientLazy = new(() =>
     {
