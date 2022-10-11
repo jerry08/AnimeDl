@@ -18,7 +18,7 @@ internal class M3u8Helper
     public class M3u8Stream
     {
         public string StreamUrl { get; set; } = default!;
-        public string Video { get; set; } = default!;
+        public string Resolution { get; set; } = default!;
         public WebHeaderCollection Headers { get; set; } = default!;
     }
 
@@ -76,7 +76,7 @@ internal class M3u8Helper
 
             //var token = JToken.FromObject(match.ToString());
 
-            var video = match.Groups[1]?.Value!;
+            var resolution = match.Groups[1]?.Value!;
             var m3u8Link = match.Groups[2]?.Value!;
             var m3u8Link2 = match.Groups[3]?.Value!;
             if (string.IsNullOrEmpty(m3u8Link))
@@ -94,7 +94,7 @@ internal class M3u8Helper
 
             list.Add(new M3u8Stream()
             {
-                Video = video,
+                Resolution = resolution,
                 StreamUrl = m3u8Link,
                 Headers = m3u8.Headers
             });
