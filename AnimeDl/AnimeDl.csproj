@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Extractors\Streamsb - Copy.cs" />
     <Compile Remove="Scrapers\Interfaces\IPaginator.cs" />
     <Compile Remove="Utils\JsonConverters\CollectionConverter.cs" />
     <Compile Remove="Utils\JsonConverters\WebHeaderCollectionConverter.cs" />
@@ -39,7 +40,5 @@
     <PackageReference Include="Nager.PublicSuffix" Version="2.3.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
-
-  <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
 
 </Project>
