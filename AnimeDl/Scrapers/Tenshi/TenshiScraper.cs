@@ -136,11 +136,20 @@ public class TenshiScraper : BaseScraper
         {
             var episode = new Episode();
 
-            episode.Name = node.SelectSingleNode(".//div[@class='episode-title']").InnerText;
-            episode.Number = Convert.ToSingle(node.SelectSingleNode(".//div[@class='episode-slug']").InnerText.Replace("Episode ", ""));
+            var titleNode = node.SelectSingleNode(".//div[@class='episode-title']")
+                ?? node.SelectSingleNode(".//div[contains(@class, 'episode-label')]");
+
+            var epNumberNode = node.SelectSingleNode(".//div[@class='episode-slug']")
+                ?? node.SelectSingleNode(".//div[contains(@class, 'episode-number')]");
+
+            var descNode = node.SelectSingleNode(".//div[contains(@class, 'desc')]")
+                ?? node.SelectSingleNode(".//a");
+
+            episode.Name = titleNode.InnerText;
+            episode.Number = Convert.ToSingle(epNumberNode.InnerText.Replace("Episode ", ""));
             episode.Link = $"{anime.Link}/{episode.Number}";
-            episode.Image = node.SelectSingleNode(".//img").Attributes["src"].Value;
-            episode.Description = node.SelectSingleNode(".//a").Attributes["data-content"].Value;
+            episode.Image = node.SelectSingleNode(".//img")?.Attributes["src"].Value ?? "";
+            episode.Description = descNode.Attributes["data-content"].Value;
 
             if (episode.Name == "No Title")
             {
