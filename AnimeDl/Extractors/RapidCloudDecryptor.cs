@@ -83,12 +83,14 @@ public class RapidCloudDecryptor
     static byte[] EncryptStringToBytesAes(string plainText, byte[] key, byte[] iv)
     {
         // Check arguments.
-        if (plainText == null || plainText.Length <= 0)
-            throw new ArgumentNullException("plainText");
-        if (key == null || key.Length <= 0)
-            throw new ArgumentNullException("key");
-        if (iv == null || iv.Length <= 0)
-            throw new ArgumentNullException("iv");
+        if (plainText is null || plainText.Length <= 0)
+            throw new ArgumentNullException(nameof(plainText));
+
+        if (key is null || key.Length <= 0)
+            throw new ArgumentNullException(nameof(key));
+
+        if (iv is null || iv.Length <= 0)
+            throw new ArgumentNullException(nameof(iv));
 
         // Declare the stream used to encrypt to an in memory
         // array of bytes.
@@ -135,12 +137,14 @@ public class RapidCloudDecryptor
     static string DecryptStringFromBytesAes(byte[] cipherText, byte[] key, byte[] iv)
     {
         // Check arguments.
-        if (cipherText == null || cipherText.Length <= 0)
-            throw new ArgumentNullException("cipherText");
-        if (key == null || key.Length <= 0)
-            throw new ArgumentNullException("key");
-        if (iv == null || iv.Length <= 0)
-            throw new ArgumentNullException("iv");
+        if (cipherText is null || cipherText.Length <= 0)
+            throw new ArgumentNullException(nameof(cipherText));
+
+        if (key is null || key.Length <= 0)
+            throw new ArgumentNullException(nameof(key));
+
+        if (iv is null || iv.Length <= 0)
+            throw new ArgumentNullException(nameof(iv));
 
         // Declare the RijndaelManaged object
         // used to decrypt the data.
@@ -157,13 +161,13 @@ public class RapidCloudDecryptor
             aesAlg = new RijndaelManaged { Mode = CipherMode.CBC, KeySize = 256, BlockSize = 128, Key = key, IV = iv };
 
             // Create a decrytor to perform the stream transform.
-            ICryptoTransform decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
+            var decryptor = aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV);
             // Create the streams used for decryption.
-            using (MemoryStream msDecrypt = new MemoryStream(cipherText))
+            using (var msDecrypt = new MemoryStream(cipherText))
             {
-                using (CryptoStream csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read))
+                using (var csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read))
                 {
-                    using (StreamReader srDecrypt = new StreamReader(csDecrypt))
+                    using (var srDecrypt = new StreamReader(csDecrypt))
                     {
                         // Read the decrypted bytes from the decrypting stream
                         // and place them in a string.
