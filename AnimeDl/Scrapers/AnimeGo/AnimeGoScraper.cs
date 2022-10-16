@@ -16,12 +16,11 @@ using AnimeDl.Extractors.Interfaces;
 namespace AnimeDl.Scrapers;
 
 /// <summary>
-/// Scraper for interacting with Jutsu.
+/// Scraper for interacting with AnimeGO.
 /// </summary>
-
-public class JutsuScraper : BaseScraper
+public class AnimeGoScraper : BaseScraper
 {
-    public override string Name { get; set; } = "Jut.su";
+    public override string Name { get; set; } = "AnimeGO";
 
     public override bool IsDubAvailableSeparately { get; set; } = true;
 
@@ -31,14 +30,14 @@ public class JutsuScraper : BaseScraper
 
     public string CdnUrl { get; private set; } = default!;
 
-    public JutsuScraper(HttpClient http) : base(http)
+    public AnimeGoScraper(HttpClient http) : base(http)
     {
         SetData();
     }
 
     private void SetData()
     {
-        var json = _http.Get("https://raw.githubusercontent.com/jerry08/AnimeDl/master/AnimeDl/Data/jutsu.json");
+        var json = _http.Get("https://raw.githubusercontent.com/jerry08/AnimeDl/master/AnimeDl/Data/animego.json");
         if (!string.IsNullOrEmpty(json))
         {
             var jObj = JObject.Parse(json);
@@ -48,7 +47,7 @@ public class JutsuScraper : BaseScraper
     }
 
     public override async Task<List<Anime>> SearchAsync(
-        string query, 
+        string query,
         SearchFilter searchFilter,
         int page,
         bool selectDub)
@@ -61,12 +60,13 @@ public class JutsuScraper : BaseScraper
         var htmlData = searchFilter switch
         {
             SearchFilter.Find => await _http.SendHttpRequestAsync($"{BaseUrl}search.html?keyword=" + query),
-            SearchFilter.AllList => await _http.SendHttpRequestAsync($"https://jut.su/anime/"),
-            SearchFilter.NewSeason => await _http.SendHttpRequestAsync($"{BaseUrl}new-season.html?page=" + page),            _
+            SearchFilter.AllList => await _http.SendHttpRequestAsync($"https://animego.org/anime"),
+            SearchFilter.NewSeason => await _http.SendHttpRequestAsync($"{BaseUrl}new-season.html?page=" + page),
+            _
             => throw new SearchFilterNotSupportedException("Search filter not supported")
         };
 
-        if(htmlData is null)
+        if (htmlData is null)
             return animes;
 
         var document = new HtmlDocument();
@@ -74,11 +74,11 @@ public class JutsuScraper : BaseScraper
 
         var itemsNode = document.DocumentNode.Descendants().Where(node => node.HasClass("items")).FirstOrDefault();
 
-        if(itemsNode is not null)
+        if (itemsNode is not null)
         {
             var nodes3 = itemsNode.Descendants().Where(node => node.Name == "li").ToList();
 
-            for(int i = 0; i < nodes3.Count; i++)
+            for (int i = 0; i < nodes3.Count; i++)
             {
                 var img = "";
                 var title = "";
@@ -185,7 +185,7 @@ public class JutsuScraper : BaseScraper
         var movieId = document.DocumentNode.Descendants().Where(x => x.Id == "movie_id")
             .FirstOrDefault()?.Attributes["value"].Value;
 
-     
+
         htmlData = await _http.SendHttpRequestAsync(CdnUrl + movieId);
 
         document = new HtmlDocument();
@@ -228,7 +228,7 @@ public class JutsuScraper : BaseScraper
 
         return episodes;
     }
-    
+
     private string HttpsIfy(string text)
     {
         if (string.Join("", text.Take(2)) == "//")
@@ -270,10 +270,10 @@ public class JutsuScraper : BaseScraper
 
         if (domainInfo.Domain.Contains("jut.su") || domainInfo.Domain.Contains("jut"))
             return new GogoCDN(_http, server);
-        
+
         else if (domainInfo.Domain.Contains("sb") || domainInfo.Domain.Contains("sss"))
             return new StreamSB(_http, server);
-        
+
         else if (domainInfo.Domain.Contains("fplayer") || domainInfo.Domain.Contains("fembed"))
             return new FPlayer(_http, server);
 
