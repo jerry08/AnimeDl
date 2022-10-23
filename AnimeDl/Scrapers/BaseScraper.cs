@@ -22,7 +22,7 @@ public abstract class BaseScraper : IAnimeScraper
 
     public bool GetIsDubAvailableSeparately() => IsDubAvailableSeparately;
 
-    public readonly HttpClient _http;
+    public virtual HttpClient _http { get; set; }
 
     public BaseScraper(HttpClient http)
         => _http = http;

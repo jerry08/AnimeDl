@@ -37,6 +37,8 @@ public class TenshiScraper : BaseScraper
     //        new Cookie("loop-view", "thumb") { Domain = "tenshi" },
     //    };
 
+    public override HttpClient _http { get => new(); }
+
     public TenshiScraper(HttpClient http) : base(http)
     {
     }
@@ -87,7 +89,7 @@ public class TenshiScraper : BaseScraper
     {
         var response = await _http.SendHttpRequestAsync(id, CookieHeader);
 
-        var anime = new Anime();
+        var anime = new Anime() { Id = id };
 
         if (string.IsNullOrEmpty(response))
             return anime;
