@@ -12,6 +12,7 @@ namespace AnimeDl.Extractors;
 public abstract class VideoExtractor : IVideoExtractor
 {
     public readonly HttpClient _http;
+
     public readonly VideoServer _server;
 
     public VideoExtractor(

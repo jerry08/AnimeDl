@@ -134,7 +134,7 @@ public class GogoAnimeScraper : BaseScraper
     {
         var response = await _http.SendHttpRequestAsync($"{BaseUrl}{id}");
 
-        var anime = new Anime();
+        var anime = new Anime() { Id = id };
 
         if (string.IsNullOrEmpty(response))
             return anime;

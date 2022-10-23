@@ -106,7 +106,7 @@ public class ZoroScraper : BaseScraper
         //https://stackoverflow.com/questions/122641/how-can-i-decode-html-characters-in-c
         //HttpUtility.HtmlDecode();
 
-        var anime = new Anime();
+        var anime = new Anime() { Id = id };
 
         if (string.IsNullOrEmpty(response))
             return anime;
