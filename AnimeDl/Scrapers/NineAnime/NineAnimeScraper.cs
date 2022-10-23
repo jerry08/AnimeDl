@@ -41,7 +41,7 @@ public class NineAnimeScraper : BaseScraper
     {
         var animes = new List<Anime>();
 
-        var htmlData = searchFilter switch
+        var response = searchFilter switch
         {
             SearchFilter.Find => await _http.SendHttpRequestAsync($"{BaseUrl}/filter?sort=title%3Aasc&keyword={query}"),
             SearchFilter.Popular => await _http.SendHttpRequestAsync($"{BaseUrl}/popular.html?page=" + page),
@@ -53,11 +53,11 @@ public class NineAnimeScraper : BaseScraper
             _ => throw new SearchFilterNotSupportedException("Search filter not supported"),
         };
 
-        if (htmlData is null)
+        if (string.IsNullOrEmpty(response))
             return animes;
 
         var document = new HtmlDocument();
-        document.LoadHtml(htmlData);
+        document.LoadHtml(response);
 
         var listNode = document.DocumentNode.SelectSingleNode(".//div[@id='list-items']");
 
@@ -84,14 +84,17 @@ public class NineAnimeScraper : BaseScraper
         return animes;
     }
 
-    public override async Task<List<Episode>> GetEpisodesAsync(Anime anime)
+    public override async Task<List<Episode>> GetEpisodesAsync(string id)
     {
         var episodes = new List<Episode>();
 
-        var htmlData = await _http.SendHttpRequestAsync(anime.Link);
+        var response = await _http.SendHttpRequestAsync($"{BaseUrl}{id}");
+
+        if (string.IsNullOrEmpty(response))
+            return episodes;
 
         var document = new HtmlDocument();
-        document.LoadHtml(htmlData);
+        document.LoadHtml(response);
 
         var animeId = document.DocumentNode
             .SelectSingleNode(".//div[@id='watch-main']")
@@ -111,10 +114,10 @@ public class NineAnimeScraper : BaseScraper
 
         for (int i = 0; i < epNodes.Count; i++)
         {
-            var id = epNodes[i].Attributes["data-ids"]?.Value.Split(',')[0];
+            var dataId = epNodes[i].Attributes["data-ids"]?.Value.Split(',')[0];
 
             var epNum = Convert.ToInt32(epNodes[i].Attributes["data-num"].Value);
-            var link = $"{BaseUrl}/ajax/server/list/{id}?vrf={id}";
+            var link = $"{BaseUrl}/ajax/server/list/{dataId}?vrf={dataId}";
             var title = epNodes[i].SelectNodes(".//span[@class='d-title']")
                 .FirstOrDefault()?.InnerText;
             var name = $"Episode {epNum} - {title}";
@@ -130,12 +133,15 @@ public class NineAnimeScraper : BaseScraper
         return episodes;
     }
 
-    public override async Task<List<VideoServer>> GetVideoServersAsync(Episode episode)
+    public override async Task<List<VideoServer>> GetVideoServersAsync(string episodeId)
     {
-        var content = await _http.SendHttpRequestAsync(episode.Link);
+        var response = await _http.SendHttpRequestAsync($"{BaseUrl}{episodeId}");
+
+        if (string.IsNullOrEmpty(response))
+            return new();
 
         var document = new HtmlDocument();
-        document.LoadHtml(JObject.Parse(content)["result"]!.ToString());
+        document.LoadHtml(JObject.Parse(response)["result"]!.ToString());
 
         var dataLinksIdNodes = document.DocumentNode
             .SelectNodes(".//li").ToList();

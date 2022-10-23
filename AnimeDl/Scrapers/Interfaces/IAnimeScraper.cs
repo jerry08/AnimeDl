@@ -29,16 +29,23 @@ public interface IAnimeScraper
     /// <summary>
     /// Gets episodes from specific anime
     /// </summary>
-    /// <param name="anime"></param>
+    /// <param name="id"></param>
     /// <returns></returns>
-    Task<List<Episode>> GetEpisodesAsync(Anime anime);
+    Task<Anime> GetAnimeInfoAsync(string id);
+
+    /// <summary>
+    /// Gets episodes from specific anime
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    Task<List<Episode>> GetEpisodesAsync(string id);
 
     /// <summary>
     /// Gets video servers from specific episode
     /// </summary>
-    /// <param name="episode"></param>
+    /// <param name="episodeId"></param>
     /// <returns></returns>
-    Task<List<VideoServer>> GetVideoServersAsync(Episode episode);
+    Task<List<VideoServer>> GetVideoServersAsync(string episodeId);
 
     /// <summary>
     /// Gets video extractor from specific server

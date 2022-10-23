@@ -5,23 +5,25 @@ using System.Threading.Tasks;
 using AnimeDl.DemoConsole.Utils;
 using AnimeDl.Scrapers;
 using AnimeDl.Anilist;
+using System.Threading;
 
 namespace AnimeDl.DemoConsole;
 
 public static class Program
 {
-    private readonly static AnimeClient _client = new(AnimeSites.GogoAnime);
+    private readonly static AnimeClient _client = new(AnimeSites.Tenshi);
     private readonly static AnilistClient _client2 = new();
 
     public static async Task Main()
     {
         Console.Title = "AnimeDl Demo";
 
+        //Example1();
         await Example3();
         //await AnilistExample1();
     }
 
-    public static async Task AnilistExample1()
+    /*public static async Task AnilistExample1()
     {
         // Read the anime name
         Console.Write("Enter anime name: ");
@@ -78,7 +80,7 @@ public static class Program
 
         Console.WriteLine($"Specific anime found: {test2?.Title}");
         Console.WriteLine();
-    }
+    }*/
 
     //Method with events
     public static void Example1()
@@ -112,8 +114,8 @@ public static class Program
 
             Console.WriteLine();
 
-            // Read the anime episodes
-            var episodes = _client.GetEpisodes(animes[animeIndex]);
+            // Find the anime episodes
+            _client.GetEpisodes(animes[animeIndex].Category);
         };
 
         _client.OnEpisodesLoaded += (s, e) =>
@@ -138,7 +140,7 @@ public static class Program
 
             Console.WriteLine();
 
-            var videoServers = _client.GetVideoServers(episodes[episodeIndex]);
+            _client.GetVideoServers(episodes[episodeIndex].Id);
         };
 
         _client.OnVideoServersLoaded += (s, e) =>
@@ -166,7 +168,7 @@ public static class Program
 
             videoServerIndex--;
 
-            var videos = _client.GetVideos(videoServers[videoServerIndex]);
+            _client.GetVideos(videoServers[videoServerIndex]);
         };
 
         _client.OnVideosLoaded += (s, e) =>
@@ -213,7 +215,7 @@ public static class Program
         //First (Search anime by name)
         _client.Search(query);
 
-        System.Threading.Thread.Sleep(-1);
+        Thread.Sleep(-1);
     }
 
     //Method with force load
@@ -250,7 +252,7 @@ public static class Program
         Console.WriteLine();
 
         // Read the anime episodes
-        var episodes = _client.GetEpisodes(animes[animeIndex], forceLoad: true);
+        var episodes = _client.GetEpisodes(animes[animeIndex].Id, forceLoad: true);
         Console.WriteLine("Episodes found: " + episodes.Count);
 
         // Read the episode number selected
@@ -269,7 +271,7 @@ public static class Program
 
         Console.WriteLine();
 
-        var videoServers = _client.GetVideoServers(episodes[episodeIndex], forceLoad: true);
+        var videoServers = _client.GetVideoServers(episodes[episodeIndex].Id, forceLoad: true);
 
         for (int i = 0; i < videoServers.Count; i++)
         {
@@ -361,8 +363,11 @@ public static class Program
 
         Console.WriteLine();
 
+        // Get anime info the anime episodes
+        //var animeInfo = await _client.GetAnimeInfoAsync(animes[animeIndex].Id);
+
         // Read the anime episodes
-        var episodes = await _client.GetEpisodesAsync(animes[animeIndex]);
+        var episodes = await _client.GetEpisodesAsync(animes[animeIndex].Id);
         Console.WriteLine("Episodes found: " + episodes.Count);
 
         // Read the episode number selected
@@ -381,7 +386,7 @@ public static class Program
 
         Console.WriteLine();
 
-        var videoServers = await _client.GetVideoServersAsync(episodes[episodeIndex]);
+        var videoServers = await _client.GetVideoServersAsync(episodes[episodeIndex].Id);
 
         for (int i = 0; i < videoServers.Count; i++)
         {

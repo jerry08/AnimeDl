@@ -1,18 +1,15 @@
-﻿using AnimeDl.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using AnimeDl.Models;
 
 namespace AnimeDl.Scrapers.Events;
 
 public class EpisodesEventArgs : EventArgs
 {
-    public Anime Anime { get; private set; } = default!;
-
     public List<Episode> Episodes { get; private set; } = new();
 
-    public EpisodesEventArgs(Anime anime, List<Episode> episodes)
+    public EpisodesEventArgs(List<Episode> episodes)
     {
-        Anime = anime;
         Episodes = episodes;
     }
 }

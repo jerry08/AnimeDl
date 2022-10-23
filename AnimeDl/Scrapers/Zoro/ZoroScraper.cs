@@ -12,6 +12,7 @@ using AnimeDl.Utils.Extensions;
 using AnimeDl.Models;
 using Nager.PublicSuffix;
 using AnimeDl.Extractors.Interfaces;
+using System.Xml.Linq;
 
 namespace AnimeDl.Scrapers;
 
@@ -39,7 +40,7 @@ public class ZoroScraper : BaseScraper
 
         var animes = new List<Anime>();
 
-        var htmlData = searchFilter switch
+        var response = searchFilter switch
         {
             SearchFilter.Find => await _http.SendHttpRequestAsync($"{BaseUrl}/search?keyword=" + query),
             SearchFilter.Popular => await _http.SendHttpRequestAsync($"{BaseUrl}/most-popular?page=" + page),
@@ -48,13 +49,11 @@ public class ZoroScraper : BaseScraper
             _ => throw new SearchFilterNotSupportedException("Search filter not supported")
         };
 
-        if (htmlData is null)
-        {
+        if (string.IsNullOrEmpty(response))
             return animes;
-        }
 
         var document = new HtmlDocument();
-        document.LoadHtml(htmlData);
+        document.LoadHtml(response);
 
         var nodes = document.DocumentNode.Descendants()
             .Where(node => node.HasClass("flw-item")).ToList();
@@ -65,57 +64,55 @@ public class ZoroScraper : BaseScraper
             var title = "";
             var category = "";
             var dataId = "";
-            var link = "";
 
             var imgNode = nodes[i].SelectSingleNode(".//img");
-            if (imgNode != null)
-            {
+            if (imgNode is not null)
                 img = imgNode.Attributes["data-src"].Value;
-            }
 
             var dataIdNode = nodes[i].SelectSingleNode(".//a[@data-id]");
-            if (dataIdNode != null)
-            {
+            if (dataIdNode is not null)
                 dataId = dataIdNode.Attributes["data-id"].Value;
-            }
 
             var nameNode = nodes[i].SelectSingleNode(".//div[@class='film-detail']")
                 .SelectSingleNode(".//a");
-            if (nameNode != null)
+            if (nameNode is not null)
             {
                 category = nameNode.Attributes["href"].Value;
                 title = nameNode.Attributes["title"].Value; //OR name = nameNode.InnerText;
             }
 
-            link = BaseUrl + category;
-
             animes.Add(new Anime()
             {
-                Id = i + 1,
+                Id = category,
                 Site = AnimeSites.Zoro,
                 Image = img,
                 Title = title,
                 EpisodesNum = 0,
                 Category = category,
-                Link = link,
+                Link = BaseUrl + category,
             });
         }
 
         return animes;
     }
 
-    public override async Task<List<Episode>> GetEpisodesAsync(Anime anime)
+    public override async Task<Anime> GetAnimeInfoAsync(string id)
     {
-        var dataId = anime.Category.Split('-').Last().Split('?')[0];
+        var dataId = id.Split('-').Last().Split('?')[0];
         var url = $"{BaseUrl}/ajax/v2/episode/list/{dataId}";
 
-        var document = new HtmlDocument();
-
         //Get anime details
-        var html = await _http.SendHttpRequestAsync(anime.Link);
+        var response = await _http.SendHttpRequestAsync($"{BaseUrl}{id}");
         //https://stackoverflow.com/questions/122641/how-can-i-decode-html-characters-in-c
         //HttpUtility.HtmlDecode();
-        document.LoadHtml(HtmlEntity.DeEntitize(html));
+
+        var anime = new Anime();
+
+        if (string.IsNullOrEmpty(response))
+            return anime;
+
+        var document = new HtmlDocument();
+        document.LoadHtml(HtmlEntity.DeEntitize(response));
 
         var itemHeadNodes = document.DocumentNode.SelectNodes(".//div[@class='anisc-info-wrap']/div[@class='anisc-info']//span[@class='item-head']");
         //var overviewNode = document.DocumentNode.SelectNodes(".//div[@class='anisc-info-wrap']/div[@class='anisc-info']")[0];
@@ -160,13 +157,21 @@ public class ZoroScraper : BaseScraper
             //anime.OtherNames = HtmlEntity.DeEntitize(synonymsNode.InnerText);
             anime.OtherNames = synonymsNode.InnerText;
 
+        return anime;
+    }
+
+    public override async Task<List<Episode>> GetEpisodesAsync(string id)
+    {
+        var dataId = id.Split('-').Last().Split('?')[0];
+        var url = $"{BaseUrl}/ajax/v2/episode/list/{dataId}";
+
         //Get anime episodes
         var json = await _http.SendHttpRequestAsync(url);
         var jObj = JObject.Parse(json);
-        html = jObj["html"]!.ToString();
+        var response = jObj["html"]!.ToString();
 
-        document = new HtmlDocument();
-        document.LoadHtml(html);
+        var document = new HtmlDocument();
+        document.LoadHtml(response);
 
         var nodes = document.DocumentNode.SelectNodes(".//a")
             .Where(x => x.Attributes["data-page"] == null).ToList();
@@ -181,6 +186,7 @@ public class ZoroScraper : BaseScraper
 
             episodes.Add(new Episode()
             {
+                Id = link,
                 Name = $"{i + 1} - {title}",
                 Link = link,
                 Number = dataNumber
@@ -190,13 +196,17 @@ public class ZoroScraper : BaseScraper
         return episodes;
     }
 
-    public override async Task<List<VideoServer>> GetVideoServersAsync(Episode episode)
+    public override async Task<List<VideoServer>> GetVideoServersAsync(string episodeId)
     {
-        var dataId = episode.Link.Split(new string[] { "ep=" },
+        var dataId = episodeId.Split(new string[] { "ep=" },
             StringSplitOptions.None).Last();
+
         var url = $"{BaseUrl}/ajax/v2/episode/servers?episodeId={dataId}";
 
         var json = await _http.SendHttpRequestAsync(url);
+
+        if (string.IsNullOrEmpty(json))
+            return new();
 
         var jObj = JObject.Parse(json);
         var html = jObj["html"]!.ToString();

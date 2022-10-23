@@ -8,7 +8,7 @@ namespace AnimeDl.Models;
 /// </summary>
 public class Anime
 {
-    public int Id { get; set; }
+    public string Id { get; set; } = default!;
 
     public AnimeSites Site { get; set; }
 
@@ -21,7 +21,6 @@ public class Anime
     public string Category { get; set; } = default!;
     public string Link { get; set; } = default!;
     public string Image { get; set; } = default!;
-    public float LastWatchedEp { get; set; }
 
     public string Type { get; set; } = default!;
     public string Status { get; set; } = default!;

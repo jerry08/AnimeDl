@@ -51,20 +51,18 @@ public class TenshiScraper : BaseScraper
         //query = query.Replace(" ", "%20");
         query = query.Replace(" ", "+");
 
-        var htmlData = searchFilter switch
+        var response = searchFilter switch
         {
             SearchFilter.Find => await _http.SendHttpRequestAsync($"{BaseUrl}/anime?q={query}&s=vtt-d", CookieHeader),
             SearchFilter.NewSeason => await _http.SendHttpRequestAsync($"{BaseUrl}/anime?s=rel-d&page=" + page, CookieHeader),
             _ => throw new SearchFilterNotSupportedException("Search filter not supported")
         };
 
-        if (htmlData is null)
-        {
+        if (string.IsNullOrEmpty(response))
             return animes;
-        }
 
         var doc = new HtmlDocument();
-        doc.LoadHtml(htmlData);
+        doc.LoadHtml(response);
 
         var nodes = doc.DocumentNode
             .SelectNodes(".//ul[@class='loop anime-loop thumb']/li").ToList();
@@ -72,6 +70,7 @@ public class TenshiScraper : BaseScraper
         foreach (var node in nodes)
         {
             var anime = new Anime();
+            anime.Id = node.SelectSingleNode(".//a").Attributes["href"].Value;
             anime.Site = AnimeSites.Tenshi;
             anime.Title = node.SelectSingleNode(".//a").Attributes["title"].Value;
             anime.Link = node.SelectSingleNode(".//a").Attributes["href"].Value;
@@ -84,16 +83,17 @@ public class TenshiScraper : BaseScraper
         return animes;
     }
 
-    public override async Task<List<Episode>> GetEpisodesAsync(Anime anime)
+    public override async Task<Anime> GetAnimeInfoAsync(string id)
     {
-        var episodes = new List<Episode>();
+        var response = await _http.SendHttpRequestAsync(id, CookieHeader);
 
-        var html = await _http.SendHttpRequestAsync(anime.Link, CookieHeader);
-        if (html is null)
-            return episodes;
+        var anime = new Anime();
+
+        if (string.IsNullOrEmpty(response))
+            return anime;
 
         var document = new HtmlDocument();
-        document.LoadHtml(html);
+        document.LoadHtml(response);
 
         var synonymNodes = document.DocumentNode.SelectNodes
             (".//ul[@class='info-list']/li[@class='synonym meta-data']/div[@class='info-box']/span[@class='value']");
@@ -116,7 +116,7 @@ public class TenshiScraper : BaseScraper
             anime.Released = releasedDateNodes.InnerText.Trim();
 
         var productionsNodes = document.DocumentNode.SelectNodes
-            (".//ul[@class='info-list']/li[@class='production meta-data']/span[@class='value']")
+            (".//ul[@class='info-list']/li[@class='production meta-data']/span[@class='value']")?
             .ToList();
         if (productionsNodes is not null)
             productionsNodes.ForEach(x => anime.Productions.Add(x.InnerText.Trim()));
@@ -125,6 +125,21 @@ public class TenshiScraper : BaseScraper
             (".//ul[@class='info-list']/li[@class='genre meta-data']//a");
         if (genreNodes is not null)
             anime.Genres.AddRange(genreNodes.Select(x => new Genre(x.InnerHtml.Trim())));
+
+        return anime;
+    }
+
+    public override async Task<List<Episode>> GetEpisodesAsync(string id)
+    {
+        var episodes = new List<Episode>();
+
+        var response = await _http.SendHttpRequestAsync(id, CookieHeader);
+
+        if (string.IsNullOrEmpty(response))
+            return episodes;
+
+        var document = new HtmlDocument();
+        document.LoadHtml(response);
 
         //var nodes = document.DocumentNode
         //    .SelectNodes(".//ul[@class='loop episode-loop list']/li").ToList();
@@ -139,7 +154,7 @@ public class TenshiScraper : BaseScraper
             var titleNode = node.SelectSingleNode(".//div[@class='episode-title']")
                 ?? node.SelectSingleNode(".//div[contains(@class, 'episode-label')]");
 
-            var epNumberNode = node.SelectSingleNode(".//div[@class='episode-slug']")
+            var epNumberNode = node.SelectSingleNode(".//div[contains(@class, 'episode-slug')]")
                 ?? node.SelectSingleNode(".//div[contains(@class, 'episode-number')]");
 
             var descNode = node.SelectSingleNode(".//div[contains(@class, 'desc')]")
@@ -147,14 +162,14 @@ public class TenshiScraper : BaseScraper
 
             episode.Name = titleNode.InnerText;
             episode.Number = Convert.ToSingle(epNumberNode.InnerText.Replace("Episode ", ""));
-            episode.Link = $"{anime.Link}/{episode.Number}";
             episode.Image = node.SelectSingleNode(".//img")?.Attributes["src"].Value ?? "";
             episode.Description = descNode.Attributes["data-content"].Value;
 
+            episode.Id = $"{id}/{episode.Number}";
+            episode.Link = $"{id}/{episode.Number}";
+
             if (episode.Name == "No Title")
-            {
                 episode.Name = $"Ep - {episode.Number}";
-            }
 
             episodes.Add(episode);
         }
@@ -177,16 +192,17 @@ public class TenshiScraper : BaseScraper
         return episodes;
     }
 
-    public override async Task<List<VideoServer>> GetVideoServersAsync(Episode episode)
+    public override async Task<List<VideoServer>> GetVideoServersAsync(string episodeId)
     {
         var videoServers = new List<VideoServer>();
 
-        var html = await _http.SendHttpRequestAsync(episode.Link, CookieHeader);
-        if (html is null)
+        var response = await _http.SendHttpRequestAsync(episodeId, CookieHeader);
+
+        if (string.IsNullOrEmpty(response))
             return videoServers;
 
         var doc = new HtmlDocument();
-        doc.LoadHtml(html);
+        doc.LoadHtml(response);
 
         var nodes = doc.DocumentNode
             .SelectNodes(".//ul[@class='dropdown-menu']/li/a[@class='dropdown-item']")
@@ -203,7 +219,7 @@ public class TenshiScraper : BaseScraper
             var headers = new WebHeaderCollection()
             {
                 CookieHeader,
-                { "Referer", episode.Link }
+                { "Referer", episodeId }
             };
 
             videoServers.Add(new VideoServer(server, new FileUrl(url, headers)));
@@ -213,7 +229,5 @@ public class TenshiScraper : BaseScraper
     }
 
     public override IVideoExtractor GetVideoExtractor(VideoServer server)
-    {
-        return new TenshiVideoExtractor(_http, server);
-    }
+        => new TenshiVideoExtractor(_http, server);
 }

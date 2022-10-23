@@ -1,9 +1,12 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using Newtonsoft.Json.Linq;
 using AnimeDl.Models;
 using AnimeDl.Helpers;
 using AnimeDl.Scrapers;
@@ -11,11 +14,8 @@ using AnimeDl.Scrapers.Events;
 using AnimeDl.Scrapers.Interfaces;
 using AnimeDl.Utils;
 using AnimeDl.Utils.Extensions;
-using System.Collections.Specialized;
 using AnimeDl.Anilist;
 using AnimeDl.Anilist.Models;
-using System.Linq;
-using Newtonsoft.Json.Linq;
 
 namespace AnimeDl;
 
@@ -68,6 +68,11 @@ public class AnimeClient
     /// Event after anime search is completed.
     /// </summary>
     public event EventHandler<AnimeEventArgs>? OnAnimesLoaded;
+    
+    /// <summary>
+    /// Event after anime search is completed.
+    /// </summary>
+    public event EventHandler<AnimeInfoEventArgs>? OnAnimeInfoLoaded;
 
     /// <summary>
     /// Event after episodes search is completed.
@@ -121,7 +126,7 @@ public class AnimeClient
     {
     }
 
-    public async Task<List<Anime>> FindBestMatch(string query)
+    /*public async Task<List<Anime>> FindBestMatch(string query)
     {
         var ss = await new AnilistClient().SearchAsync("ANIME", search: "86 season 2");
 
@@ -159,6 +164,7 @@ public class AnimeClient
         return list;
     }
 
+    [Obsolete("test")]
     public virtual async Task<Anime?> AutoSearch(Media mediaObj)
     {
         var response = await SearchAsync(mediaObj.Name!);
@@ -194,16 +200,16 @@ public class AnimeClient
                 title!.ToLower(), x.Title.ToLower())).ToList();
         }
 
-        /*for (int i = 0; i < response.Count; i++)
-        {
-            var anime = response[i];
-
-            var distance = LevenshteinDistance.Compute(
-                mediaObj.Name!.ToLower(), anime.Title.ToLower());
-        }*/
+        //for (int i = 0; i < response.Count; i++)
+        //{
+        //    var anime = response[i];
+        //
+        //    var distance = LevenshteinDistance.Compute(
+        //        mediaObj.Name!.ToLower(), anime.Title.ToLower());
+        //}
 
         return response[0];
-    }
+    }*/
 
     #region Search for Animes
     /// <summary>
@@ -280,7 +286,7 @@ public class AnimeClient
             function().ContinueWith(t =>
             {
                 OnAnimesLoaded?.Invoke(this, new AnimeEventArgs(Animes));
-            }, _searchCancellationTokenSource.Token, TaskContinuationOptions.None, TaskScheduler.FromCurrentSynchronizationContext());
+            }, _searchCancellationTokenSource.Token);
         }
 
         return Animes;
@@ -337,7 +343,7 @@ public class AnimeClient
     }
     #endregion
 
-    #region Get Episodes and Anime details
+    #region Get Episodes
     /// <summary>
     /// Bool to check if episodes search is completed.
     /// </summary>
@@ -358,14 +364,14 @@ public class AnimeClient
     /// <summary>
     /// Search for episodes.
     /// </summary>
-    public List<Episode> GetEpisodes(Anime anime, bool forceLoad = false)
+    public List<Episode> GetEpisodes(string id, bool forceLoad = false)
     {
         IsLoadingEpisodes = true;
 
         if (_episodesCancellationTokenSource.IsCancellationRequested)
             _episodesCancellationTokenSource = new();
 
-        var function = () => GetEpisodesAsync(anime);
+        var function = () => GetEpisodesAsync(id);
         if (forceLoad)
         {
             Episodes = AsyncHelper.RunSync(function, _episodesCancellationTokenSource.Token);
@@ -374,8 +380,8 @@ public class AnimeClient
         {
             function().ContinueWith(t =>
             {
-                OnEpisodesLoaded?.Invoke(this, new EpisodesEventArgs(anime, Episodes));
-            }, _episodesCancellationTokenSource.Token, TaskContinuationOptions.None, TaskScheduler.FromCurrentSynchronizationContext());
+                OnEpisodesLoaded?.Invoke(this, new EpisodesEventArgs(Episodes));
+            }, _episodesCancellationTokenSource.Token);
         }
 
         return Episodes;
@@ -384,10 +390,63 @@ public class AnimeClient
     /// <summary>
     /// Search for episodes.
     /// </summary>
-    public async Task<List<Episode>> GetEpisodesAsync(Anime anime)
+    public async Task<List<Episode>> GetEpisodesAsync(string id)
     {
-        Episodes = await _scraper.GetEpisodesAsync(anime);
+        Episodes = await _scraper.GetEpisodesAsync(id);
         return Episodes;
+    }
+    #endregion
+
+    #region Get Anime Info
+    /// <summary>
+    /// Bool to check if loading anime info is completed.
+    /// </summary>
+    public virtual bool IsLoadingAnimeInfo { get; protected set; }
+
+    private CancellationTokenSource _animeInfoCancellationTokenSource = new();
+
+    /// <summary>
+    /// Cancel loading anime info.
+    /// </summary>
+    public void CancelGetAnimeInfo()
+    {
+        if (!_animeInfoCancellationTokenSource.IsCancellationRequested)
+            _animeInfoCancellationTokenSource.Cancel();
+        IsLoadingAnimeInfo = false;
+    }
+
+    /// <summary>
+    /// Search for anime info.
+    /// </summary>
+    public Anime GetAnimeInfo(string id, bool forceLoad = false)
+    {
+        IsLoadingAnimeInfo = true;
+
+        if (_animeInfoCancellationTokenSource.IsCancellationRequested)
+            _animeInfoCancellationTokenSource = new();
+
+        var function = () => GetAnimeInfoAsync(id);
+        if (forceLoad)
+        {
+            return AsyncHelper.RunSync(function, _episodesCancellationTokenSource.Token);
+        }
+        else
+        {
+            function().ContinueWith(t =>
+            {
+                OnAnimeInfoLoaded?.Invoke(this, new(t.Result));
+            }, _episodesCancellationTokenSource.Token);
+        }
+
+        return new();
+    }
+
+    /// <summary>
+    /// Search for anime info.
+    /// </summary>
+    public async Task<Anime> GetAnimeInfoAsync(string id)
+    {
+        return await _scraper.GetAnimeInfoAsync(id);
     }
     #endregion
 
@@ -412,14 +471,14 @@ public class AnimeClient
     /// <summary>
     /// Search for video links.
     /// </summary>
-    public List<VideoServer> GetVideoServers(Episode episode, bool forceLoad = false)
+    public List<VideoServer> GetVideoServers(string episodeId, bool forceLoad = false)
     {
         IsLoadingVideoServers = true;
 
         if (_videoServersCancellationTokenSource.IsCancellationRequested)
             _videoServersCancellationTokenSource = new();
 
-        var function = () => GetVideoServersAsync(episode);
+        var function = () => GetVideoServersAsync(episodeId);
         if (forceLoad)
         {
             VideoServers = AsyncHelper.RunSync(function, _videoServersCancellationTokenSource.Token);
@@ -429,7 +488,7 @@ public class AnimeClient
             function().ContinueWith(t =>
             {
                 OnVideoServersLoaded?.Invoke(this, new VideoServerEventArgs(VideoServers));
-            }, _videoServersCancellationTokenSource.Token, TaskContinuationOptions.None, TaskScheduler.FromCurrentSynchronizationContext());
+            }, _videoServersCancellationTokenSource.Token);
         }
 
         return VideoServers;
@@ -438,9 +497,9 @@ public class AnimeClient
     /// <summary>
     /// Search for video links.
     /// </summary>
-    public async Task<List<VideoServer>> GetVideoServersAsync(Episode episode)
+    public async Task<List<VideoServer>> GetVideoServersAsync(string episodeId)
     {
-        return VideoServers = await _scraper.GetVideoServersAsync(episode);
+        return VideoServers = await _scraper.GetVideoServersAsync(episodeId);
     }
     #endregion
 
@@ -476,14 +535,14 @@ public class AnimeClient
         var function = () => GetVideosAsync(server, showSizeIfAvailable);
         if (forceLoad)
         {
-            Videos = AsyncHelper.RunSync(function, _videosCancellationTokenSource.Token);   
+            Videos = AsyncHelper.RunSync(function, _videosCancellationTokenSource.Token);
         }
         else
         {
             function().ContinueWith(t =>
             {
                 OnVideosLoaded?.Invoke(this, new VideoEventArgs(Videos, server));
-            }, _videosCancellationTokenSource.Token, TaskContinuationOptions.None, TaskScheduler.FromCurrentSynchronizationContext());
+            }, _videosCancellationTokenSource.Token);
         }
 
         return Videos;
@@ -548,7 +607,7 @@ public class AnimeClient
             function().ContinueWith(t =>
             {
                 OnGenresLoaded?.Invoke(this, new GenreEventArgs(Genres));
-            }, _genresCancellationTokenSource.Token, TaskContinuationOptions.None, TaskScheduler.FromCurrentSynchronizationContext());
+            }, _genresCancellationTokenSource.Token);
         }
 
         return Genres;

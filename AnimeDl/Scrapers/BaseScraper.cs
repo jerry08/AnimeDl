@@ -27,20 +27,15 @@ public abstract class BaseScraper : IAnimeScraper
     public BaseScraper(HttpClient http)
         => _http = http;
 
-    public virtual async Task<List<Anime>> SearchAsync(
-        string query,
-        SearchFilter searchFilter,
-        int page,
-        bool selectDub)
-    {
-        throw new Exception("Search method not implemented");
-    }
+    public abstract Task<List<Anime>> SearchAsync(string query,
+        SearchFilter searchFilter, int page, bool selectDub);
 
-    public virtual async Task<List<Episode>> GetEpisodesAsync(Anime anime)
-        => await Task.FromResult(new List<Episode>());
+    public virtual async Task<Anime> GetAnimeInfoAsync(string id)
+        => await Task.FromResult(new Anime());
 
-    public virtual async Task<List<VideoServer>> GetVideoServersAsync(Episode episode)
-        => await Task.FromResult(new List<VideoServer>());
+    public abstract Task<List<Episode>> GetEpisodesAsync(string id);
+
+    public abstract Task<List<VideoServer>> GetVideoServersAsync(string episodeId);
 
     public abstract IVideoExtractor GetVideoExtractor(VideoServer server);
 
