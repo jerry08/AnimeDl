@@ -195,9 +195,7 @@ public static class HttpExtensions
         );
 
         if (response.StatusCode == HttpStatusCode.NotFound)
-        {
             return string.Empty;
-        }
 
         if (!response.IsSuccessStatusCode)
         {

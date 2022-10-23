@@ -26,12 +26,12 @@
 
 * **Available Anime sources:-**
 
-| SITE                       | STATUS  | DOWNLOADS |
-|:--------------------------:|:-------:|:---------:|
-| [Gogo](https://www1.gogoanime.ee/)   | WORKING | SOME |
-| [Zoro](https://zoro.to)              | WORKING | SOME |
-| [9Anime](https://9anime.id)          | NOT WORKING | NO |
-| [Tenshi](https://tenshi.moe)         | WORKING | YES |
+| SITE                       | STATUS	| DOWNLOADS |
+|:--------------------------:|:--------:|:---------:|
+| [Gogo](https://gogoanime.dk/)			| WORKING | SOME |
+| [Zoro](https://zoro.to)				| WORKING | SOME |
+| [9Anime](https://9anime.id)			| NOT WORKING | NO |
+| [Tenshi](https://tenshi.moe)			| WORKING | YES |
 
 
 ## Install
@@ -72,7 +72,11 @@ var client = new AnimeClient(AnimeSites.GogoAnime);
 var animes = await client.SearchAsync("naruto");
 
 var title = animes[0].Title;
-var image = animes[0].Image;
+
+//More anime details
+var animeInfo = await client.GetAnimeInfoAsync(animes[0].Id);
+var image = animeInfo.Image;
+var summary = animeInfo.Summary;
 ```
 
 ### Episodes
@@ -86,7 +90,7 @@ using AnimeDl.Scrapers;
 var client = new AnimeClient(AnimeSites.GogoAnime);
 
 var animes = await client.SearchAsync("naruto");
-var episodes = await client.GetEpisodesAsync(animes[0]);
+var episodes = await client.GetEpisodesAsync(animes[0].Id);
 
 var description = episodes[0].Description;
 var link = episodes[0].Link;
@@ -103,8 +107,8 @@ using AnimeDl.Scrapers;
 var client = new AnimeClient(AnimeSites.GogoAnime);
 
 var animes = await client.SearchAsync("naruto");
-var episodes = await client.GetEpisodesAsync(animes[0]);
-var servers = await client.GetVideoServersAsync(episodes[0]);
+var episodes = await client.GetEpisodesAsync(animes[0].Id);
+var servers = await client.GetVideoServersAsync(episodes[0].Id);
 ```
 
 ### Videos
@@ -118,8 +122,8 @@ using AnimeDl.Scrapers;
 var client = new AnimeClient(AnimeSites.GogoAnime);
 
 var animes = await client.SearchAsync("naruto");
-var episodes = await client.GetEpisodesAsync(animes[0]);
-var servers = await client.GetVideoServersAsync(episodes[0]);
+var episodes = await client.GetEpisodesAsync(animes[0].Id);
+var servers = await client.GetVideoServersAsync(episodes[0].Id);
 var videos = await client.GetVideosAsync(servers[0]);
 
 var videoUrl = videos[0].VideoUrl;
@@ -137,8 +141,8 @@ using AnimeDl.Scrapers;
 var client = new AnimeClient(AnimeSites.GogoAnime);
 
 var animes = await client.SearchAsync("naruto");
-var episodes = await client.GetEpisodesAsync(animes[0]);
-var servers = await client.GetVideoServersAsync(episodes[0]);
+var episodes = await client.GetEpisodesAsync(animes[0].Id);
+var servers = await client.GetVideoServersAsync(episodes[0].Id);
 var videos = await client.GetVideosAsync(servers[0]);
 
 //NB: Video format must be `Container`
