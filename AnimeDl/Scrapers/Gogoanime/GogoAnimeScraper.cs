@@ -150,6 +150,14 @@ public class GogoAnimeScraper : BaseScraper
         var animeInfoNodes = document.DocumentNode
             .SelectNodes(".//div[@class='anime_info_body_bg']/p").ToList();
 
+        var imgNode = document.DocumentNode.SelectSingleNode(".//div[@class='anime_info_body_bg']/img");
+        if (imgNode is not null)
+            anime.Image = imgNode.Attributes["src"].Value;
+
+        var titleNode = document.DocumentNode.SelectSingleNode(".//div[@class='anime_info_body_bg']/h1");
+        if (titleNode is not null)
+            anime.Title = titleNode.InnerText;
+
         for (int i = 0; i < animeInfoNodes.Count; i++)
         {
             switch (i)
