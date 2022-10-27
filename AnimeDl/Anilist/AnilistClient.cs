@@ -11,6 +11,7 @@ using AnimeDl.Utils;
 using AnimeDl.Utils.Extensions;
 using Media = AnimeDl.Anilist.Models.Media;
 using Character = AnimeDl.Anilist.Models.Character;
+using AnimeDl.Aniskip;
 
 namespace AnimeDl.Anilist;
 
@@ -20,6 +21,11 @@ namespace AnimeDl.Anilist;
 public class AnilistClient
 {
     private readonly HttpClient _http;
+
+    /// <summary>
+    /// Client for interacting with aniskip api.
+    /// </summary>
+    public AniskipClient Aniskip { get; }
 
     public bool IsAdult { get; set; } = false;
 
@@ -31,6 +37,7 @@ public class AnilistClient
     public AnilistClient(HttpClient httpClient)
     {
         _http = httpClient;
+        Aniskip= new(httpClient);
     }
 
     /// <summary>

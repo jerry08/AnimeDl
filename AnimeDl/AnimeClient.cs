@@ -16,6 +16,7 @@ using AnimeDl.Utils;
 using AnimeDl.Utils.Extensions;
 using AnimeDl.Anilist;
 using AnimeDl.Anilist.Models;
+using AnimeDl.Aniskip;
 
 namespace AnimeDl;
 
@@ -27,6 +28,11 @@ public class AnimeClient
     private readonly IAnimeScraper _scraper;
 
     private readonly HttpClient _http;
+
+    /// <summary>
+    /// Client for interacting with aniskip api.
+    /// </summary>
+    public AniskipClient Aniskip { get; }
 
     /// <summary>
     /// Checks if site supports dubbed anime
@@ -101,6 +107,7 @@ public class AnimeClient
     {
         Site = animeSite;
         _http = httpClient;
+        Aniskip = new(httpClient);
 
         _scraper = animeSite switch
         {

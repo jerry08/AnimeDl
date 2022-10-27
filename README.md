@@ -132,6 +132,28 @@ var resolution = videos[0].Resolution;
 var format = videos[0].Format;
 ```
 
+#### Retrieving aniskip metadata
+
+```csharp
+using System.Linq;
+using AnimeDl.Anilist;
+
+var client = new AnilistClient();
+
+var searchResults = await client.SearchAsync("ANIME", search: "chainsaw man");
+var animes = searchResults?.Results.Where(x => x.IdMal is not null).ToList();
+var media = await client.GetMediaDetailsAsync(animes![0]);
+
+var episodeNum = 1;
+var episodeDuration = 1524981 / 1000;
+
+var timeskips = await client.Aniskip.GetAsync(media!.IdMal!.Value, episodeNum, episodeDuration);
+
+var skipType = timeskips?[0].SkipType;
+var startTime = timeskips?[0].Interval.StartTime;
+var endTime = timeskips?[0].Interval.EndTime;
+```
+
 #### Downloading videos
 
 ```csharp
