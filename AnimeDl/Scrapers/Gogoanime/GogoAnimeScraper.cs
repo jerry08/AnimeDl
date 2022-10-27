@@ -12,7 +12,6 @@ using AnimeDl.Extractors;
 using AnimeDl.Exceptions;
 using AnimeDl.Utils.Extensions;
 using AnimeDl.Extractors.Interfaces;
-using System.Xml.Linq;
 
 namespace AnimeDl.Scrapers;
 
@@ -33,12 +32,14 @@ public class GogoAnimeScraper : BaseScraper
 
     public GogoAnimeScraper(HttpClient http) : base(http)
     {
-        SetData();
     }
 
-    private void SetData()
+    private async Task EnsureUrlsSet()
     {
-        var json = _http.Get("https://raw.githubusercontent.com/jerry08/AnimeDl/master/AnimeDl/Data/gogoanime.json");
+        if (BaseUrl is not null)
+            return;
+
+        var json = await _http.SendHttpRequestAsync("https://raw.githubusercontent.com/jerry08/AnimeDl/master/AnimeDl/Data/gogoanime.json");
         if (!string.IsNullOrEmpty(json))
         {
             var jObj = JObject.Parse(json);
@@ -51,6 +52,8 @@ public class GogoAnimeScraper : BaseScraper
     public override async Task<List<Anime>> SearchAsync(string query,
         SearchFilter searchFilter, int page, bool selectDub)
     {
+        await EnsureUrlsSet();
+
         //query = selectDub ? query + "%(Dub)" : query;
         //query = query.Replace(" ", "+");
 
@@ -132,6 +135,8 @@ public class GogoAnimeScraper : BaseScraper
 
     public override async Task<Anime> GetAnimeInfoAsync(string id)
     {
+        await EnsureUrlsSet();
+
         var response = await _http.SendHttpRequestAsync($"{BaseUrl}{id}");
 
         var anime = new Anime() { Id = id };
@@ -187,6 +192,8 @@ public class GogoAnimeScraper : BaseScraper
 
     public override async Task<List<Episode>> GetEpisodesAsync(string id)
     {
+        await EnsureUrlsSet();
+
         var episodes = new List<Episode>();
 
         var response = await _http.SendHttpRequestAsync($"{BaseUrl}{id}");
@@ -257,6 +264,8 @@ public class GogoAnimeScraper : BaseScraper
 
     public override async Task<List<VideoServer>> GetVideoServersAsync(string episodeId)
     {
+        await EnsureUrlsSet();
+
         var episodeUrl = $"{BaseUrl}{episodeId}";
 
         var response = await _http.SendHttpRequestAsync(episodeUrl);
@@ -313,6 +322,8 @@ public class GogoAnimeScraper : BaseScraper
 
     public override async Task<List<Genre>> GetGenresAsync()
     {
+        await EnsureUrlsSet();
+
         var genres = new List<Genre>();
 
         var response = await _http.SendHttpRequestAsync(BaseUrl);
