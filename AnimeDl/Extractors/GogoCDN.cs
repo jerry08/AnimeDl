@@ -79,7 +79,7 @@ public class GogoCDN : VideoExtractor
             var array = JArray.Parse(source);
 
             var sourceBk = JObject.Parse(jumbledJson)["source_bk"]!.ToString();
-            var arrayBk = JArray.Parse(source);
+            var arrayBk = JArray.Parse(sourceBk);
 
             void AddSources(JArray array)
             {
