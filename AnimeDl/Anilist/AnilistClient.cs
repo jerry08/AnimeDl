@@ -11,7 +11,9 @@ using AnimeDl.Utils;
 using AnimeDl.Utils.Extensions;
 using Media = AnimeDl.Anilist.Models.Media;
 using Character = AnimeDl.Anilist.Models.Character;
+using Studio = AnimeDl.Anilist.Models.Studio;
 using AnimeDl.Aniskip;
+using System.Diagnostics;
 
 namespace AnimeDl.Anilist;
 
@@ -96,7 +98,7 @@ public class AnilistClient
 
             if (fetchedMedia.Genres is not null)
             {
-                media.Genres = new List<string>();
+                media.Genres = new();
                 media.Genres.AddRange(fetchedMedia.Genres);
             }
 
@@ -124,7 +126,7 @@ public class AnilistClient
 
             if (fetchedMedia.Characters is not null)
             {
-                media.Characters = new List<Character>();
+                media.Characters = new();
 
                 fetchedMedia.Characters.Edges?.ForEach(i =>
                 {
@@ -146,7 +148,66 @@ public class AnilistClient
 
             if (fetchedMedia.Relations is not null)
             {
+                media.Relations = new();
+                
+                fetchedMedia.Relations.Edges?.ForEach(mediaEdge =>
+                {
+                    var m = new Media(mediaEdge);
+                    media.Relations.Add(m);
 
+                    if (m.Relation == "SEQUEL")
+                    {
+                        media.Sequel = (media.Sequel?.Popularity ?? 0) < (m.Popularity ?? 0) ? m : media.Sequel;
+                    }
+                    else if (m.Relation == "PREQUEL")
+                    {
+                        media.Prequel = (media.Prequel?.Popularity ?? 0) < (m.Popularity ?? 0) ? m : media.Prequel;
+                    }
+                });
+
+                media.Relations = media.Relations.OrderByDescending(x => x.Popularity).ToList();
+                media.Relations = media.Relations.OrderByDescending(x => x.StartDate?.Year).ToList();
+                media.Relations = media.Relations.OrderByDescending(x => x.Relation).ToList();
+            }
+
+            if (fetchedMedia.Recommendations is not null)
+            {
+                media.Recommendations = new();
+
+                fetchedMedia.Recommendations.Nodes?.ForEach(i =>
+                {
+                    if (i.MediaRecommendation is not null)
+                    {
+                        media.Recommendations.Add(new Media(i.MediaRecommendation));
+                    }
+                });
+            }
+
+            if (fetchedMedia.MediaListEntry is not null)
+            {
+                media.UserProgress = fetchedMedia.MediaListEntry.Progress;
+                media.IsListPrivate = fetchedMedia.MediaListEntry.IsPrivate ?? false;
+                media.UserListId = fetchedMedia.MediaListEntry.Id;
+                media.UserScore = (int?)fetchedMedia.MediaListEntry.Score ?? 0;
+                media.UserStatus = fetchedMedia.MediaListEntry.Status?.ToString();
+                //media.inCustomListsOf = fetchedMedia.MediaListEntry.Progress;
+            }
+            else
+            {
+
+            }
+
+            if (media.Anime is not null)
+            {
+                var firstStudio = fetchedMedia.Studios?.Nodes?.FirstOrDefault();
+                if (firstStudio is not null)
+                {
+                    media.MainStudio = new Studio()
+                    {
+                        Id = firstStudio.Id,
+                        Name = firstStudio.Name ?? "N/A"
+                    };
+                }
             }
 
             return media;
@@ -280,68 +341,304 @@ public class AnilistClient
         };
     }
 
-    public async ValueTask<List<Media>> GetRecentlyUpdatedAsync()
+    public async ValueTask<List<Media>?> GetRecentlyUpdatedAsync(
+        bool smaller = true,
+        long greater = 0,
+        long? lesser = null)
     {
-        var query = @"{
-            Page(page:1,perPage:50) {
-                pageInfo {
-                    hasNextPage
-                    total
-                }
-                airingSchedules(
-                    airingAt_greater: 0
-                    airingAt_lesser: ${airingAt_lesser}
-                    sort:TIME_DESC
-                ) {
-                    media {
-                        id
-                        idMal
-                        status
-                        chapters
-                        episodes
-                        nextAiringEpisode { episode }
-                        isAdult
-                        type
-                        meanScore
-                        isFavourite
-                        bannerImage
-                        countryOfOrigin
-                        coverImage { large }
-                        title {
-                            english
-                            romaji
-                            userPreferred
-                        }
-                        mediaListEntry {
-                            progress
-                            private
-                            score(format: POINT_100)
+        lesser ??= DateTime.UtcNow.ToUnixTimeMilliseconds() / 1000 - 10000;
+
+        async Task<Page?> Execute(int page = 1)
+        {
+            var query = @"{
+                Page(page:${page},perPage:50) {
+                    pageInfo {
+                        hasNextPage
+                        total
+                    }
+                    airingSchedules(
+                        airingAt_greater: ${airingAt_greater}
+                        airingAt_lesser: ${airingAt_lesser}
+                        sort:TIME_DESC
+                    ) {
+                        media {
+                            id
+                            idMal
                             status
+                            chapters
+                            episodes
+                            nextAiringEpisode { episode }
+                            isAdult
+                            type
+                            meanScore
+                            isFavourite
+                            bannerImage
+                            countryOfOrigin
+                            coverImage { large }
+                            title {
+                                english
+                                romaji
+                                userPreferred
+                            }
+                            mediaListEntry {
+                                progress
+                                private
+                                score(format: POINT_100)
+                                status
+                            }
                         }
                     }
                 }
-            }
-        }".Replace("${airingAt_lesser}", $"{DateTime.UtcNow.ToUnixTimeMilliseconds() / 1000 - 10000}")
-        .Replace("\n", " ");
+            }"
+            .Replace("${page}", $"{page}")
+            .Replace("${airingAt_lesser}", $"{lesser}")
+            .Replace("${airingAt_greater}", $"{greater}")
+            .Replace("\n", " ");
 
-        var response = (await ExecuteQueryAsync<Query.Page>(query))?.Data?.Page?.AiringSchedules;
+            return (await ExecuteQueryAsync<Query.Page>(query))?.Data?.Page;
+        }
+
+        if (smaller)
+        {
+            var response = (await Execute())?.AiringSchedules;
+
+            if (response is null)
+                return null;
+
+            var responseArray = new List<Media>();
+            var idArr = new List<int>();
+
+            response.ForEach(x =>
+            {
+                if (x.Media is not null && !idArr.Contains(x.Media.Id))
+                {
+                    if (!ListOnly && (x.Media.CountryOfOrigin == "JP" &&
+                        (x.Media.IsAdult == IsAdult || (ListOnly && x.Media.MediaListEntry is not null))))
+                    {
+                        idArr.Add(x.Media.Id);
+                        responseArray.Add(new Media(x.Media));
+                    }
+                }
+            });
+
+            return responseArray;
+        }
+        else
+        {
+            var i = 1;
+            var list = new List<Media>();
+            Page? res = null;
+
+            async Task Next()
+            {
+                res = await Execute(i);
+
+                res?.AiringSchedules?.ForEach(j =>
+                {
+                    if (j.Media is null)
+                        return;
+
+                    if (j.Media.CountryOfOrigin == "JP" &&
+                        j.Media.IsAdult == IsAdult)
+                    {
+                        list!.Add(new Media(j.Media)
+                        {
+                            Relation = $"{j.Episode},{j.AiringAt}"
+                        });
+                    }
+                });
+            }
+
+            await Next();
+
+            while (res?.PageInfo?.HasNextPage == true)
+            {
+                await Next();
+                i++;
+            }
+
+            list.Reverse();
+
+            return list;
+        }
+    }
+
+    public async Task<List<Media>?> GetTrendingAnimeAsync(
+        int page = 1,
+        int perPage = 50,
+        string type = "ANIME")
+    {
+        var query = AnilistQueries.Trending(page, perPage, type);
+
+        var response = (await ExecuteQueryAsync<Query.Page>(query))?.Data?.Page;
+
+        if (response is null)
+            return null;
 
         var responseArray = new List<Media>();
-        var idArr = new List<int>();
 
-        response?.ForEach(x =>
+        response.Media?.ForEach(x =>
         {
-            if (x.Media is not null && !idArr.Contains(x.Media.Id))
+            if (x is not null)
             {
-                if (!ListOnly && (x.Media.CountryOfOrigin == "JP" &&
-                    (x.Media.IsAdult == IsAdult || (ListOnly && x.Media.MediaListEntry is not null))))
-                {
-                    idArr.Add(x.Media.Id);
-                    responseArray.Add(new Media(x.Media));
-                }
+                responseArray.Add(new Media(x));
             }
         });
 
         return responseArray;
+        //return response.Media;
+    }
+
+    public async Task<Character> GetCharacterDetailsAsync(Character character)
+    {
+        var query = @"{
+          Character(id: ${character.id}) {
+            id
+            age
+            gender
+            description
+            dateOfBirth {
+              year
+              month
+              day
+            }
+            media(page: 0,sort:[POPULARITY_DESC,SCORE_DESC]) {
+              pageInfo {
+                total
+                perPage
+                currentPage
+                lastPage
+                hasNextPage
+              }
+              edges {
+                id
+                characterRole
+                node {
+                  id
+                  idMal
+                  isAdult
+                  status
+                  chapters
+                  episodes
+                  nextAiringEpisode { episode }
+                  type
+                  meanScore
+                  isFavourite
+                  bannerImage
+                  countryOfOrigin
+                  coverImage { large }
+                  title {
+                      english
+                      romaji
+                      userPreferred
+                  }
+                  mediaListEntry {
+                      progress
+                      private
+                      score(format: POINT_100)
+                      status
+                  }
+                }
+              }
+            }
+          }
+        }"
+        .Replace("${character.id}", $"{character.Id}")
+        .Replace("\n", " ");
+
+        var response = (await ExecuteQueryAsync<Query.Character>(query))?.Data?.Character;
+
+        if (response is null)
+            return character;
+
+        character.Age = response.Age;
+        character.Gender = response.Gender;
+        character.Description = response.Description;
+        character.DateOfBirth = response.DateOfBirth;
+
+        return character;
+    }
+
+    public async Task<Studio> GetStudioDetailsAsync(Studio studio)
+    {
+        string Query(int page) => @"{
+          Studio(id: ${studio.id}) {
+            id
+            media(page: $page,sort:START_DATE_DESC) {
+              pageInfo{
+                hasNextPage
+              }
+              edges {
+                id
+                node {
+                  id
+                  idMal
+                  isAdult
+                  status
+                  chapters
+                  episodes
+                  nextAiringEpisode { episode }
+                  type
+                  meanScore
+                  startDate{ year }
+                  isFavourite
+                  bannerImage
+                  countryOfOrigin
+                  coverImage { large }
+                  title {
+                      english
+                      romaji
+                      userPreferred
+                  }
+                  mediaListEntry {
+                      progress
+                      private
+                      score(format: POINT_100)
+                      status
+                  }
+                }
+              }
+            }
+          }
+        }"
+        .Replace("${studio.id}", $"{studio.Id}")
+        .Replace("$page", $"{page}")
+        .Replace("\n", " ");
+
+        var hasNextPage = true;
+        var yearMedia = new Dictionary<string, List<Media>>();
+        var page = 0;
+
+        while (hasNextPage)
+        {
+            page++;
+
+            var response = (await ExecuteQueryAsync<Query.Studio>(Query(page)))?.Data?.Studio?.Media;
+
+            hasNextPage = response?.PageInfo?.HasNextPage == true;
+
+            response?.Edges?.ForEach(edge =>
+            {
+                var year = edge.Node?.StartDate?.Year?.ToString() ?? "TBA";
+                var title = edge.Node?.Status != MediaStatus.Cancelled ? year : edge.Node?.Status.ToString();
+
+                if (title is null)
+                    return;
+
+                if (!yearMedia.ContainsKey(title))
+                    yearMedia[title] = new List<Media>();
+
+                yearMedia[title]?.Add(new Media(edge));
+            });
+        }
+
+        //if (yearMedia.ContainsKey("CANCELLED"))
+        //{
+        //
+        //}
+
+        studio.YearMedia = yearMedia;
+
+        return studio;
     }
 }

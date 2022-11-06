@@ -74,7 +74,7 @@ public class Media
     public int? SeasonYear { get; set; }
 
     /// <summary>
-    /// The year & season the media was initially released in
+    /// The year &#38; season the media was initially released in
     /// </summary>
     [JsonProperty("seasonInt")]
     public int? SeasonInt { get; set; }
@@ -634,7 +634,57 @@ public class MediaConnection
 
 public class MediaEdge
 {
+    public Media? Node { get; set; }
 
+    /// <summary>
+    /// The id of the connection
+    /// </summary>
+    public int? Id { get; set; }
+
+    /// <summary>
+    /// The type of relation to the parent model
+    /// </summary>
+    public MediaRelation? RelationType { get; set; }
+
+    /// <summary>
+    /// If the studio is the main animation studio of the media (For Studio->MediaConnection field only)
+    /// </summary>
+    public bool? IsMainStudio { get; set; }
+
+    /// <summary>
+    /// The characters in the media voiced by the parent actor
+    /// </summary>
+    public List<Character>? Characters { get; set; }
+
+    /// <summary>
+    /// The characters role in the media
+    /// </summary>
+    public string? CharacterRole { get; set; }
+
+    /// <summary>
+    /// Media specific character name
+    /// </summary>
+    public string? CharacterName { get; set; }
+
+    /// <summary>
+    /// Notes regarding the VA's role for the character
+    /// </summary>
+    public string? RoleNotes { get; set; }
+
+    /// <summary>
+    /// Used for grouping roles where multiple dubs exist for the same language. Either dubbing company name or language variant.
+    /// </summary>
+    public string? DubGroup { get; set; }
+
+    /// <summary>
+    /// The role of the staff member in the production of the media
+    /// </summary>
+    public string? StaffRole { get; set; }
+
+    /// <summary>
+    /// The order the media should be displayed from the users favourites
+    /// </summary>
+    public int? FavouriteOrder { get; set; }
 }
 
 public enum MediaRelation
@@ -666,7 +716,42 @@ public enum MediaSeason
 
 public class MediaExternalLink
 {
+    /// <summary>
+    /// The id of the external link
+    /// </summary>
+    public int? Id { get; set; }
 
+    /// <summary>
+    /// The url of the external link or base url of link source
+    /// </summary>
+    public string? Url { get; set; }
+
+    /// <summary>
+    /// The links website site name
+    /// </summary>
+    public string? Site { get; set; }
+
+    /// <summary>
+    /// The links website site id
+    /// </summary>
+    public int? SiteId { get; set; }
+
+    /// <summary>
+    /// Language the site content is in. See Staff language field for values.
+    /// </summary>
+    public string? Language { get; set; }
+    
+    public string? Color { get; set; }
+
+    /// <summary>
+    /// The icon image url of the site. Not available for all links. Transparent PNG 64x64
+    /// </summary>
+    public string? Icon { get; set; }
+
+    /// <summary>
+    /// isDisabled: Boolean
+    /// </summary>
+    public string? Notes { get; set; }
 }
 
 public enum ExternalLinkType
@@ -678,10 +763,39 @@ public enum ExternalLinkType
 
 public class MediaListCollection
 {
+    /// <summary>
+    /// Grouped media list entries
+    /// </summary>
+    public List<MediaListGroup>? Lists { get; set; }
 
+    /// <summary>
+    /// The owner of the list
+    /// </summary>
+    public User? User { get; set; }
+
+    /// <summary>
+    /// If there is another chunk
+    /// </summary>
+    public bool? HasNextChunk { get; set; }
 }
 
 public class MediaListGroup
 {
+    /// <summary>
+    /// Media list entries
+    /// </summary>
+    public List<MediaList>? Entries { get; set; }
 
+    public string? Name { get; set; }
+
+    public bool? IsCustomList { get; set; }
+
+    public bool? IsSplitCompletedList { get; set; }
+
+    public MediaListStatus? Status { get; set; }
+}
+
+public class QueryMedia
+{
+    public Media? Media { get; set; }
 }

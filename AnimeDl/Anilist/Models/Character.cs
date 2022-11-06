@@ -11,9 +11,9 @@ public class Character
     public string? Banner { get; set; }
     public string? Role { get; set; }
 
-    public string? description { get; set; }
-    public string? age { get; set; }
-    public string? gender { get; set; }
-    public FuzzyDate? dateOfBirth { get; set; }
+    public string? Description { get; set; }
+    public string? Age { get; set; }
+    public string? Gender { get; set; }
+    public FuzzyDate? DateOfBirth { get; set; }
     public List<Media>? Roles { get; set; }
 }

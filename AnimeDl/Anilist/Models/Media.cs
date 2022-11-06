@@ -18,6 +18,8 @@ public class Media
     public string? NameRomaji { get; set; }
     public string? UserPreferredName { get; set; }
 
+    public Studio? MainStudio { get; set; }
+
     public string? Cover { get; set; }
     public string? Banner { get; set; }
     public string? Relation { get; set; }
@@ -79,7 +81,7 @@ public class Media
         Cover = apiMedia.CoverImage?.Large;
         Banner = apiMedia.BannerImage;
         Status = apiMedia.Status.ToString();
-        IsFav = (bool)apiMedia.IsFavourite!;
+        IsFav = apiMedia.IsFavourite ?? false;
         IsAdult = apiMedia.IsAdult ?? false;
         IsListPrivate = apiMedia.MediaListEntry?.IsPrivate ?? false;
         UserProgress = apiMedia.MediaListEntry?.Progress;
@@ -90,5 +92,14 @@ public class Media
         //Todo: Cater for anime and manga
         Anime = apiMedia.Type == MediaType.Anime ? new Anime() : null;
         
+    }
+
+    public Media(MediaList mediaList)
+    {
+    }
+
+    public Media(MediaEdge mediaEdge)
+    {
+        Relation = mediaEdge.RelationType?.ToString();
     }
 }

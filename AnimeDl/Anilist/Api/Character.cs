@@ -33,7 +33,61 @@ public class Character
     /// The character's gender. Usually Male, Female, or Non-binary but can be any string.
     /// </summary>
     [JsonProperty("gender")]
-    public string? gender { get; set; }
+    public string? Gender { get; set; }
+
+    /// <summary>
+    /// The character's birth date
+    /// </summary>
+    [JsonProperty("dateOfBirth")]
+    public FuzzyDate? DateOfBirth { get; set; }
+
+    /// <summary>
+    /// The character's age. Note this is a string, not an int, it may contain further text and additional ages.
+    /// </summary>
+    [JsonProperty("age")]
+    public string? Age { get; set; }
+
+    /// <summary>
+    /// The character's blood type
+    /// </summary>
+    [JsonProperty("bloodType")]
+    public string? BloodType { get; set; }
+
+    /// <summary>
+    /// If the character is marked as favourite by the currently authenticated user
+    /// </summary>
+    [JsonProperty("isFavourite")]
+    public bool? IsFavourite { get; set; }
+
+    /// <summary>
+    /// If the character is blocked from being added to favourites.
+    /// </summary>
+    [JsonProperty("isFavouriteBlocked")]
+    public bool? IsFavouriteBlocked { get; set; }
+
+    /// <summary>
+    /// The url for the character page on the AniList website
+    /// </summary>
+    [JsonProperty("siteUrl")]
+    public string? SiteUrl { get; set; }
+
+    /// <summary>
+    /// Media that includes the character
+    /// </summary>
+    [JsonProperty("media")]
+    public MediaConnection? Media { get; set; }
+
+    /// <summary>
+    /// The amount of user's who have favourited the character
+    /// </summary>
+    [JsonProperty("favourites")]
+    public int? Favourites { get; set; }
+
+    /// <summary>
+    /// Notes for site moderators
+    /// </summary>
+    [JsonProperty("modNotes")]
+    public string? ModNotes { get; set; }
 }
 
 public class CharacterConnection
