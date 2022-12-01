@@ -168,5 +168,5 @@ var servers = await client.GetVideoServersAsync(episodes[0].Id);
 var videos = await client.GetVideosAsync(servers[0]);
 
 //NB: Video format must be `Container`
-await client.DownloadAsync(videos[0], fileName);
+await client.DownloadAsync(videos[0].VideoUrl, videos[0].Headers, fileName);
 ```
