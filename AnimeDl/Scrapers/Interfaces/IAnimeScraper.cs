@@ -52,7 +52,7 @@ public interface IAnimeScraper
     /// </summary>
     /// <param name="server"></param>
     /// <returns></returns>
-    IVideoExtractor GetVideoExtractor(VideoServer server);
+    IVideoExtractor? GetVideoExtractor(VideoServer server);
 
     /// <summary>
     /// Gets videos from specific server

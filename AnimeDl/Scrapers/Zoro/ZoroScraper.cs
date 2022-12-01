@@ -254,7 +254,7 @@ public class ZoroScraper : BaseScraper
         return videoServers;
     }
 
-    public override IVideoExtractor GetVideoExtractor(VideoServer server)
+    public override IVideoExtractor? GetVideoExtractor(VideoServer server)
     {
         var domainParser = new DomainParser(new WebTldRuleProvider());
         var domainInfo = domainParser.Parse(server.Embed.Url);
@@ -272,6 +272,6 @@ public class ZoroScraper : BaseScraper
             return new StreamTape(_http, server);
         }
 
-        return default!;
+        return null;
     }
 }

@@ -128,6 +128,9 @@ public class TenshiScraper : BaseScraper
         if (genreNodes is not null)
             anime.Genres.AddRange(genreNodes.Select(x => new Genre(x.InnerHtml.Trim())));
 
+        anime.Image = document.DocumentNode.SelectSingleNode(".//img[contains(@class, 'cover-image')]")?
+            .Attributes["src"].Value ?? "";
+
         return anime;
     }
 
@@ -230,6 +233,6 @@ public class TenshiScraper : BaseScraper
         return videoServers;
     }
 
-    public override IVideoExtractor GetVideoExtractor(VideoServer server)
+    public override IVideoExtractor? GetVideoExtractor(VideoServer server)
         => new TenshiVideoExtractor(_http, server);
 }

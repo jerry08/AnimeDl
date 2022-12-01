@@ -88,8 +88,6 @@ public class GogoAnimeScraper : BaseScraper
                 .Where(node => node.Name == "li").ToList();
             for (int i = 0; i < nodes.Count; i++)
             {
-                //var currentNode = HtmlNode.CreateNode(nodes[i].OuterHtml);
-
                 var img = "";
                 var title = "";
                 var category = "";
@@ -212,14 +210,16 @@ public class GogoAnimeScraper : BaseScraper
         var document = new HtmlDocument();
         document.LoadHtml(response);
 
-        var movieId = document.DocumentNode.Descendants().Where(x => x.Id == "movie_id")
+        var lastEpisodes = document.DocumentNode.Descendants().Where(x => x.Attributes["ep_end"] is not null)
+            .ToList();
+        var lastEpisode = lastEpisodes.LastOrDefault()?.Attributes["ep_end"].Value;
+
+        var animeId = document.DocumentNode.Descendants().Where(x => x.Id == "movie_id")
             .FirstOrDefault()?.Attributes["value"].Value;
 
-        //https://ajax.gogocdn.net/ajax/load-list-episode?ep_start=500&ep_end=500&id=133&default_ep=0&alias=naruto-shippuden
-
-        //string sf = $"https://vidstream.pro/info/{movieId}?domain=gogoanime.be&skey=db04c5540929bebd456b9b16643fc436";
-
-        response = await _http.SendHttpRequestAsync(CdnUrl + movieId);
+        var url = $"https://ajax.gogo-load.com/ajax/load-list-episode?ep_start=0&ep_end={lastEpisode}&id={animeId}";
+        //response = await _http.SendHttpRequestAsync(CdnUrl + animeId);
+        response = await _http.SendHttpRequestAsync(url);
 
         document = new HtmlDocument();
         document.LoadHtml(response);
@@ -304,7 +304,7 @@ public class GogoAnimeScraper : BaseScraper
         return videoServers;
     }
 
-    public override IVideoExtractor GetVideoExtractor(VideoServer server)
+    public override IVideoExtractor? GetVideoExtractor(VideoServer server)
     {
         var domainParser = new DomainParser(new WebTldRuleProvider());
         var domainInfo = domainParser.Parse(server.Embed.Url);
@@ -325,7 +325,7 @@ public class GogoAnimeScraper : BaseScraper
             return new FPlayer(_http, server);
         }
 
-        return default!;
+        return null;
     }
 
     public override async Task<List<Genre>> GetGenresAsync()

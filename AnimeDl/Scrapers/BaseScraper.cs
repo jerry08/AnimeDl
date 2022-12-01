@@ -37,10 +37,19 @@ public abstract class BaseScraper : IAnimeScraper
 
     public abstract Task<List<VideoServer>> GetVideoServersAsync(string episodeId);
 
-    public abstract IVideoExtractor GetVideoExtractor(VideoServer server);
+    public abstract IVideoExtractor? GetVideoExtractor(VideoServer server);
 
     public virtual async Task<List<Video>> GetVideosAsync(VideoServer server)
-        => await GetVideoExtractor(server).Extract();
+    {
+        if (!Uri.IsWellFormedUriString(server.Embed.Url, UriKind.Absolute))
+            return new();
+
+        var extractor = GetVideoExtractor(server);
+        if (extractor is null)
+            return new();
+
+        return await extractor.Extract();
+    }
 
     public virtual async Task<List<Genre>> GetGenresAsync()
         => await Task.FromResult(new List<Genre>());

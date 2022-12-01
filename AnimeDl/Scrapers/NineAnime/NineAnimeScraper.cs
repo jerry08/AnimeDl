@@ -175,7 +175,7 @@ public class NineAnimeScraper : BaseScraper
         return videoServers;
     }
 
-    public override IVideoExtractor GetVideoExtractor(VideoServer server)
+    public override IVideoExtractor? GetVideoExtractor(VideoServer server)
     {
         throw new NotImplementedException();
     }

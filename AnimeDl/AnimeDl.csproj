@@ -21,6 +21,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Scrapers\Bilibili\**" />
+    <EmbeddedResource Remove="Scrapers\Bilibili\**" />
+    <None Remove="Scrapers\Bilibili\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="Extractors\RapidCloud - Copy.cs" />
     <Compile Remove="Extractors\Streamsb - Copy.cs" />
     <Compile Remove="Scrapers\Interfaces\IPaginator.cs" />

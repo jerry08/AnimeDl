@@ -1,17 +1,17 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AnimeDl.DemoConsole.Utils;
 using AnimeDl.Scrapers;
 using AnimeDl.Anilist;
-using System.Threading;
 
 namespace AnimeDl.DemoConsole;
 
 public static class Program
 {
-    private readonly static AnimeClient _client = new(AnimeSites.Tenshi);
+    private readonly static AnimeClient _client = new(AnimeSites.GogoAnime);
     private readonly static AnilistClient _client2 = new();
 
     public static async Task Main()
@@ -21,9 +21,16 @@ public static class Program
         //Example1();
         await Example3();
         //await AnilistExample1();
+
+        var medias = await _client2.GetRecentlyUpdatedAsync();
+        //var medias = await _client2.GetTrendingAnimeAsync();
+        //var media = medias!.Results.FirstOrDefault()!;
+        var media = medias!.FirstOrDefault()!;
+
+        //var details = await _client2.GetMediaDetailsAsync(media);
     }
 
-    /*public static async Task AnilistExample1()
+    public static async Task AnilistExample1()
     {
         // Read the anime name
         Console.Write("Enter anime name: ");
@@ -74,13 +81,15 @@ public static class Program
 
         Console.WriteLine();
 
-        var test = await _client2.GetMediaDetailsAsync(animes![animeIndex]);
-        
-        var test2 = await _client.AutoSearch(animes[animeIndex]);
+        var media = await _client2.GetMediaDetailsAsync(animes![animeIndex]);
 
-        Console.WriteLine($"Specific anime found: {test2?.Title}");
+        //var timeskips = await _client.Aniskip.GetAsync(media!.IdMal!.Value, 1, 1524981 / 1000);
+
+        //var media2 = await _client.AutoSearch(animes[animeIndex]);
+
+        //Console.WriteLine($"Specific anime found: {media2?.Title}");
         Console.WriteLine();
-    }*/
+    }
 
     //Method with events
     public static void Example1()
@@ -202,7 +211,7 @@ public static class Program
             var fileName = $@"{DateTime.Now.Ticks}.mp4";
 
             using (var progress = new ConsoleProgress())
-                _client.Download(videos[videoIndex], fileName, progress);
+                _client.Download(videos[videoIndex].VideoUrl, videos[videoIndex].Headers, fileName, progress);
 
             Console.WriteLine("Done");
             Console.WriteLine($"Video saved to '{fileName}'");
@@ -322,7 +331,7 @@ public static class Program
         var fileName = $@"{Environment.CurrentDirectory}\{animes[animeIndex].Title} - Ep {episodes[episodeIndex].Number}.mp4";
 
         using (var progress = new ConsoleProgress())
-            await _client.DownloadAsync(videos[videoIndex], fileName, progress);
+            await _client.DownloadAsync(videos[videoIndex].VideoUrl, videos[videoIndex].Headers, fileName, progress);
 
         Console.WriteLine("Done");
         Console.WriteLine($"Video saved to '{fileName}'");
@@ -437,7 +446,7 @@ public static class Program
         var fileName = $@"{Environment.CurrentDirectory}\{animes[animeIndex].Title.ReplaceInvalidChars()} - Ep {episodes[episodeIndex].Number}.mp4";
 
         using (var progress = new ConsoleProgress())
-            await _client.DownloadAsync(videos[videoIndex], fileName, progress);
+            await _client.DownloadAsync(videos[videoIndex].VideoUrl, videos[videoIndex].Headers, fileName, progress);
 
         Console.WriteLine("Done");
         Console.WriteLine($"Video saved to '{fileName}'");

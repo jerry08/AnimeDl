@@ -6,7 +6,7 @@ namespace AnimeDl.Utils.Extensions;
 
 public static class NameValueCollectionExtensions
 {
-    public static IDictionary<string, string> ToDictionary(
+    public static Dictionary<string, string> ToDictionary(
         this NameValueCollection source)
     {
         return source.AllKeys.ToDictionary(k => k!, k => source[k])!;

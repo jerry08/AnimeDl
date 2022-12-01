@@ -634,26 +634,28 @@ public class AnimeClient
     /// Downloads an episode
     /// </summary>
     public void Download(
-        Video video,
+        string url,
+        NameValueCollection headers,
         string filePath,
         IProgress<double>? progress = null,
         CancellationToken cancellationToken = default)
     {
-        AsyncHelper.RunSync(() => DownloadAsync(video, filePath, progress, cancellationToken), cancellationToken);
+        AsyncHelper.RunSync(() => DownloadAsync(url, headers, filePath, progress, cancellationToken), cancellationToken);
     }
 
     /// <summary>
     /// Downloads an episode
     /// </summary>
     public async Task DownloadAsync(
-        Video video,
+        string url,
+        NameValueCollection headers,
         string filePath,
         IProgress<double>? progress = null,
         CancellationToken cancellationToken = default)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, video.VideoUrl);
-        for (int j = 0; j < video.Headers.Count; j++)
-            request.Headers.TryAddWithoutValidation(video.Headers.Keys[j]!, video.Headers[j]);
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        for (int j = 0; j < headers.Count; j++)
+            request.Headers.TryAddWithoutValidation(headers.Keys[j]!, headers[j]);
 
         using var response = await _http.SendAsync(
             request,
@@ -673,13 +675,13 @@ public class AnimeClient
         }
 
         long totalLength = progress is not null ?
-            await _http.GetFileSizeAsync(video.VideoUrl,
-                video.Headers, cancellationToken) : 0;
+            await _http.GetFileSizeAsync(url,
+                headers, cancellationToken) : 0;
 
-        var stream = await response.Content.ReadAsStreamAsync();
+        var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
 
         //Create a stream for the file
-        var file = File.Create(filePath.ReplaceInvalidChars());
+        var file = File.Create(filePath);
 
         try
         {
@@ -696,10 +698,10 @@ public class AnimeClient
                 length = stream.Read(buffer, 0, bytesToRead);
 
                 // and write it out to the response's output stream
-                file.Write(buffer, 0, length);
+                await file.WriteAsync(buffer, 0, length);
 
                 // Flush the data
-                stream.Flush();
+                await stream.FlushAsync();
 
                 //Clear the buffer
                 buffer = new byte[bytesToRead];
