@@ -101,9 +101,7 @@ public static class Program
             Console.WriteLine("Animes found: ");
             Console.WriteLine();
             for (int i = 0; i < animes.Count; i++)
-            {
                 Console.WriteLine($"[{i + 1}] {animes[i].Title}");
-            }
 
             Console.WriteLine();
 
@@ -159,9 +157,7 @@ public static class Program
             var videoServers = e.VideoServers;
 
             for (int i = 0; i < videoServers.Count; i++)
-            {
                 Console.WriteLine($"[{i + 1}] {videoServers[i].Name}");
-            }
 
             Console.WriteLine();
 
@@ -189,9 +185,7 @@ public static class Program
             Console.WriteLine($"Videos found: " + videos.Count);
 
             for (int i = 0; i < videos.Count; i++)
-            {
                 Console.WriteLine($"[{i + 1}] {videos[i].Resolution} - {videos[i].Format}");
-            }
 
             Console.WriteLine();
 
