@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AnimeDl.DemoConsole.Utils;
 using AnimeDl.Scrapers;
 using AnimeDl.Anilist;
+using AnimeDl.Models;
 
 namespace AnimeDl.DemoConsole;
 
@@ -327,11 +328,18 @@ public static class Program
 
         videoIndex--;
 
+        var selectedVideo = videos[videoIndex];
+
         // Download the stream
         var fileName = $@"{Environment.CurrentDirectory}\{animes[animeIndex].Title} - Ep {episodes[episodeIndex].Number}.mp4";
 
         using (var progress = new ConsoleProgress())
-            await _client.DownloadAsync(videos[videoIndex].VideoUrl, videos[videoIndex].Headers, fileName, progress);
+        {
+            if (selectedVideo.Format == VideoType.Container)
+                await _client.DownloadAsync(selectedVideo.VideoUrl, selectedVideo.Headers, fileName, progress);
+            else
+                await _client.DownloadTsAsync(selectedVideo.VideoUrl, selectedVideo.Headers, fileName, progress);
+        }
 
         Console.WriteLine("Done");
         Console.WriteLine($"Video saved to '{fileName}'");
@@ -442,11 +450,18 @@ public static class Program
 
         videoIndex--;
 
+        var selectedVideo = videos[videoIndex];
+
         // Download the stream
         var fileName = $@"{Environment.CurrentDirectory}\{animes[animeIndex].Title.ReplaceInvalidChars()} - Ep {episodes[episodeIndex].Number}.mp4";
 
         using (var progress = new ConsoleProgress())
-            await _client.DownloadAsync(videos[videoIndex].VideoUrl, videos[videoIndex].Headers, fileName, progress);
+        {
+            if (selectedVideo.Format == VideoType.Container)
+                await _client.DownloadAsync(selectedVideo.VideoUrl, selectedVideo.Headers, fileName, progress);
+            else
+                await _client.DownloadTsAsync(selectedVideo.VideoUrl, selectedVideo.Headers, fileName, progress);
+        }
 
         Console.WriteLine("Done");
         Console.WriteLine($"Video saved to '{fileName}'");

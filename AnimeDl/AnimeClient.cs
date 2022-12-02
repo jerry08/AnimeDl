@@ -17,6 +17,8 @@ using AnimeDl.Utils.Extensions;
 using AnimeDl.Anilist;
 using AnimeDl.Anilist.Models;
 using AnimeDl.Aniskip;
+using DotNetTools.JGrabber;
+using DotNetTools.JGrabber.Grabbed;
 
 namespace AnimeDl;
 
@@ -631,7 +633,7 @@ public class AnimeClient
     #endregion
 
     /// <summary>
-    /// Downloads an episode
+    /// Downloads an episode.
     /// </summary>
     public void Download(
         string url,
@@ -640,22 +642,31 @@ public class AnimeClient
         IProgress<double>? progress = null,
         CancellationToken cancellationToken = default)
     {
-        AsyncHelper.RunSync(() => DownloadAsync(url, headers, filePath, progress, cancellationToken), cancellationToken);
+        AsyncHelper.RunSync(() => DownloadAsync(url, headers, filePath, progress, false, cancellationToken), cancellationToken);
     }
 
     /// <summary>
-    /// Downloads an episode
+    /// Downloads an episode.
     /// </summary>
     public async Task DownloadAsync(
         string url,
         NameValueCollection headers,
         string filePath,
         IProgress<double>? progress = null,
+        bool append = false,
         CancellationToken cancellationToken = default)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         for (int j = 0; j < headers.Count; j++)
             request.Headers.TryAddWithoutValidation(headers.Keys[j]!, headers[j]);
+
+        if (!request.Headers.Contains("User-Agent"))
+        {
+            request.Headers.Add(
+                "User-Agent",
+                Http.ChromeUserAgent()
+            );
+        }
 
         using var response = await _http.SendAsync(
             request,
@@ -680,39 +691,161 @@ public class AnimeClient
 
         var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
 
-        //Create a stream for the file
-        var file = File.Create(filePath);
+        //var file = File.Create(filePath);
+        var file = new FileStream(filePath, FileMode.OpenOrCreate);
+        
+        if (append)
+            file.Seek(0, SeekOrigin.End);
 
         try
         {
-            //This controls how many bytes to read at a time and send to the client
-            int bytesToRead = 10000;
-
-            // Buffer to read bytes in chunk size specified above
-            byte[] buffer = new byte[bytesToRead];
-
-            int length;
-            do
-            {
-                // Read data into the buffer.
-                length = stream.Read(buffer, 0, bytesToRead);
-
-                // and write it out to the response's output stream
-                await file.WriteAsync(buffer, 0, length);
-
-                // Flush the data
-                await stream.FlushAsync();
-
-                //Clear the buffer
-                buffer = new byte[bytesToRead];
-
-                progress?.Report(((double)file.Length / (double)totalLength * 100) / 100);
-            } while (length > 0); //Repeat until no data is read
+            await stream.CopyToAsync(file, progress, totalLength,
+                cancellationToken: cancellationToken);
         }
         finally
         {
             file?.Close();
             stream?.Close();
+        }
+    }
+
+    /// <summary>
+    /// Downloads a hls/m3u8 video from a url. To prevent slight non synchronization
+    /// with the audio/video, you can run the ffmpeg command:
+    /// ffmpeg -i C:\path\video.ts -acodec copy -vcodec copy C:\path\video.mp4
+    /// </summary>
+    public async Task DownloadTsAsync(
+        string url,
+        NameValueCollection headers,
+        string filePath,
+        IProgress<double>? progress = null,
+        CancellationToken cancellationToken = default)
+    {
+        var services = GrabberServicesBuilder.New()
+            .UseHttpClientProvider(() =>
+            {
+                var httpClient = new HttpClient();
+
+                for (int j = 0; j < headers.Count; j++)
+                    httpClient.DefaultRequestHeaders.TryAddWithoutValidation(headers.Keys[j]!, headers[j]);
+
+                if (!httpClient.DefaultRequestHeaders.Contains("User-Agent"))
+                {
+                    httpClient.DefaultRequestHeaders.Add(
+                        "User-Agent",
+                        Http.ChromeUserAgent()
+                    );
+                }
+
+                return httpClient;
+            })
+            .Build();
+
+        var grabber = GrabberBuilder.New()
+            //.UseDefaultServices()
+            .UseServices(services)
+            .AddHls()
+            .Build();
+
+        var grabResult = await grabber.GrabAsync(new Uri(url), cancellationToken: cancellationToken);
+        //var test = grabResult.Resources<GrabbedHlsStreamReference>();
+        var metadataResources = grabResult.Resources<GrabbedHlsStreamMetadata>().ToArray();
+        var stream = await metadataResources[0].Stream;
+
+        var tempFiles = new List<string>();
+        try
+        {
+            for (var i = 0; i < stream.Segments.Count; i++)
+            {
+                var segment = stream.Segments[i];
+                //Console.Write($"Downloading segment #{i + 1} {segment.Title}...");
+                var outputPath = Path.GetTempFileName();
+                tempFiles.Add(outputPath);
+                await DownloadAsync(segment.Uri.AbsoluteUri, headers, outputPath, null, true, cancellationToken);
+                //Console.WriteLine(" OK");
+
+                progress?.Report(((double)i / (double)stream.Segments.Count * 100) / 100);
+            }
+
+            await FileEx.CombineMultipleFilesIntoSingleFile(tempFiles, filePath);
+        }
+        finally
+        {
+            foreach (var tempFile in tempFiles)
+            {
+                if (File.Exists(tempFile))
+                    File.Delete(tempFile);
+            }
+            //Console.WriteLine("Cleaned up temp files.");
+        }
+    }
+
+    /// <summary>
+    /// Downloads a hls/m3u8 video from a url.
+    /// </summary>
+    public async Task DownloadAllTsThenMergeAsync(
+        string url,
+        NameValueCollection headers,
+        string filePath,
+        IProgress<double>? progress = null,
+        CancellationToken cancellationToken = default)
+    {
+        var services = GrabberServicesBuilder.New()
+            .UseHttpClientProvider(() =>
+            {
+                var httpClient = new HttpClient();
+
+                for (int j = 0; j < headers.Count; j++)
+                    httpClient.DefaultRequestHeaders.TryAddWithoutValidation(headers.Keys[j]!, headers[j]);
+
+                if (!httpClient.DefaultRequestHeaders.Contains("User-Agent"))
+                {
+                    httpClient.DefaultRequestHeaders.Add(
+                        "User-Agent",
+                        Http.ChromeUserAgent()
+                    );
+                }
+
+                return httpClient;
+            })
+            .Build();
+
+        var grabber = GrabberBuilder.New()
+            //.UseDefaultServices()
+            .UseServices(services)
+            .AddHls()
+            .Build();
+
+        var grabResult = await grabber.GrabAsync(new Uri(url), cancellationToken: cancellationToken);
+        //var test = grabResult.Resources<GrabbedHlsStreamReference>();
+        var metadataResources = grabResult.Resources<GrabbedHlsStreamMetadata>().ToArray();
+        var stream = await metadataResources[0].Stream;
+
+        var tempFiles = new List<string>();
+        try
+        {
+            for (var i = 0; i < stream.Segments.Count; i++)
+            {
+                var segment = stream.Segments[i];
+                //Console.Write($"Downloading segment #{i + 1} {segment.Title}...");
+                var outputPath = Path.GetTempFileName();
+                tempFiles.Add(outputPath);
+                await DownloadAsync(segment.Uri.AbsoluteUri, headers, outputPath, null, false, cancellationToken);
+                //Console.WriteLine(" OK");
+
+                progress?.Report(((double)i / (double)stream.Segments.Count * 100) / 100);
+            }
+
+            await FileEx.CombineMultipleFilesIntoSingleFile(tempFiles, filePath);
+        }
+        finally
+        {
+            foreach (var tempFile in tempFiles)
+            {
+                if (File.Exists(tempFile))
+                    File.Delete(tempFile);
+            }
+            //Console.WriteLine("Cleaned up temp files.");
         }
     }
 
