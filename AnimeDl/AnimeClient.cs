@@ -752,31 +752,14 @@ public class AnimeClient
         var metadataResources = grabResult.Resources<GrabbedHlsStreamMetadata>().ToArray();
         var stream = await metadataResources[0].Stream;
 
-        var tempFiles = new List<string>();
-        try
+        for (var i = 0; i < stream.Segments.Count; i++)
         {
-            for (var i = 0; i < stream.Segments.Count; i++)
-            {
-                var segment = stream.Segments[i];
-                //Console.Write($"Downloading segment #{i + 1} {segment.Title}...");
-                var outputPath = Path.GetTempFileName();
-                tempFiles.Add(outputPath);
-                await DownloadAsync(segment.Uri.AbsoluteUri, headers, outputPath, null, true, cancellationToken);
-                //Console.WriteLine(" OK");
+            var segment = stream.Segments[i];
+            //Console.Write($"Downloading segment #{i + 1} {segment.Title}...");
+            await DownloadAsync(segment.Uri.AbsoluteUri, headers, filePath, null, true, cancellationToken);
+            //Console.WriteLine(" OK");
 
-                progress?.Report(((double)i / (double)stream.Segments.Count * 100) / 100);
-            }
-
-            await FileEx.CombineMultipleFilesIntoSingleFile(tempFiles, filePath);
-        }
-        finally
-        {
-            foreach (var tempFile in tempFiles)
-            {
-                if (File.Exists(tempFile))
-                    File.Delete(tempFile);
-            }
-            //Console.WriteLine("Cleaned up temp files.");
+            progress?.Report(((double)i / (double)stream.Segments.Count * 100) / 100);
         }
     }
 
