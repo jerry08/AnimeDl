@@ -709,16 +709,9 @@ public class AnimeClient
         }
     }
 
-    /// <summary>
-    /// Downloads a hls/m3u8 video from a url. To prevent slight non synchronization
-    /// with the audio/video, you can run the ffmpeg command:
-    /// ffmpeg -i C:\path\video.ts -acodec copy -vcodec copy C:\path\video.mp4
-    /// </summary>
-    public async Task DownloadTsAsync(
+    public async Task<List<GrabbedHlsStreamMetadata>> GetHlsStreamMetadatasAsync(
         string url,
         NameValueCollection headers,
-        string filePath,
-        IProgress<double>? progress = null,
         CancellationToken cancellationToken = default)
     {
         var services = GrabberServicesBuilder.New()
@@ -749,8 +742,22 @@ public class AnimeClient
 
         var grabResult = await grabber.GrabAsync(new Uri(url), cancellationToken: cancellationToken);
         //var test = grabResult.Resources<GrabbedHlsStreamReference>();
-        var metadataResources = grabResult.Resources<GrabbedHlsStreamMetadata>().ToArray();
-        var stream = await metadataResources[0].Stream;
+        return grabResult.Resources<GrabbedHlsStreamMetadata>().ToList();
+    }
+
+    /// <summary>
+    /// Downloads a hls/m3u8 video from a url. To prevent slight non synchronization
+    /// with the audio/video, you can run the ffmpeg command:
+    /// ffmpeg -i C:\path\video.ts -acodec copy -vcodec copy C:\path\video.mp4
+    /// </summary>
+    public async Task DownloadTsAsync(
+        GrabbedHlsStreamMetadata metadataResource,
+        NameValueCollection headers,
+        string filePath,
+        IProgress<double>? progress = null,
+        CancellationToken cancellationToken = default)
+    {
+        var stream = await metadataResource.Stream;
 
         for (var i = 0; i < stream.Segments.Count; i++)
         {
