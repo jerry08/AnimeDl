@@ -23,5 +23,15 @@ public enum AnimeSites
     /// <summary>
     /// Parses anime and information from Tenshi.
     /// </summary>
-    Tenshi
+    Tenshi,
+
+    /// <summary>
+    /// Parses anime and information from AnimeGO.
+    /// </summary>
+    AnimeGO,
+
+    /// <summary>
+    /// Parses anime and information from Jut.su.
+    /// </summary>
+    Jutsu
 }
