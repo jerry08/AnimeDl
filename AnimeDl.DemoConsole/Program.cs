@@ -351,8 +351,9 @@ public static class Program
                 qualityIndex--;
 
                 var metadataResource = metadataResources[qualityIndex];
+                var stream = await metadataResource.Stream;
 
-                await _client.DownloadTsAsync(metadataResource, selectedVideo.Headers, fileName, progress);
+                await _client.DownloadTsAsync(stream, selectedVideo.Headers, fileName, progress);
             }
         }
 

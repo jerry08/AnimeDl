@@ -172,7 +172,8 @@ await client.DownloadAsync(videos[0].VideoUrl, videos[0].Headers, fileName);
 
 //Donwloading other formats
 var metadataResources = await client.GetHlsStreamMetadatasAsync(videos[0].VideoUrl, videos[0].Headers);
+var stream = await metadataResources[0].Stream;
 
 //NB: Video format/type must be `M3u8` or `Dash`
-await client.DownloadTsAsync(metadataResources[0], videos[0].Headers, fileName);
+await client.DownloadTsAsync(stream, videos[0].Headers, fileName);
 ```

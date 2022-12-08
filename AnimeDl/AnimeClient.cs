@@ -751,14 +751,12 @@ public class AnimeClient
     /// ffmpeg -i C:\path\video.ts -acodec copy -vcodec copy C:\path\video.mp4
     /// </summary>
     public async Task DownloadTsAsync(
-        GrabbedHlsStreamMetadata metadataResource,
+        GrabbedHlsStream stream,
         NameValueCollection headers,
         string filePath,
         IProgress<double>? progress = null,
         CancellationToken cancellationToken = default)
     {
-        var stream = await metadataResource.Stream;
-
         for (var i = 0; i < stream.Segments.Count; i++)
         {
             var segment = stream.Segments[i];
