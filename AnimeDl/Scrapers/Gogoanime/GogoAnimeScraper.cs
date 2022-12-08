@@ -301,6 +301,8 @@ public class GogoAnimeScraper : BaseScraper
             videoServers.Add(new VideoServer(name, embed));
         }
 
+        videoServers = videoServers.OrderBy(x => x.Name).ToList();
+
         return videoServers;
     }
 
