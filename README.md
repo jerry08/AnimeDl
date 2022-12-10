@@ -1,7 +1,7 @@
 # AnimeDl
 
-[![Version](https://img.shields.io/nuget/v/AnimeDl.svg)](https://nuget.org/packages/AnimeDl)
-[![Downloads](https://img.shields.io/nuget/dt/AnimeDl.svg)](https://nuget.org/packages/AnimeDl)
+[![Version](https://img.shields.io/nuget/v/AnimeDl.svg?style=for-the-badge&logo=discord&logoColor=white)](https://nuget.org/packages/AnimeDl)
+[![Downloads](https://img.shields.io/nuget/dt/AnimeDl.svg?style=for-the-badge&logo=discord&logoColor=white)](https://nuget.org/packages/AnimeDl)
 <a href="https://discord.gg/mhxsSMy2Nf"><img src="https://img.shields.io/badge/Discord-7289DA?style=for-the-badge&logo=discord&logoColor=white"></a>
 
 **AnimeDl** scrapes animes from sites.
