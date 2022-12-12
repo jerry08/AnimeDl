@@ -336,8 +336,15 @@ public static class Program
             {
                 var metadataResources = await _client.GetHlsStreamMetadatasAsync(selectedVideo.VideoUrl, selectedVideo.Headers);
 
+                Console.WriteLine();
+
                 for (int i = 0; i < metadataResources.Count; i++)
-                    Console.WriteLine($"[{i + 1}] {metadataResources[i].Name}");
+                    Console.WriteLine($"[{i + 1}] {metadataResources[i].Resolution?.ToString() ?? "Default quality"}");
+
+                Console.WriteLine();
+
+                // Read the number number selected
+                Console.Write("Enter quality number: ");
 
                 int qualityIndex;
 
@@ -353,7 +360,8 @@ public static class Program
                 var metadataResource = metadataResources[qualityIndex];
                 var stream = await metadataResource.Stream;
 
-                await _client.DownloadTsAsync(stream, selectedVideo.Headers, fileName, progress);
+                //await _client.DownloadTsAsync(stream, selectedVideo.Headers, fileName, progress);
+                await _client.DownloadAllTsThenMergeAsync(stream, selectedVideo.Headers, fileName, progress);
             }
         }
 

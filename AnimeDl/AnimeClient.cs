@@ -19,6 +19,7 @@ using AnimeDl.Anilist.Models;
 using AnimeDl.Aniskip;
 using DotNetTools.JGrabber;
 using DotNetTools.JGrabber.Grabbed;
+using System.Diagnostics;
 
 namespace AnimeDl;
 
@@ -741,7 +742,7 @@ public class AnimeClient
             .Build();
 
         var grabResult = await grabber.GrabAsync(new Uri(url), cancellationToken: cancellationToken);
-        //var test = grabResult.Resources<GrabbedHlsStreamReference>();
+
         return grabResult.Resources<GrabbedHlsStreamMetadata>().ToList();
     }
 
@@ -772,57 +773,55 @@ public class AnimeClient
     /// Downloads a hls/m3u8 video from a url.
     /// </summary>
     public async Task DownloadAllTsThenMergeAsync(
-        string url,
+        GrabbedHlsStream stream,
         NameValueCollection headers,
         string filePath,
         IProgress<double>? progress = null,
+        int maxParallelDownloads = 10,
         CancellationToken cancellationToken = default)
     {
-        var services = GrabberServicesBuilder.New()
-            .UseHttpClientProvider(() =>
-            {
-                var httpClient = new HttpClient();
-
-                for (int j = 0; j < headers.Count; j++)
-                    httpClient.DefaultRequestHeaders.TryAddWithoutValidation(headers.Keys[j]!, headers[j]);
-
-                if (!httpClient.DefaultRequestHeaders.Contains("User-Agent"))
-                {
-                    httpClient.DefaultRequestHeaders.Add(
-                        "User-Agent",
-                        Http.ChromeUserAgent()
-                    );
-                }
-
-                return httpClient;
-            })
-            .Build();
-
-        var grabber = GrabberBuilder.New()
-            //.UseDefaultServices()
-            .UseServices(services)
-            .AddHls()
-            .Build();
-
-        var grabResult = await grabber.GrabAsync(new Uri(url), cancellationToken: cancellationToken);
-        //var test = grabResult.Resources<GrabbedHlsStreamReference>();
-        var metadataResources = grabResult.Resources<GrabbedHlsStreamMetadata>().ToArray();
-        var stream = await metadataResources[0].Stream;
-
         var tempFiles = new List<string>();
         try
         {
-            for (var i = 0; i < stream.Segments.Count; i++)
+            using var downloadSemaphore = new ResizableSemaphore
             {
-                var segment = stream.Segments[i];
-                //Console.Write($"Downloading segment #{i + 1} {segment.Title}...");
-                var outputPath = Path.GetTempFileName();
-                tempFiles.Add(outputPath);
-                await DownloadAsync(segment.Uri.AbsoluteUri, headers, outputPath, null, false, cancellationToken);
-                //Console.WriteLine(" OK");
+                MaxCount = maxParallelDownloads
+            };
 
-                progress?.Report(((double)i / (double)stream.Segments.Count * 100) / 100);
-            }
+            var total = 0;
+
+            var tasks = stream.Segments.Select(segment =>
+                Task.Run(async () => {
+                    using var access = await downloadSemaphore.AcquireAsync(cancellationToken);
+
+                    var outputPath = Path.Combine(Path.GetTempPath(), DateTime.Now.Ticks.ToString()) + ".tmp";
+                    tempFiles.Add(outputPath);
+                    await DownloadAsync(segment.Uri.AbsoluteUri, headers, outputPath, null, false, cancellationToken);
+
+                    total++;
+
+                    progress?.Report(((double)total / (double)stream.Segments.Count * 100) / 100);
+                }));
+
+            await Task.WhenAll(tasks);
+            
+            progress?.Report(1);
+
+            tempFiles = tempFiles.OrderBy(Path.GetFileName).ToList();
+
+            //for (var i = 0; i < stream.Segments.Count; i++)
+            //{
+            //    using var access = await downloadSemaphore.AcquireAsync(cancellationToken);
+            //
+            //    var segment = stream.Segments[i];
+            //    //Console.Write($"Downloading segment #{i + 1} {segment.Title}...");
+            //    var outputPath = Path.GetTempFileName();
+            //    tempFiles.Add(outputPath);
+            //    await DownloadAsync(segment.Uri.AbsoluteUri, headers, outputPath, null, false, cancellationToken);
+            //    //Console.WriteLine(" OK");
+            //
+            //    progress?.Report(((double)i / (double)stream.Segments.Count * 100) / 100);
+            //}
 
             await FileEx.CombineMultipleFilesIntoSingleFile(tempFiles, filePath);
         }
