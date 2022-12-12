@@ -20,6 +20,7 @@ using AnimeDl.Aniskip;
 using DotNetTools.JGrabber;
 using DotNetTools.JGrabber.Grabbed;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace AnimeDl;
 
@@ -790,11 +791,13 @@ public class AnimeClient
 
             var total = 0;
 
-            var tasks = stream.Segments.Select(segment =>
+            var tasks = Enumerable.Range(0, stream.Segments.Count).Select(i =>
                 Task.Run(async () => {
                     using var access = await downloadSemaphore.AcquireAsync(cancellationToken);
 
-                    var outputPath = Path.Combine(Path.GetTempPath(), DateTime.Now.Ticks.ToString()) + ".tmp";
+                    var segment = stream.Segments[i];
+
+                    var outputPath = Path.Combine(Path.GetTempPath(), DateTime.Now.Ticks.ToString()) + $"_{i}.tmp";
                     tempFiles.Add(outputPath);
                     await DownloadAsync(segment.Uri.AbsoluteUri, headers, outputPath, null, false, cancellationToken);
 
@@ -807,21 +810,8 @@ public class AnimeClient
             
             progress?.Report(1);
 
-            tempFiles = tempFiles.OrderBy(Path.GetFileName).ToList();
-
-            //for (var i = 0; i < stream.Segments.Count; i++)
-            //{
-            //    using var access = await downloadSemaphore.AcquireAsync(cancellationToken);
-            //
-            //    var segment = stream.Segments[i];
-            //    //Console.Write($"Downloading segment #{i + 1} {segment.Title}...");
-            //    var outputPath = Path.GetTempFileName();
-            //    tempFiles.Add(outputPath);
-            //    await DownloadAsync(segment.Uri.AbsoluteUri, headers, outputPath, null, false, cancellationToken);
-            //    //Console.WriteLine(" OK");
-            //
-            //    progress?.Report(((double)i / (double)stream.Segments.Count * 100) / 100);
-            //}
+            tempFiles = tempFiles.OrderBy(x => Convert.ToInt32(Path.GetFileNameWithoutExtension(x)
+                .Split('_').LastOrDefault())).ToList();
 
             await FileEx.CombineMultipleFilesIntoSingleFile(tempFiles, filePath);
         }
