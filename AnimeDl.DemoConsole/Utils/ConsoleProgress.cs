@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
+using System.Threading;
 
 namespace AnimeDl.DemoConsole.Utils;
 
@@ -11,6 +13,9 @@ internal class ConsoleProgress : IProgress<double>, IDisposable
 
     private int _lastLength;
 
+    private Timer? timer;
+    private double currentProgress = 0;
+
     public ConsoleProgress(TextWriter writer)
     {
         _writer = writer;
@@ -21,6 +26,11 @@ internal class ConsoleProgress : IProgress<double>, IDisposable
     public ConsoleProgress()
         : this(Console.Out)
     {
+    }
+
+    private void TimerHandler(object? state)
+    {
+        Write($"{currentProgress:P1}");
     }
 
     private void EraseLast()
@@ -40,7 +50,13 @@ internal class ConsoleProgress : IProgress<double>, IDisposable
         _lastLength = text.Length;
     }
 
-    public void Report(double progress) => Write($"{progress:P1}");
+    public void Report(double progress)
+    {
+        timer ??= new Timer(TimerHandler, null, 0, 200);
+        currentProgress = progress;
+
+        //Write($"{progress:P1}");
+    }
 
     public void Dispose() => EraseLast();
 }
