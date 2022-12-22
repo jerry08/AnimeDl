@@ -47,7 +47,7 @@ public class StreamSB : VideoExtractor
         var bytes = Encoding.ASCII.GetBytes($"||{id}||||streamsb");
         var bytesToHex = BytesToHex(bytes);
 
-        var jsonLink = $"https://streamsss.net/sources48/{bytesToHex}/";
+        var jsonLink = $"https://streamsss.net/sources49/{bytesToHex}/";
 
         var headers = new WebHeaderCollection()
         {
@@ -62,7 +62,7 @@ public class StreamSB : VideoExtractor
         var jObj = JObject.Parse(json);
         var masterUrl = jObj["stream_data"]?["file"]?.ToString().Trim('"')!;
 
-        var list = new List<Video>
+        return new List<Video>
         {
             new Video()
             {
@@ -72,7 +72,5 @@ public class StreamSB : VideoExtractor
                 Resolution = "Multi Quality"
             }
         };
-
-        return list;
     }
 }
