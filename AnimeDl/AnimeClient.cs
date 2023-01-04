@@ -48,7 +48,7 @@ public class AnimeClient
     /// Returns the current anime site.
     /// </summary>
     public AnimeSites Site { get; private set; }
-    
+
     /// <summary>
     /// Anime list.
     /// </summary>
@@ -78,7 +78,7 @@ public class AnimeClient
     /// Event after anime search is completed.
     /// </summary>
     public event EventHandler<AnimeEventArgs>? OnAnimesLoaded;
-    
+
     /// <summary>
     /// Event after anime search is completed.
     /// </summary>
@@ -93,7 +93,7 @@ public class AnimeClient
     /// Event after video links search is completed.
     /// </summary>
     public event EventHandler<VideoServerEventArgs>? OnVideoServersLoaded;
-    
+
     /// <summary>
     /// Event after video links search is completed.
     /// </summary>
@@ -359,7 +359,7 @@ public class AnimeClient
     /// Bool to check if episodes search is completed.
     /// </summary>
     public virtual bool IsLoadingEpisodes { get; protected set; }
-    
+
     private CancellationTokenSource _episodesCancellationTokenSource = new();
 
     /// <summary>
@@ -519,7 +519,7 @@ public class AnimeClient
     /// Bool to check if video links search is completed.
     /// </summary>
     public virtual bool IsLoadingVideos { get; protected set; }
-    
+
     private CancellationTokenSource _videosCancellationTokenSource = new();
 
     /// <summary>
@@ -566,7 +566,7 @@ public class AnimeClient
         bool showSizeIfAvailable = true)
     {
         Videos = await _scraper.GetVideosAsync(server);
-        
+
         if (showSizeIfAvailable)
         {
             foreach (var video in Videos)
@@ -585,7 +585,7 @@ public class AnimeClient
     /// Bool to check if genres search is completed.
     /// </summary>
     public virtual bool IsLoadingAllGenres { get; protected set; }
-    
+
     private CancellationTokenSource _genresCancellationTokenSource = new();
 
     /// <summary>
@@ -695,7 +695,7 @@ public class AnimeClient
 
         //var file = File.Create(filePath);
         var file = new FileStream(filePath, FileMode.OpenOrCreate);
-        
+
         if (append)
             file.Seek(0, SeekOrigin.End);
 
@@ -792,7 +792,8 @@ public class AnimeClient
             var total = 0;
 
             var tasks = Enumerable.Range(0, stream.Segments.Count).Select(i =>
-                Task.Run(async () => {
+                Task.Run(async () =>
+                {
                     using var access = await downloadSemaphore.AcquireAsync(cancellationToken);
 
                     var segment = stream.Segments[i];
@@ -807,7 +808,7 @@ public class AnimeClient
                 }));
 
             await Task.WhenAll(tasks);
-            
+
             progress?.Report(1);
 
             tempFiles = tempFiles.OrderBy(x => Convert.ToInt32(Path.GetFileNameWithoutExtension(x)

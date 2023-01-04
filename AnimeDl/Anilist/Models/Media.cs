@@ -37,12 +37,12 @@ public class Media
     public int UserRepeat { get; set; }
     public long? UserUpdatedAt { get; set; }
     public FuzzyDate UserStartedAt { get; set; } = default!;
-    public FuzzyDate UserCompletedAt{ get; set; } = default!;
+    public FuzzyDate UserCompletedAt { get; set; } = default!;
     //public InCustomListsOf: MutableMap<String, Boolean>?= null,
     public int? UserFavOrder { get; set; }
 
-    public string? Status{ get; set; }
-    public string? Format{ get; set; }
+    public string? Status { get; set; }
+    public string? Format { get; set; }
     public string? Source { get; set; }
     public string? CountryOfOrigin { get; set; }
     public int? MeanScore { get; set; }
@@ -88,10 +88,10 @@ public class Media
         UserScore = (int?)apiMedia.MediaListEntry?.Score ?? 0;
         UserStatus = apiMedia.MediaListEntry?.Status?.ToString();
         MeanScore = apiMedia.MeanScore;
-        
+
         //Todo: Cater for anime and manga
         Anime = apiMedia.Type == MediaType.Anime ? new Anime() : null;
-        
+
     }
 
     public Media(MediaList mediaList)

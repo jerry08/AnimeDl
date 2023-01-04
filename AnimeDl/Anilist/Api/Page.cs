@@ -11,13 +11,13 @@ public class Page
     /// </summary>
     [JsonProperty("pageInfo")]
     public PageInfo? PageInfo { get; set; }
-    
+
     [JsonProperty("users")]
     public List<User>? Users { get; set; }
 
     [JsonProperty("media")]
     public List<Media>? Media { get; set; }
-    
+
     [JsonProperty("characters")]
     public List<Character>? Characters { get; set; }
 
@@ -26,7 +26,7 @@ public class Page
 
     [JsonProperty("studios")]
     public List<Studio>? Studio { get; set; }
-    
+
     [JsonProperty("mediaList")]
     public List<MediaList>? MediaList { get; set; }
 

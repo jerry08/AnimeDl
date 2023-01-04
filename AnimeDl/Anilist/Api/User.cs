@@ -103,7 +103,7 @@ public class UserStatistics
 {
     [JsonProperty("count")]
     public int? Count { get; set; }
-    
+
     [JsonProperty("meanScore")]
     public int? MeanScore { get; set; }
 

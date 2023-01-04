@@ -6,6 +6,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Utils\ConsoleProgress - Copy.cs" />
+    <Compile Remove="Utils\ProgressBar.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\AnimeDl\AnimeDl.csproj" />
   </ItemGroup>
 

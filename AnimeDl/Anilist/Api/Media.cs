@@ -509,7 +509,7 @@ public enum MediaSource
     WebNovel,
     [EnumMember(Value = "Live_Action")]
     LiveAction,
-    Game, 
+    Game,
     Comic,
     [EnumMember(Value = "Multimedia_Project")]
     MultimediaProject,
@@ -624,7 +624,7 @@ public class MediaConnection
 
     [JsonProperty("nodes")]
     public List<Media>? Nodes { get; set; }
-    
+
     /// <summary>
     /// The pagination information
     /// </summary>
@@ -740,7 +740,7 @@ public class MediaExternalLink
     /// Language the site content is in. See Staff language field for values.
     /// </summary>
     public string? Language { get; set; }
-    
+
     public string? Color { get; set; }
 
     /// <summary>

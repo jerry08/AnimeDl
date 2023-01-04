@@ -40,7 +40,7 @@ public class Query
             public Api.Page? Page { get; set; }
         }
     }
-    
+
     public class Character
     {
         [JsonProperty("data")]
@@ -64,7 +64,7 @@ public class Query
             public Api.Studio? Studio { get; set; }
         }
     }
-    
+
     public class MediaListCollection
     {
         [JsonProperty("data")]

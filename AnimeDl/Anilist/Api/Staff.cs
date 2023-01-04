@@ -34,10 +34,10 @@ public class Staff
     /// </summary>
     [JsonProperty("gender")]
     public string? Gender { get; set; }
-    
+
     [JsonProperty("dateOfBirth")]
     public FuzzyDate? DateOfBirth { get; set; }
-    
+
     [JsonProperty("dateOfDeath")]
     public FuzzyDate? DateOfDeath { get; set; }
 

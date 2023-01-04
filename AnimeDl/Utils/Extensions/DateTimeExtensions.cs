@@ -11,7 +11,7 @@ internal static class DateTimeExtensions
     //{
     //    return (long)(DateTime.UtcNow - Jan1st1970).TotalMilliseconds;
     //}
-    
+
     public static long ToUnixTimeMilliseconds(this DateTime dateTime)
     {
         return (long)(dateTime - Jan1st1970).TotalMilliseconds;

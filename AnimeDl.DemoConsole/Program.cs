@@ -41,7 +41,7 @@ public static class Program
 
         //Filter animes to "ANIME" format
         //var animes = searchResults?.Results.Where(x => x.Format == "ANIME").ToList();
-        
+
         //Filter to animes available by mal
         var animes = searchResults?.Results.Where(x => x.IdMal is not null).ToList();
 

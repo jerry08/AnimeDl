@@ -122,7 +122,7 @@ public class NineAnimeScraper : BaseScraper
                 .FirstOrDefault()?.InnerText;
             var name = $"Episode {epNum} - {title}";
 
-            episodes.Add(new Episode() 
+            episodes.Add(new Episode()
             {
                 Link = link!,
                 Name = name,
@@ -161,7 +161,7 @@ public class NineAnimeScraper : BaseScraper
             var encodedStreamUrl = JObject.Parse(content2)["result"]?["url"]?.ToString();
 
             var realLink = new FileUrl(DecodeVrf(encodedStreamUrl!), embedHeaders);
-            
+
             if (name == "VideoVard")
             {
                 videoServers.Add(new VideoServer($"{Name} Mp4", realLink));

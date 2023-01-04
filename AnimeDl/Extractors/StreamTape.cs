@@ -10,7 +10,7 @@ namespace AnimeDl.Extractors;
 public class StreamTape : VideoExtractor
 {
     private readonly Regex LinkRegex = new(@"'robotlink'\)\.innerHTML = '(.+?)'\+ \('(.+?)'\)");
-    
+
     public virtual string MainUrl => "https://streamtape.com";
 
     public StreamTape(HttpClient http,
