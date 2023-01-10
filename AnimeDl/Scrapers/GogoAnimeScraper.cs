@@ -65,8 +65,6 @@ public class GogoAnimeScraper : BaseScraper
         var response = searchFilter switch
         {
             SearchFilter.Find => await _http.SendHttpRequestAsync($"{BaseUrl}search.html?keyword=" + query),
-            //SearchFilter.AllList => await _http.SendHttpRequestAsync($"https://animesa.ga/animel.php"),
-            SearchFilter.AllList => await _http.SendHttpRequestAsync($"https://animefrenzy.org/anime"),
             SearchFilter.Popular => await _http.SendHttpRequestAsync($"{BaseUrl}popular.html?page=" + page),
             SearchFilter.NewSeason => await _http.SendHttpRequestAsync($"{BaseUrl}new-season.html?page=" + page),
             SearchFilter.LastUpdated => await _http.SendHttpRequestAsync($"{BaseUrl}?page=" + page),
@@ -109,14 +107,19 @@ public class GogoAnimeScraper : BaseScraper
                 if (releasedNode is not null)
                     released = new string(releasedNode.InnerText.Where(char.IsDigit).ToArray());
 
-                if (category.Contains("-episode"))
-                    category = "/category" + category.Remove(category.LastIndexOf("-episode"));
+                if (category.Contains("kyokou-suiri"))
+                {
+
+                }
+
+                var id = category.Contains("-episode") ?
+                    "/category" + category.Remove(category.LastIndexOf("-episode")) : category;
 
                 link = BaseUrl + category;
 
                 animes.Add(new Anime()
                 {
-                    Id = category,
+                    Id = id,
                     Site = AnimeSites.GogoAnime,
                     Image = img,
                     Title = title,
@@ -135,12 +138,32 @@ public class GogoAnimeScraper : BaseScraper
     {
         await EnsureUrlsSet();
 
-        var response = await _http.SendHttpRequestAsync($"{BaseUrl}{id}");
+        var url = $"{BaseUrl}{id}";
 
         var anime = new Anime() { Id = id };
 
+        if (id.Contains("-episode"))
+        {
+            var epsResponse = await _http.SendHttpRequestAsync(url);
+
+            var epsDocument = new HtmlDocument();
+            epsDocument.LoadHtml(epsResponse);
+
+            url = epsDocument.DocumentNode
+                .SelectSingleNode(".//div[@class='anime-info']/a")?.Attributes["href"]?.Value;
+
+            if (url is null)
+                return anime;
+
+            url = $"{BaseUrl}{url}";
+        }
+
+        var response = await _http.SendHttpRequestAsync(url);
+
         if (string.IsNullOrEmpty(response))
             return anime;
+
+        anime.Category = url;
 
         var document = new HtmlDocument();
         document.LoadHtml(response);
