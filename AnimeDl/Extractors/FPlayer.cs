@@ -25,7 +25,7 @@ public class FPlayer : VideoExtractor
 
         try
         {
-            var headers = new NameValueCollection()
+            var headers = new Dictionary<string, string>()
             {
                 { "Referer", url }
             };

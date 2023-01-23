@@ -95,12 +95,12 @@ public static class HttpExtensions
     public static async ValueTask<string> PostAsync(
         this HttpClient http,
         string url,
-        NameValueCollection headers,
+        Dictionary<string, string> headers,
         CancellationToken cancellationToken = default)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, url);
         for (int j = 0; j < headers.Count; j++)
-            request.Headers.TryAddWithoutValidation(headers.Keys[j]!, headers[j]);
+            request.Headers.TryAddWithoutValidation(headers.ElementAt(j).Key, headers.ElementAt(j).Value);
 
         return await http.SendHttpRequestAsync(request, cancellationToken);
     }
@@ -108,13 +108,13 @@ public static class HttpExtensions
     public static async ValueTask<string> PostAsync(
         this HttpClient http,
         string url,
-        NameValueCollection headers,
+        Dictionary<string, string> headers,
         HttpContent content,
         CancellationToken cancellationToken = default)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, url);
         for (int j = 0; j < headers.Count; j++)
-            request.Headers.TryAddWithoutValidation(headers.Keys[j]!, headers[j]);
+            request.Headers.TryAddWithoutValidation(headers.ElementAt(j).Key, headers.ElementAt(j).Value);
 
         request.Content = content;
 
