@@ -34,7 +34,7 @@ public class RapidCloud : VideoExtractor
         var id = new Stack<string>(url.Split('/')).Pop().Split('?')[0];
         //var sId = await _http.SendHttpRequestAsync(consumetApi + "/utils/rapid-cloud");
         var sId = await _http.SendHttpRequestAsync($"{enimeApi}/tool/rapid-cloud/server-id",
-            new WebHeaderCollection()
+            new Dictionary<string, string>()
             {
                 { "User-Agent", "Saikou" }
             }
@@ -45,7 +45,7 @@ public class RapidCloud : VideoExtractor
             sId = await _http.SendHttpRequestAsync($"{enimeApi}/tool/rapid-cloud/server-id");
         }
 
-        var headers = new WebHeaderCollection()
+        var headers = new Dictionary<string, string>()
         {
             { "X-Requested-With", "XMLHttpRequest" }
         };

@@ -1,4 +1,4 @@
-﻿using System.Collections.Specialized;
+﻿using System.Collections.Generic;
 
 namespace AnimeDl.Models;
 
@@ -6,11 +6,10 @@ public class FileUrl
 {
     public string Url { get; set; } = default!;
 
-    public NameValueCollection Headers { get; set; } = default!;
+    public Dictionary<string, string> Headers { get; set; } = new();
 
     public FileUrl()
     {
-
     }
 
     public FileUrl(string url)
@@ -18,7 +17,7 @@ public class FileUrl
         Url = url;
     }
 
-    public FileUrl(string url, NameValueCollection headers)
+    public FileUrl(string url, Dictionary<string, string> headers)
     {
         Url = url;
         Headers = headers;

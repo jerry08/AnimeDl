@@ -11,6 +11,8 @@ using AnimeDl.Models;
 using AnimeDl.Extractors;
 using AnimeDl.Extractors.Interfaces;
 using AnimeDl.Utils;
+using System.Text;
+using Newtonsoft.Json;
 
 namespace AnimeDl.Scrapers;
 
@@ -23,11 +25,13 @@ public class TenshiScraper : BaseScraper
 
     public override bool IsDubAvailableSeparately { get; set; } = false;
 
-    public override string BaseUrl => "https://tenshi.moe";
+    //public override string BaseUrl => "https://tenshi.moe";
+    public override string BaseUrl => "https://marin.moe";
 
-    public WebHeaderCollection CookieHeader = new()
+    public Dictionary<string, string> DdosCookie = new()
     {
-        { "Cookie", "__ddg1_=;__ddg2_=;loop-view=thumb" }
+        //{ "Cookie", "__ddg1_=;__ddg2_=;loop-view=thumb" }
+        { "Cookie", ";__ddg1_=;__ddg2_=;" }
     };
 
     //private readonly List<Cookie> Cookies = new()
@@ -53,10 +57,26 @@ public class TenshiScraper : BaseScraper
         //query = query.Replace(" ", "%20");
         query = query.Replace(" ", "+");
 
+        //var payload = @"{""filter"":{""type"":[],""status"":[],""content_rating"":[],""genre"":[],""group"":[],""production"":[],""source"":[],""resolution"":[],""audio"":[],""subtitle"":[]},""search"":""anohana""}";
+
+        var data = new
+        {
+            search = query,
+            sort = "vtt-d"
+        };
+
+        var payload = JsonConvert.SerializeObject(data);
+        var content = new StringContent(payload, Encoding.UTF8, "application/json");
+
+        for (int i = 0; i < DdosCookie.Count; i++)
+            content.Headers.Add(DdosCookie.ElementAt(i).Key, DdosCookie.ElementAt(i).Value);
+
+        var json = await _http.PostAsync($"{BaseUrl}/anime", content);
+
         var response = searchFilter switch
         {
-            SearchFilter.Find => await _http.SendHttpRequestAsync($"{BaseUrl}/anime?q={query}&s=vtt-d", CookieHeader),
-            SearchFilter.NewSeason => await _http.SendHttpRequestAsync($"{BaseUrl}/anime?s=rel-d&page=" + page, CookieHeader),
+            SearchFilter.Find => await _http.SendHttpRequestAsync($"{BaseUrl}/anime?q={query}&s=vtt-d", DdosCookie),
+            SearchFilter.NewSeason => await _http.SendHttpRequestAsync($"{BaseUrl}/anime?s=rel-d&page=" + page, DdosCookie),
             _ => throw new SearchFilterNotSupportedException("Search filter not supported")
         };
 
@@ -87,7 +107,7 @@ public class TenshiScraper : BaseScraper
 
     public override async Task<Anime> GetAnimeInfoAsync(string id)
     {
-        var response = await _http.SendHttpRequestAsync(id, CookieHeader);
+        var response = await _http.SendHttpRequestAsync(id, DdosCookie);
 
         var anime = new Anime() { Id = id };
 
@@ -138,7 +158,7 @@ public class TenshiScraper : BaseScraper
     {
         var episodes = new List<Episode>();
 
-        var response = await _http.SendHttpRequestAsync(id, CookieHeader);
+        var response = await _http.SendHttpRequestAsync(id, DdosCookie);
 
         if (string.IsNullOrEmpty(response))
             return episodes;
@@ -201,7 +221,7 @@ public class TenshiScraper : BaseScraper
     {
         var videoServers = new List<VideoServer>();
 
-        var response = await _http.SendHttpRequestAsync(episodeId, CookieHeader);
+        var response = await _http.SendHttpRequestAsync(episodeId, DdosCookie);
 
         if (string.IsNullOrEmpty(response))
             return videoServers;
@@ -221,11 +241,13 @@ public class TenshiScraper : BaseScraper
 
             var urlParam = new Uri(node.Attributes["href"].Value).DecodeQueryParameters();
             var url = $"{BaseUrl}/embed?" + urlParam.FirstOrDefault().Key + "=" + urlParam.FirstOrDefault().Value;
-            var headers = new WebHeaderCollection()
+            var headers = new Dictionary<string, string>()
             {
-                CookieHeader,
                 { "Referer", episodeId }
             };
+
+            for (int i = 0; i < DdosCookie.Count; i++)
+                headers.Add(DdosCookie.ElementAt(i).Key, DdosCookie.ElementAt(i).Value);
 
             videoServers.Add(new VideoServer(server, new FileUrl(url, headers)));
         }

@@ -196,20 +196,23 @@ public class ZoroScraper : BaseScraper
         return episodes;
     }
 
-    public override async Task<List<VideoServer>> GetVideoServersAsync(string episodeId)
+    public override async Task<List<VideoServer>> GetVideoServersAsync(string episodeId) =>
+        await GetVideoServersAsync(episodeId);
+
+    public async Task<List<VideoServer>> GetVideoServersAsync(
+        string episodeId,
+        SubDub subDub = SubDub.All)
     {
-        var dataId = episodeId.Split(new string[] { "ep=" },
-            StringSplitOptions.None).Last();
+        var dataId = episodeId.Split(new string[] { "ep=" }, StringSplitOptions.None).Last();
 
         var url = $"{BaseUrl}/ajax/v2/episode/servers?episodeId={dataId}";
+        var response = await _http.SendHttpRequestAsync(url);
 
-        var json = await _http.SendHttpRequestAsync(url);
-
-        if (string.IsNullOrEmpty(json))
+        if (string.IsNullOrEmpty(response))
             return new();
 
-        var jObj = JObject.Parse(json);
-        var html = jObj["html"]!.ToString();
+        var data = JObject.Parse(response);
+        var html = data["html"]!.ToString();
 
         var doc = new HtmlDocument();
         doc.LoadHtml(html);
@@ -221,29 +224,28 @@ public class ZoroScraper : BaseScraper
 
         for (int i = 0; i < nodes.Count; i++)
         {
-            var dataId2 = nodes[i].Attributes["data-id"].Value;
-            var serverName = nodes[i].Attributes["data-type"].Value.ToUpper().Trim() + $" {nodes[i].InnerText.Trim()}";
+            dataId = nodes[i].Attributes["data-id"].Value;
+            var dataType = nodes[i].Attributes["data-type"].Value.ToLower().Trim();
+            var serverName = $"({dataType.ToUpper()}) {nodes[i].InnerText.Trim()}";
 
-            var url2 = $"https://zoro.to/ajax/v2/episode/sources?id={dataId2}";
-            var json2 = await _http.SendHttpRequestAsync(url2);
-
-            var jObj2 = JObject.Parse(json2);
-            var type = jObj2["type"]!.ToString();
-            var server = jObj2["server"]!.ToString();
-
-            if (type != "iframe")
+            if (subDub != SubDub.All)
             {
+                if (dataType == "dub" && subDub != SubDub.Dub)
+                    continue;
 
-            }
-            else
-            {
-                var videoUrl = jObj2["link"]!.ToString();
-
-                videoUrl += dataId;
+                if (dataType == "sub" && subDub != SubDub.Sub)
+                    continue;
             }
 
-            var link = jObj2["link"]!.ToString();
-            var embedHeaders = new WebHeaderCollection()
+            url = $"https://zoro.to/ajax/v2/episode/sources?id={dataId}";
+            response = await _http.SendHttpRequestAsync(url);
+
+            data = JObject.Parse(response);
+            var type = data["type"]!.ToString();
+            var server = data["server"]!.ToString();
+
+            var link = data["link"]!.ToString();
+            var embedHeaders = new Dictionary<string, string>()
             {
                 { "Referer", BaseUrl + "/" }
             };

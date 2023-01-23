@@ -29,8 +29,16 @@ public class NineAnimeScraper : BaseScraper
     public override string BaseUrl => "https://9anime.pl";
     //public override string BaseUrl => "https://9anime.id";
 
+    private string cipherKey = "";
+    private string keyMap = "";
+
     public NineAnimeScraper(HttpClient http) : base(http)
     {
+        var response = _http.Get("https://raw.githubusercontent.com/AnimeJeff/Brohflow/main/keys.json");
+        var data = JObject.Parse(response);
+
+        cipherKey = data["cipher"]!.ToString();
+        keyMap = data["keyMap"]!.ToString();
     }
 
     public override async Task<List<Anime>> SearchAsync(
@@ -41,15 +49,17 @@ public class NineAnimeScraper : BaseScraper
     {
         var animes = new List<Anime>();
 
+        var tt1 = this.Ev(query);
+        var tt2 = Encode(tt1);
+
         var response = searchFilter switch
         {
-            SearchFilter.Find => await _http.SendHttpRequestAsync($"{BaseUrl}/filter?sort=title%3Aasc&keyword={query}"),
-            SearchFilter.Popular => await _http.SendHttpRequestAsync($"{BaseUrl}/popular.html?page=" + page),
-            SearchFilter.NewSeason => await _http.SendHttpRequestAsync($"{BaseUrl}/new-season.html?page=" + page),
+            //SearchFilter.Find => await _http.SendHttpRequestAsync($"{BaseUrl}/filter?sort=title%3Aasc&keyword={query}"),
+            SearchFilter.Find => await _http.SendHttpRequestAsync($"{BaseUrl}/filter?keyword={Encode(query)}&page={page}&vrf={Encode(this.Ev(query))}"),
+            SearchFilter.Popular => await _http.SendHttpRequestAsync($"{BaseUrl}/popular.html?page={page}"),
+            SearchFilter.NewSeason => await _http.SendHttpRequestAsync($"{BaseUrl}/new-season.html?page={page}"),
             SearchFilter.LastUpdated => await _http.SendHttpRequestAsync($"{BaseUrl}/ajax/home/widget?name=updated_all"),
             SearchFilter.Trending => await _http.SendHttpRequestAsync($"{BaseUrl}/ajax/home/widget?name=trending"),
-            SearchFilter.AllList => await _http.SendHttpRequestAsync($"https://animefrenzy.org/anime"),
-            //SearchFilter.AllList => await _http.SendHttpRequestAsync($"https://animesa.ga/animel.php");
             _ => throw new SearchFilterNotSupportedException("Search filter not supported"),
         };
 
@@ -82,6 +92,14 @@ public class NineAnimeScraper : BaseScraper
         }
 
         return animes;
+    }
+
+    public string Ev(string query)
+    {
+        return this.encrypt(
+            this.MapKeys(this.encrypt(this.cipher(Encode(query), this.cipherKey), this.baseTable), this.keyMap),
+            this.baseTable
+        );
     }
 
     public override async Task<List<Episode>> GetEpisodesAsync(string id)
@@ -148,7 +166,7 @@ public class NineAnimeScraper : BaseScraper
 
         var videoServers = new List<VideoServer>();
 
-        var embedHeaders = new WebHeaderCollection();
+        var embedHeaders = new Dictionary<string, string>();
 
         for (int i = 0; i < dataLinksIdNodes.Count; i++)
         {
@@ -180,8 +198,8 @@ public class NineAnimeScraper : BaseScraper
         throw new NotImplementedException();
     }
 
-    private const string baseTable = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=_";
-    private const string baseTable1 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+=/_";
+    private string baseTable = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=_";
+    private string baseTable1 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+=/_";
 
     private Key GetKey()
     {
@@ -204,7 +222,7 @@ public class NineAnimeScraper : BaseScraper
 
     private string MapKeys(string encrypted, string keyMap)
     {
-        var table = keyMap.Split(new string[] { "" }, StringSplitOptions.None);
+        var table = keyMap.ToList();
 
         var tt = "";
 
@@ -256,32 +274,35 @@ public class NineAnimeScraper : BaseScraper
     //}
 
     //private string ue(string input)
-    public string encrypt(string input, string key)
+    public string encrypt(string query, string key)
     {
-        if (input.Any(x => x >= 256))
+        if (query.Any(x => x >= 256))
             throw new Exception("illegal characters!");
 
         var output = "";
 
-        for (int i = 0; i < input.Length; i++)
+        for (int i = 0; i < query.Length; i++)
         {
             if (i % 3 != 0)
                 continue;
 
-            var a = new int[] { -1, -1, -1, -1 };
-            a[0] = input[i] >> 2;
-            a[1] = (3 & input[i]) << 4;
-            if (input.Length > i + 1)
+            var array = new int[] { -1, -1, -1, -1 };
+            array[0] = query[i] >> 2;
+            array[1] = (3 & query[i]) << 4;
+
+            if (query.Length > i + 1)
             {
-                a[1] = a[1] ^ (input[i + 1] >> 4);
-                a[2] = (15 & input[i + 1]) << 2;
+                array[1] = array[1] ^ (query[i + 1] >> 4);
+                array[2] = (15 & query[i + 1]) << 2;
             }
-            if (input.Length > i + 2)
+
+            if (query.Length > i + 2)
             {
-                a[2] = a[2] ^ (input[i + 2] >> 6);
-                a[3] = 63 & input[i + 2];
+                array[2] = array[2] ^ (query[i + 2] >> 6);
+                array[3] = 63 & query[i + 2];
             }
-            foreach (int n in a)
+
+            foreach (int n in array)
             {
                 if (n == -1)
                     output += "=";
@@ -297,37 +318,35 @@ public class NineAnimeScraper : BaseScraper
     }
 
     //private string je(string input1, string input2)
-    public string cipher(string key, string input2)
+    public string cipher(string query, string key)
     {
         var arr = new int[256];
         for (int i = 0; i < arr.Length; i++)
-        {
             arr[i] = i;
-        }
 
-        string output = "";
+        var output = "";
         var u = 0;
-        int r;
+        var v = 0;
 
         for (int a = 0; a < arr.Length; a++)
         {
             u = (u + arr[a] + key[a % key.Length]) % 256;
-            r = arr[a];
+            v = arr[a];
             arr[a] = arr[u];
-            arr[u] = r;
+            arr[u] = v;
         }
 
         u = 0;
-        var c = 0;
+        var j = 0;
 
-        for (int f = 0; f < input2.Length; f++)
+        for (int f = 0; f < query.Length; f++)
         {
-            c = (c + 1) % 256;
-            u = (u + arr[c]) % 256;
-            r = arr[c];
-            arr[c] = arr[u];
-            arr[u] = r;
-            output += (char)(input2[f] ^ arr[(arr[c] + arr[u]) % 256]);
+            j = (j + 1) % 256;
+            u = (u + arr[j]) % 256;
+            v = arr[j];
+            arr[j] = arr[u];
+            arr[u] = v;
+            output += (char)(query[f] ^ arr[(arr[j] + arr[u]) % 256]);
         }
 
         return output;
@@ -393,7 +412,7 @@ public class NineAnimeScraper : BaseScraper
     private string Encode(string id)
     {
         //return Uri.EscapeDataString(id);
-        byte[] bytes = Encoding.Default.GetBytes(id);
+        var bytes = Encoding.Default.GetBytes(id);
         return Encoding.UTF8.GetString(bytes).Replace("+", "%20");
     }
 

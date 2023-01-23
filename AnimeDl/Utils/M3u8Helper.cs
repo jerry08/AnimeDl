@@ -19,7 +19,7 @@ internal class M3u8Helper
     {
         public string StreamUrl { get; set; } = default!;
         public string Resolution { get; set; } = default!;
-        public WebHeaderCollection Headers { get; set; } = default!;
+        public Dictionary<string, string> Headers { get; set; } = default!;
     }
 
     public readonly HttpClient _http;

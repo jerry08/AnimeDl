@@ -49,7 +49,7 @@ public class StreamSB : VideoExtractor
 
         var jsonLink = $"https://streamsss.net/sources50/{bytesToHex}/";
 
-        var headers = new WebHeaderCollection()
+        var headers = new Dictionary<string, string>()
         {
             //{ "watchsb", "streamsb" },
             { "watchsb", "sbstream" },

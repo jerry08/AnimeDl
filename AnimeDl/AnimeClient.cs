@@ -34,6 +34,11 @@ public class AnimeClient
     private readonly HttpClient _http;
 
     /// <summary>
+    /// Current anime scraper.
+    /// </summary>
+    public IAnimeScraper CurrentScraper => _scraper;
+
+    /// <summary>
     /// Client for interacting with aniskip api.
     /// </summary>
     public AniskipClient Aniskip { get; }
@@ -147,7 +152,7 @@ public class AnimeClient
         url = "https://api.myanimelist.net/v2/anime?q=one&limit=4";
         var animeURL = "${config.url}/${animeID}?fields=id,title,main_picture,alternative_titles,start_date,end_date,synopsis,mean,rank,popularity,num_list_users,num_scoring_users,status,genres,my_list_status,num_episodes,start_season,background,related_anime,related_manga,studios,";
         var clientId = "057e21278f0a33a664133e70dce8047d";
-        var headers = new NameValueCollection()
+        var headers = new Dictionary<string, string>()
         {
             { "X-MAL-CLIENT-ID", clientId }
         };
@@ -197,7 +202,7 @@ public class AnimeClient
             var url = $"https://api.myanimelist.net/v2/anime/{idMal}?fields=id,title,main_picture,alternative_titles,start_date,end_date,synopsis,mean,rank,popularity,num_list_users,num_scoring_users,status,genres,my_list_status,num_episodes,start_season,background,related_anime,related_manga,studios,";
 
             var clientId = "057e21278f0a33a664133e70dce8047d";
-            var headers = new NameValueCollection()
+            var headers = new Dictionary<string, string>()
             {
                 { "X-MAL-CLIENT-ID", clientId }
             };
@@ -639,7 +644,7 @@ public class AnimeClient
     /// </summary>
     public void Download(
         string url,
-        NameValueCollection headers,
+        Dictionary<string, string> headers,
         string filePath,
         IProgress<double>? progress = null,
         CancellationToken cancellationToken = default)
@@ -652,7 +657,7 @@ public class AnimeClient
     /// </summary>
     public async Task DownloadAsync(
         string url,
-        NameValueCollection headers,
+        Dictionary<string, string> headers,
         string filePath,
         IProgress<double>? progress = null,
         bool append = false,
@@ -660,7 +665,7 @@ public class AnimeClient
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         for (int j = 0; j < headers.Count; j++)
-            request.Headers.TryAddWithoutValidation(headers.Keys[j]!, headers[j]);
+            request.Headers.TryAddWithoutValidation(headers.ElementAt(j).Key, headers.ElementAt(j).Value);
 
         if (!request.Headers.Contains("User-Agent"))
         {
@@ -713,7 +718,7 @@ public class AnimeClient
 
     public async Task<List<GrabbedHlsStreamMetadata>> GetHlsStreamMetadatasAsync(
         string url,
-        NameValueCollection headers,
+        Dictionary<string, string> headers,
         CancellationToken cancellationToken = default)
     {
         var services = GrabberServicesBuilder.New()
@@ -722,7 +727,7 @@ public class AnimeClient
                 var httpClient = new HttpClient();
 
                 for (int j = 0; j < headers.Count; j++)
-                    httpClient.DefaultRequestHeaders.TryAddWithoutValidation(headers.Keys[j]!, headers[j]);
+                    httpClient.DefaultRequestHeaders.TryAddWithoutValidation(headers.ElementAt(j).Key, headers.ElementAt(j).Value);
 
                 if (!httpClient.DefaultRequestHeaders.Contains("User-Agent"))
                 {
@@ -754,7 +759,7 @@ public class AnimeClient
     /// </summary>
     public async Task DownloadTsAsync(
         GrabbedHlsStream stream,
-        NameValueCollection headers,
+        Dictionary<string, string> headers,
         string filePath,
         IProgress<double>? progress = null,
         CancellationToken cancellationToken = default)
@@ -775,7 +780,7 @@ public class AnimeClient
     /// </summary>
     public async Task DownloadAllTsThenMergeAsync(
         GrabbedHlsStream stream,
-        NameValueCollection headers,
+        Dictionary<string, string> headers,
         string filePath,
         IProgress<double>? progress = null,
         int maxParallelDownloads = 10,

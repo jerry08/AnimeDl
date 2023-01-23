@@ -62,7 +62,7 @@ public class GogoCDN : VideoExtractor
             var link = $"https://{host}/encrypt-ajax.php?id={CryptoHandler(id, keys.Item1, keys.Item3, true)}{end}&alias={id}";
 
             var encHtmlData = await _http.SendHttpRequestAsync(link,
-                new WebHeaderCollection()
+                new Dictionary<string, string>()
                 {
                     { "X-Requested-With", "XMLHttpRequest" },
                     //{ "Referer", host },

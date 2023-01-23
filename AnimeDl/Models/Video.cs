@@ -1,6 +1,7 @@
 ﻿using System.Collections.Specialized;
 using Newtonsoft.Json;
 using AnimeDl.Utils.JsonConverters;
+using System.Collections.Generic;
 
 namespace AnimeDl.Models;
 
@@ -56,8 +57,8 @@ public class Video
 
     //public Dictionary<string, string> Headers { get; set; } = new();
 
-    [JsonConverter(typeof(NameValueCollectionConverter))]
-    public NameValueCollection Headers { get; set; } = new();
+    //[JsonConverter(typeof(NameValueCollectionConverter))]
+    public Dictionary<string, string> Headers { get; set; } = new();
 }
 
 public enum VideoType

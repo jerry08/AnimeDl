@@ -7,6 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Specialized;
 using AnimeDl.Helpers;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace AnimeDl.Utils.Extensions;
 
@@ -122,12 +124,12 @@ public static class HttpExtensions
     public static async ValueTask<long> GetFileSizeAsync(
         this HttpClient http,
         string url,
-        NameValueCollection headers,
+        Dictionary<string, string> headers,
         CancellationToken cancellationToken = default)
     {
         using var request = new HttpRequestMessage(HttpMethod.Head, url);
         for (int j = 0; j < headers.Count; j++)
-            request.Headers.TryAddWithoutValidation(headers.Keys[j]!, headers[j]);
+            request.Headers.TryAddWithoutValidation(headers.ElementAt(j).Key, headers.ElementAt(j).Value);
 
         using var response = await http.SendAsync(
             request,
@@ -161,12 +163,12 @@ public static class HttpExtensions
     public static async ValueTask<string> SendHttpRequestAsync(
         this HttpClient http,
         string url,
-        NameValueCollection headers,
+        Dictionary<string, string> headers,
         CancellationToken cancellationToken = default)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         for (int j = 0; j < headers.Count; j++)
-            request.Headers.TryAddWithoutValidation(headers.Keys[j]!, headers[j]);
+            request.Headers.TryAddWithoutValidation(headers.ElementAt(j).Key, headers.ElementAt(j).Value);
 
         return await http.SendHttpRequestAsync(request, cancellationToken);
     }
