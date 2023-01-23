@@ -58,7 +58,7 @@ public class AnilistClient
             variables
         };
 
-        var headers = new NameValueCollection()
+        var headers = new Dictionary<string, string>()
         {
             { "Content-Type", "application/json" },
             { "Accept", "application/json" }
