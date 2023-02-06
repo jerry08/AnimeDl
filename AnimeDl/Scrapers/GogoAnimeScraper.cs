@@ -335,7 +335,8 @@ public class GogoAnimeScraper : BaseScraper
         var domainInfo = domainParser.Parse(server.Embed.Url);
 
         if (domainInfo.Domain.Contains("gogo")
-            || domainInfo.Domain.Contains("goload"))
+            || domainInfo.Domain.Contains("goload")
+            || domainInfo.Domain.Contains("playgo"))
         {
             return new GogoCDN(_http, server);
         }
