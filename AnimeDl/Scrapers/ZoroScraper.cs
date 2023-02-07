@@ -31,7 +31,8 @@ public class ZoroScraper : BaseScraper
     {
     }
 
-    public override async Task<List<Anime>> SearchAsync(string query,
+    public override async Task<List<Anime>> SearchAsync(
+        string query,
         SearchFilter searchFilter,
         int page,
         bool selectDub)
@@ -106,7 +107,11 @@ public class ZoroScraper : BaseScraper
         //https://stackoverflow.com/questions/122641/how-can-i-decode-html-characters-in-c
         //HttpUtility.HtmlDecode();
 
-        var anime = new Anime() { Id = id };
+        var anime = new Anime()
+        {
+            Id = id,
+            Site = AnimeSites.Zoro
+        };
 
         if (string.IsNullOrEmpty(response))
             return anime;
@@ -114,15 +119,25 @@ public class ZoroScraper : BaseScraper
         var document = new HtmlDocument();
         document.LoadHtml(HtmlEntity.DeEntitize(response));
 
+        anime.Title = document.DocumentNode
+            .SelectSingleNode(".//h2[contains(@class, 'film-name')]")?
+            .InnerText ?? "";
+
+        anime.Summary = document.DocumentNode.SelectSingleNode(".//div[contains(@class, 'film-description')]")?
+            .InnerText?.Trim() ?? "";
+
+        anime.Image = document.DocumentNode.SelectSingleNode(".//img[contains(@class, 'film-poster-img')]")?
+            .Attributes["src"]?.Value?.ToString() ?? "";
+
         var itemHeadNodes = document.DocumentNode.SelectNodes(".//div[@class='anisc-info-wrap']/div[@class='anisc-info']//span[@class='item-head']");
         //var overviewNode = document.DocumentNode.SelectNodes(".//div[@class='anisc-info-wrap']/div[@class='anisc-info']")[0];
         //anime.Summary = overviewNode.InnerText;
 
-        var overviewNode = itemHeadNodes.Where(x => !string.IsNullOrEmpty(x.InnerHtml)
-            && x.InnerHtml.ToLower().Contains("overview")).FirstOrDefault()?
+        var overviewNode = itemHeadNodes.FirstOrDefault(x => !string.IsNullOrEmpty(x.InnerHtml)
+            && x.InnerHtml.ToLower().Contains("overview"))?
             .ParentNode.SelectSingleNode(".//span[@class='name']")
-            ?? itemHeadNodes.Where(x => !string.IsNullOrEmpty(x.InnerHtml)
-            && x.InnerHtml.ToLower().Contains("overview")).FirstOrDefault()?
+            ?? itemHeadNodes.FirstOrDefault(x => !string.IsNullOrEmpty(x.InnerHtml)
+            && x.InnerHtml.ToLower().Contains("overview"))?
             .ParentNode.SelectSingleNode(".//div[@class='text']");
         if (overviewNode is not null)
             anime.Summary = overviewNode.InnerText.Trim();
@@ -132,26 +147,26 @@ public class ZoroScraper : BaseScraper
         if (typeNode is not null)
             anime.Type = typeNode.InnerText;
 
-        var statusNode = itemHeadNodes.Where(x => !string.IsNullOrEmpty(x.InnerHtml)
-            && x.InnerHtml.ToLower().Contains("status")).FirstOrDefault()?
+        var statusNode = itemHeadNodes.FirstOrDefault(x => !string.IsNullOrEmpty(x.InnerHtml)
+            && x.InnerHtml.ToLower().Contains("status"))?
             .ParentNode.SelectSingleNode(".//span[@class='name']");
         if (statusNode is not null)
             anime.Status = statusNode.InnerText;
 
-        var genresNode = itemHeadNodes.Where(x => !string.IsNullOrEmpty(x.InnerHtml)
-            && x.InnerHtml.ToLower().Contains("genres")).FirstOrDefault()?
+        var genresNode = itemHeadNodes.FirstOrDefault(x => !string.IsNullOrEmpty(x.InnerHtml)
+            && x.InnerHtml.ToLower().Contains("genres"))?
             .ParentNode.SelectNodes(".//a").ToList();
         if (genresNode is not null)
             anime.Genres.AddRange(genresNode.Select(x => new Genre(x.Attributes["title"].Value)));
 
-        var airedNode = itemHeadNodes.Where(x => !string.IsNullOrEmpty(x.InnerHtml)
-            && x.InnerHtml.ToLower().Contains("aired")).FirstOrDefault()?
+        var airedNode = itemHeadNodes.FirstOrDefault(x => !string.IsNullOrEmpty(x.InnerHtml)
+            && x.InnerHtml.ToLower().Contains("aired"))?
             .ParentNode.SelectSingleNode(".//span[@class='name']");
         if (airedNode is not null)
             anime.Released = airedNode.InnerText;
 
-        var synonymsNode = itemHeadNodes.Where(x => !string.IsNullOrEmpty(x.InnerHtml)
-            && x.InnerHtml.ToLower().Contains("synonyms")).FirstOrDefault()?
+        var synonymsNode = itemHeadNodes.FirstOrDefault(x => !string.IsNullOrEmpty(x.InnerHtml)
+            && x.InnerHtml.ToLower().Contains("synonyms"))?
             .ParentNode.SelectSingleNode(".//span[@class='name']");
         if (synonymsNode is not null)
             //anime.OtherNames = HtmlEntity.DeEntitize(synonymsNode.InnerText);

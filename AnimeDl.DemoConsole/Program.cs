@@ -12,7 +12,7 @@ namespace AnimeDl.DemoConsole;
 
 public static class Program
 {
-    private readonly static AnimeClient _client = new(AnimeSites.GogoAnime);
+    private readonly static AnimeClient _client = new(AnimeSites.Zoro);
     private readonly static AnilistClient _client2 = new();
 
     public static async Task Main()
@@ -255,7 +255,7 @@ public static class Program
         Console.WriteLine();
 
         // Get anime info the anime episodes
-        //var animeInfo = await _client.GetAnimeInfoAsync(animes[animeIndex].Id);
+        var animeInfo = await _client.GetAnimeInfoAsync(animes[animeIndex].Id);
 
         // Read the anime episodes
         var episodes = await _client.GetEpisodesAsync(animes[animeIndex].Id);

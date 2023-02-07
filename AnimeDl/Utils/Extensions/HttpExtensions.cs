@@ -1,19 +1,36 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Specialized;
 using AnimeDl.Helpers;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace AnimeDl.Utils.Extensions;
 
 public static class HttpExtensions
 {
+    public static async ValueTask<HttpResponseMessage> HeadAsync(
+        this HttpClient http,
+        string requestUri,
+        Dictionary<string, string> headers,
+        CancellationToken cancellationToken = default)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Head, requestUri);
+
+        for (int j = 0; j < headers.Count; j++)
+            request.Headers.TryAddWithoutValidation(headers.ElementAt(j).Key, headers.ElementAt(j).Value);
+
+        return await http.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            cancellationToken
+        );
+    }
+
     public static async ValueTask<HttpResponseMessage> HeadAsync(
         this HttpClient http,
         string requestUri,

@@ -45,8 +45,7 @@ public class GogoCDN : VideoExtractor
             var scripts = doc.DocumentNode.Descendants()
                 .Where(x => x.Name == "script").ToList();
 
-            var cryptoScript = scripts.Where(x => x.Attributes["data-name"]?.Value == "episode")
-                .FirstOrDefault()!;
+            var cryptoScript = scripts.FirstOrDefault(x => x.Attributes["data-name"]?.Value == "episode")!;
 
             //var dataValue = scripts.Where(x => x.Attributes["data-name"]?.Value == "crypto")
             //  .FirstOrDefault().Attributes["data-value"].Value;

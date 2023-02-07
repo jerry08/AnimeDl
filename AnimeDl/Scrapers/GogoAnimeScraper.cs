@@ -78,7 +78,7 @@ public class GogoAnimeScraper : BaseScraper
         document.LoadHtml(response);
 
         var itemsNode = document.DocumentNode.Descendants()
-            .Where(node => node.HasClass("items")).FirstOrDefault();
+            .FirstOrDefault(node => node.HasClass("items"));
 
         if (itemsNode is not null)
         {
@@ -237,8 +237,7 @@ public class GogoAnimeScraper : BaseScraper
             .ToList();
         var lastEpisode = lastEpisodes.LastOrDefault()?.Attributes["ep_end"].Value;
 
-        var animeId = document.DocumentNode.Descendants().Where(x => x.Id == "movie_id")
-            .FirstOrDefault()?.Attributes["value"].Value;
+        var animeId = document.DocumentNode.Descendants().FirstOrDefault(x => x.Id == "movie_id")?.Attributes["value"].Value;
 
         var url = $"https://ajax.gogo-load.com/ajax/load-list-episode?ep_start=0&ep_end={lastEpisode}&id={animeId}";
         //response = await _http.SendHttpRequestAsync(CdnUrl + animeId);
@@ -369,7 +368,7 @@ public class GogoAnimeScraper : BaseScraper
         document.LoadHtml(response);
 
         var genresNode = document.DocumentNode.Descendants()
-            .Where(node => node.GetClasses().Contains("genre")).FirstOrDefault();
+            .FirstOrDefault(node => node.GetClasses().Contains("genre"));
 
         if (genresNode is not null)
         {
