@@ -1,7 +1,7 @@
 <Project>
 
   <PropertyGroup>
-    <Version>1.8.1</Version>
+    <Version>1.8.2</Version>
     <Company>Jerro</Company>
     <Copyright>Copyright (C) Jerry Berry</Copyright>
     <LangVersion>latest</LangVersion>
@@ -17,7 +17,7 @@
 
   <PropertyGroup>
     <Authors>$(Company)</Authors>
-    <PackageTags>anime animedl scraper animescraper scraping crawler gogoanime twistmoe zoro zoroto 9anime tenshi gogoplay</PackageTags>
+    <PackageTags>anime animedl scraper animescraper scraping crawler gogoanime twistmoe zoro zoroto gogoplay</PackageTags>
     <PackageProjectUrl>https://github.com/jerry08/AnimeDl</PackageProjectUrl>
     <PackageReleaseNotes>https://github.com/jerry08/AnimeDl/blob/master/Changelog.md</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
