@@ -30,8 +30,6 @@
 |:--------------------------:|:--------:|:---------:|
 | [Gogo](https://gogoanime.dk/)			| WORKING | YES |
 | [Zoro](https://zoro.to)				| WORKING | YES |
-| [9Anime](https://9anime.id)			| NOT WORKING | NO |
-| [Tenshi](https://tenshi.moe)			| WORKING | YES |
 
 
 ## Install
