@@ -13,15 +13,5 @@ public enum AnimeSites
     /// <summary>
     /// Parses anime and information from Zoro.
     /// </summary>
-    Zoro,
-
-    /// <summary>
-    /// Parses anime and information from NineAnime.
-    /// </summary>
-    NineAnime,
-
-    /// <summary>
-    /// Parses anime and information from Tenshi.
-    /// </summary>
-    Tenshi
+    Zoro
 }
