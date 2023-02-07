@@ -122,8 +122,6 @@ public class AnimeClient
         {
             AnimeSites.GogoAnime => new GogoAnimeScraper(_http),
             AnimeSites.Zoro => new ZoroScraper(_http),
-            AnimeSites.NineAnime => new NineAnimeScraper(_http),
-            AnimeSites.Tenshi => new TenshiScraper(_http),
             _ => new GogoAnimeScraper(_http),
         };
     }
