@@ -45,9 +45,6 @@ public class AniskipClient
 
         var result = JsonConvert.DeserializeObject<AniSkipResponse>(response);
 
-        if (result is not null && result.IsFound)
-            return result.Results;
-        else
-            return null;
+        return result?.IsFound == true ? result.Results : null;
     }
 }

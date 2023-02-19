@@ -88,7 +88,6 @@ public class ZoroScraper : BaseScraper
                 Site = AnimeSites.Zoro,
                 Image = img,
                 Title = title,
-                EpisodesNum = 0,
                 Category = category,
                 Link = BaseUrl + category,
             });

@@ -1,7 +1,4 @@
-﻿using System.Collections.Specialized;
-using Newtonsoft.Json;
-using AnimeDl.Utils.JsonConverters;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace AnimeDl.Models;
 

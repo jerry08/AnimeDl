@@ -13,6 +13,8 @@ public class Episode
 
     public float Number { get; set; }
 
+    public float Duration { get; set; }
+
     public string Link { get; set; } = default!;
 
     public string Image { get; set; } = default!;

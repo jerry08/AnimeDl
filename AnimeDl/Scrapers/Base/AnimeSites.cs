@@ -13,5 +13,10 @@ public enum AnimeSites
     /// <summary>
     /// Parses anime and information from Zoro.
     /// </summary>
-    Zoro
+    Zoro,
+
+    /// <summary>
+    /// Parses anime and information from AnimePahe.
+    /// </summary>
+    AnimePahe
 }

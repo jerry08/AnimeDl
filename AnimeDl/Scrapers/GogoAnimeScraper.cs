@@ -123,7 +123,6 @@ public class GogoAnimeScraper : BaseScraper
                     Site = AnimeSites.GogoAnime,
                     Image = img,
                     Title = title,
-                    EpisodesNum = 0,
                     Category = category,
                     Released = released,
                     Link = link,

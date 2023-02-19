@@ -24,7 +24,7 @@ public abstract class BaseScraper : IAnimeScraper
 
     public virtual HttpClient _http { get; set; }
 
-    public BaseScraper(HttpClient http)
+    protected BaseScraper(HttpClient http)
         => _http = http;
 
     public abstract Task<List<Anime>> SearchAsync(string query,
