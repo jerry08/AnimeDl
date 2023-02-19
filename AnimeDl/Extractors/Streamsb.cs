@@ -47,7 +47,7 @@ public class StreamSB : VideoExtractor
         var bytes = Encoding.ASCII.GetBytes($"||{id}||||streamsb");
         var bytesToHex = BytesToHex(bytes);
 
-        var jsonLink = $"https://streamsss.net/sources50/{bytesToHex}/";
+        var jsonLink = $"https://streamsss.net/sources51/{bytesToHex}/";
 
         var headers = new Dictionary<string, string>()
         {
