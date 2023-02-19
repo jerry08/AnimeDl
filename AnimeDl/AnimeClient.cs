@@ -120,9 +120,10 @@ public class AnimeClient
 
         _scraper = animeSite switch
         {
+            AnimeSites.AnimePahe => new AnimePaheScraper(_http),
             AnimeSites.GogoAnime => new GogoAnimeScraper(_http),
             AnimeSites.Zoro => new ZoroScraper(_http),
-            _ => new GogoAnimeScraper(_http),
+            _ => new GogoAnimeScraper(_http)
         };
     }
 

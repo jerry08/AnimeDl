@@ -30,8 +30,6 @@
     <Compile Remove="Extractors\RapidCloud - Copy.cs" />
     <Compile Remove="Extractors\Streamsb - Copy.cs" />
     <Compile Remove="Scrapers\Interfaces\IPaginator.cs" />
-    <Compile Remove="Utils\JsonConverters\CollectionConverter.cs" />
-    <Compile Remove="Utils\JsonConverters\WebHeaderCollectionConverter.cs" />
   </ItemGroup>
 
   <ItemGroup>
