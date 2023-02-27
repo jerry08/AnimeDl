@@ -285,11 +285,7 @@ public class GogoAnimeScraper : BaseScraper
     }
 
     private string HttpsIfy(string text)
-    {
-        if (string.Join("", text.Take(2)) == "//")
-            return $"https:{text}";
-        return text;
-    }
+        => string.Join("", text.Take(2)) == "//" ? $"https:{text}" : text;
 
     public override async Task<List<VideoServer>> GetVideoServersAsync(string episodeId)
     {
@@ -306,7 +302,7 @@ public class GogoAnimeScraper : BaseScraper
         doc.LoadHtml(response);
 
         //Exception for fire force season 2 episode 1
-        if (response.Contains(@">404</h1>"))
+        if (response.Contains(">404</h1>"))
             response = await _http.SendHttpRequestAsync(episodeUrl + "-1");
 
         var videoServers = new List<VideoServer>();
@@ -322,9 +318,7 @@ public class GogoAnimeScraper : BaseScraper
             videoServers.Add(new VideoServer(name, embed));
         }
 
-        videoServers = videoServers.OrderBy(x => x.Name).ToList();
-
-        return videoServers;
+        return videoServers.OrderBy(x => x.Name).ToList();
     }
 
     public override IVideoExtractor? GetVideoExtractor(VideoServer server)
@@ -334,7 +328,8 @@ public class GogoAnimeScraper : BaseScraper
 
         if (domainInfo.Domain.Contains("gogo")
             || domainInfo.Domain.Contains("goload")
-            || domainInfo.Domain.Contains("playgo"))
+            || domainInfo.Domain.Contains("playgo")
+            || domainInfo.Domain.Contains("anihdplay"))
         {
             return new GogoCDN(_http, server);
         }
