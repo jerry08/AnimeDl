@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Net;
+using System.Collections.Generic;
 using System.Net.Http;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using Newtonsoft.Json.Linq;
 using AnimeDl.Models;
-using AnimeDl.Utils.Extensions;
 using AnimeDl.Utils;
+using AnimeDl.Utils.Extensions;
+using Newtonsoft.Json.Linq;
 
 namespace AnimeDl.Extractors;
 
@@ -24,7 +21,7 @@ public class StreamSB : VideoExtractor
 
     private string BytesToHex(byte[] bytes)
     {
-        var hexChars = new char[(bytes.Length * 2)];
+        var hexChars = new char[bytes.Length * 2];
         for (int j = 0; j < bytes.Length; j++)
         {
             var v = bytes[j] & 0xFF;
@@ -47,7 +44,8 @@ public class StreamSB : VideoExtractor
         var bytes = Encoding.ASCII.GetBytes($"||{id}||||streamsb");
         var bytesToHex = BytesToHex(bytes);
 
-        var jsonLink = $"https://streamsss.net/sources51/{bytesToHex}/";
+        var source = await _http.SendHttpRequestAsync("https://raw.githubusercontent.com/jerry08/anistream-extras/main/streamsb.txt");
+        var jsonLink = $"{source.Trim()}/{bytesToHex}/";
 
         var headers = new Dictionary<string, string>()
         {
