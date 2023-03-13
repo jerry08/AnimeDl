@@ -45,11 +45,12 @@
 
   <ItemGroup>
     <PackageReference Include="BrotliSharpLib" Version="0.3.3" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.42" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.46" />
     <PackageReference Include="JGrabber" Version="1.1.0" />
     <PackageReference Include="JGrabber.Hls" Version="1.1.0" />
-    <PackageReference Include="Nager.PublicSuffix" Version="2.3.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Nager.PublicSuffix" Version="2.4.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="TaskExecutor" Version="1.0.1" />
   </ItemGroup>
 
 </Project>
