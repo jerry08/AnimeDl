@@ -111,7 +111,7 @@ public class AnimePaheScraper : BaseScraper
 
         anime.Status = document.DocumentNode
             .SelectSingleNode(".//div[contains(@class, 'anime-info')]/div")?
-            .InnerText ?? "";
+            .InnerText?.Trim() ?? "";
 
         return anime;
     }
