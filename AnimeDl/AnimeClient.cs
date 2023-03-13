@@ -554,10 +554,13 @@ public class AnimeClient
         }
         else
         {
-            function().ContinueWith(t =>
+            Task.Run(() =>
             {
-                OnVideosLoaded?.Invoke(this, new VideoEventArgs(Videos, server));
-            }, _videosCancellationTokenSource.Token);
+                function().ContinueWith(t =>
+                {
+                    OnVideosLoaded?.Invoke(this, new VideoEventArgs(Videos, server));
+                }, _videosCancellationTokenSource.Token);
+            });
         }
 
         return Videos;

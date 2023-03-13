@@ -83,7 +83,8 @@ public class AnimePaheScraper : BaseScraper
 
     public override async Task<Anime> GetAnimeInfoAsync(string id)
     {
-        var response = await _http.SendHttpRequestAsync($"{BaseUrl}/anime/{id}");
+        var url = $"{BaseUrl}/anime/{id}";
+        var response = await _http.SendHttpRequestAsync(url);
 
         var document = new HtmlDocument();
         document.LoadHtml(HtmlEntity.DeEntitize(response));
@@ -91,6 +92,7 @@ public class AnimePaheScraper : BaseScraper
         var anime = new Anime()
         {
             Id = id,
+            Link = url,
             Site = AnimeSites.AnimePahe
         };
 
