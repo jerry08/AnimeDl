@@ -1,19 +1,17 @@
 ﻿using System;
-using System.Linq;
-using System.Text;
-using System.Net.Http;
-using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using Newtonsoft.Json;
+using System.Linq;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
 using AnimeDl.Anilist.Api;
+using AnimeDl.Aniskip;
 using AnimeDl.Utils;
 using AnimeDl.Utils.Extensions;
-using Media = AnimeDl.Anilist.Models.Media;
+using Newtonsoft.Json;
 using Character = AnimeDl.Anilist.Models.Character;
+using Media = AnimeDl.Anilist.Models.Media;
 using Studio = AnimeDl.Anilist.Models.Studio;
-using AnimeDl.Aniskip;
-using System.Diagnostics;
 
 namespace AnimeDl.Anilist;
 

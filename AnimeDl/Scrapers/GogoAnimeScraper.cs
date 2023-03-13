@@ -39,7 +39,7 @@ public class GogoAnimeScraper : BaseScraper
         if (BaseUrl is not null)
             return;
 
-        var json = await _http.SendHttpRequestAsync("https://raw.githubusercontent.com/jerry08/AnimeDl/master/AnimeDl/Data/gogoanime.json");
+        var json = await _http.SendHttpRequestAsync("https://raw.githubusercontent.com/jerry08/anistream-extras/main/gogoanime.json");
         if (!string.IsNullOrEmpty(json))
         {
             var jObj = JObject.Parse(json);

@@ -12,12 +12,14 @@ namespace AnimeDl.DemoConsole;
 
 public static class Program
 {
-    private readonly static AnimeClient _client = new(AnimeSites.Zoro);
+    private readonly static AnimeClient _client = new(AnimeSites.AnimePahe);
     private readonly static AnilistClient _client2 = new();
 
     public static async Task Main()
     {
         Console.Title = "AnimeDl Demo";
+
+        //var tet = await _client.Aniskip.GetAsync(9989, 1, 1469335 / 1000);
 
         await Example2();
         //await AnilistExample1();
@@ -204,7 +206,7 @@ public static class Program
             videoIndex--;
 
             // Download the stream
-            var fileName = $@"{DateTime.Now.Ticks}.mp4";
+            var fileName = $"{DateTime.Now.Ticks}.mp4";
 
             using (var progress = new ConsoleProgress())
                 _client.Download(videos[videoIndex].VideoUrl, videos[videoIndex].Headers, fileName, progress);
@@ -255,7 +257,7 @@ public static class Program
         Console.WriteLine();
 
         // Get anime info the anime episodes
-        var animeInfo = await _client.GetAnimeInfoAsync(animes[animeIndex].Id);
+        //var animeInfo = await _client.GetAnimeInfoAsync(animes[animeIndex].Id);
 
         // Read the anime episodes
         var episodes = await _client.GetEpisodesAsync(animes[animeIndex].Id);
@@ -302,7 +304,7 @@ public static class Program
         videoServerIndex--;
 
         var videos = await _client.GetVideosAsync(videoServers[videoServerIndex]);
-        Console.WriteLine($"Videos found: " + videos.Count);
+        Console.WriteLine($"Videos found: {videos.Count}");
 
         for (int i = 0; i < videos.Count; i++)
             Console.WriteLine($"[{i + 1}] {videos[i].Resolution} - {videos[i].Format} (Size: {videos[i].Size})");
@@ -331,7 +333,9 @@ public static class Program
         using (var progress = new ConsoleProgress())
         {
             if (selectedVideo.Format == VideoType.Container)
+            {
                 await _client.DownloadAsync(selectedVideo.VideoUrl, selectedVideo.Headers, fileName, progress);
+            }
             else
             {
                 var metadataResources = await _client.GetHlsStreamMetadatasAsync(selectedVideo.VideoUrl, selectedVideo.Headers);

@@ -8,6 +8,13 @@ namespace AnimeDl.Utils.Extensions;
 
 internal static class StringExtensions
 {
+    public static string Reverse(this string value)
+    {
+        var charArray = value.ToCharArray();
+        Array.Reverse(charArray);
+        return new string(charArray);
+    }
+
     public static string FindBetween(this string value, string a, string b)
     {
         int start = value.IndexOf(a);
@@ -50,13 +57,6 @@ internal static class StringExtensions
         }
 
         return string.Empty;
-    }
-
-    public static string ReverseString(this string s)
-    {
-        char[] charArray = s.ToCharArray();
-        Array.Reverse(charArray);
-        return new string(charArray);
     }
 
     public static string ReplaceInvalidChars(this string fileName)

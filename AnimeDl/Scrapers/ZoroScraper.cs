@@ -89,7 +89,7 @@ public class ZoroScraper : BaseScraper
                 Image = img,
                 Title = title,
                 Category = category,
-                Link = BaseUrl + category,
+                Link = BaseUrl + category
             });
         }
 
