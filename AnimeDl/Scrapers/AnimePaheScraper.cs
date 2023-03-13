@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using AnimeDl.Exceptions;
 using AnimeDl.Extractors;
 using AnimeDl.Extractors.Interfaces;
 using AnimeDl.Models;
@@ -36,7 +37,12 @@ public class AnimePaheScraper : BaseScraper
     {
         var animes = new List<Anime>();
 
-        var response = await _http.SendHttpRequestAsync($"{BaseUrl}/api?m=search&q={Uri.EscapeUriString(query)}");
+        var response = searchFilter switch
+        {
+            SearchFilter.Find => await _http.SendHttpRequestAsync($"{BaseUrl}/api?m=search&q={Uri.EscapeUriString(query)}"),
+            SearchFilter.Ongoing => await _http.SendHttpRequestAsync($"{BaseUrl}/api?m=airing&page={page}"),
+            _ => throw new SearchFilterNotSupportedException("Search filter not supported")
+        };
 
         if (string.IsNullOrEmpty(response))
             return animes;
@@ -44,6 +50,17 @@ public class AnimePaheScraper : BaseScraper
         var data = JObject.Parse(response)["data"];
         if (data is null)
             return animes;
+
+        if (searchFilter == SearchFilter.Ongoing)
+        {
+            return data.Select(x => new Anime()
+            {
+                Id = x["anime_session"]!.ToString(),
+                Title = x["anime_title"]!.ToString(),
+                Image = x["snapshot"]!.ToString(),
+                Site = AnimeSites.AnimePahe
+            }).ToList();
+        }
 
         var list = data.Select(x => new Anime()
         {
