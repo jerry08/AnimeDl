@@ -257,7 +257,7 @@ public static class Program
         Console.WriteLine();
 
         // Get anime info the anime episodes
-        //var animeInfo = await _client.GetAnimeInfoAsync(animes[animeIndex].Id);
+        var animeInfo = await _client.GetAnimeInfoAsync(animes[animeIndex].Id);
 
         // Read the anime episodes
         var episodes = await _client.GetEpisodesAsync(animes[animeIndex].Id);
