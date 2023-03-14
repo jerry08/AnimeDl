@@ -83,8 +83,7 @@ public class AnimePaheScraper : BaseScraper
 
     public override async Task<Anime> GetAnimeInfoAsync(string id)
     {
-        var url = $"{BaseUrl}/anime/{id}";
-        var response = await _http.SendHttpRequestAsync(url);
+        var response = await _http.SendHttpRequestAsync($"{BaseUrl}/anime/{id}");
 
         var document = new HtmlDocument();
         document.LoadHtml(HtmlEntity.DeEntitize(response));
@@ -92,7 +91,6 @@ public class AnimePaheScraper : BaseScraper
         var anime = new Anime()
         {
             Id = id,
-            Link = url,
             Site = AnimeSites.AnimePahe
         };
 
@@ -126,16 +124,22 @@ public class AnimePaheScraper : BaseScraper
 
         var data = JObject.Parse(response);
 
-        var epsSelector = (JToken el) => new Episode()
+        var epsSelector = (JToken el) =>
         {
-            //Description = el["description"]!.ToString(),
-            //Id = el["id"]!.ToString(),
-            //Id = el["session"]!.ToString(),
-            Id = $"{BaseUrl}/play/{id}/{el["session"]}",
-            Number = Convert.ToInt32(el["episode"]!),
-            Image = el["snapshot"]!.ToString(),
-            Description = el["title"]!.ToString(),
-            Duration = (float)TimeSpan.Parse(el["duration"]!.ToString()).TotalMilliseconds
+            var link = $"{BaseUrl}/play/{id}/{el["session"]}";
+
+            return new Episode()
+            {
+                //Description = el["description"]!.ToString(),
+                //Id = el["id"]!.ToString(),
+                //Id = el["session"]!.ToString(),
+                Id = link,
+                Number = Convert.ToInt32(el["episode"]!),
+                Image = el["snapshot"]!.ToString(),
+                Description = el["title"]!.ToString(),
+                Link = link,
+                Duration = (float)TimeSpan.Parse(el["duration"]!.ToString()).TotalMilliseconds
+            };
         };
 
         list.AddRange(data["data"]!.Select(epsSelector));
